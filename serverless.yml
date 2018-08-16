@@ -1,0 +1,10 @@
+service: jlg.io
+provider: aws
+
+plugins:
+  - serverless-finch
+
+custom:
+  client:
+    bucketName: jlg.io
+    distributionFolder: 'dist'
