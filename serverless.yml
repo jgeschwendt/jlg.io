@@ -1,10 +1,135 @@
-service: jlg.io
-provider: aws
+service: jlg
+
+provider:
+  name: aws
+  region: us-east-1
+  deploymentBucket: ${env:ARTIFACTS_BUCKET}
 
 plugins:
   - serverless-finch
 
 custom:
   client:
-    bucketName: jlg.io
+    bucketName: ${env:DOMAIN_NAME}
     distributionFolder: 'dist'
+
+resources:
+  Mappings:
+    # http://docs.aws.amazon.com/general/latest/gr/rande.html#s3_website_region_endpoints
+    RegionMap:
+      us-east-2:
+        S3HostedZoneId: Z2O1EMRO9K5GLX
+        S3WebsiteEndpoint: s3-website.us-east-2.amazonaws.com
+      us-east-1:
+        S3HostedZoneId: Z3AQBSTGFYJSTF
+        S3WebsiteEndpoint: s3-website-us-east-1.amazonaws.com
+      us-west-1:
+        S3HostedZoneId: Z2F56UZL2M1ACD
+        S3WebsiteEndpoint: s3-website-us-west-1.amazonaws.com
+      us-west-2:
+        S3HostedZoneId: Z3BJ6K6RIION7M
+        S3WebsiteEndpoint: s3-website-us-west-2.amazonaws.com
+      ca-central-1:
+        S3HostedZoneId: Z1QDHH18159H29
+        S3WebsiteEndpoint: s3-website.ca-central-1.amazonaws.com
+      ap-south-1:
+        S3HostedZoneId: Z11RGJOFQNVJUP
+        S3WebsiteEndpoint: s3-website.ap-south-1.amazonaws.com
+      ap-northeast-2:
+        S3HostedZoneId: Z3W03O7B5YMIYP
+        S3WebsiteEndpoint: s3-website.ap-northeast-2.amazonaws.com
+      ap-northeast-3:
+        S3HostedZoneId: Z2YQB5RD63NC85
+        S3WebsiteEndpoint: s3-website.ap-northeast-3.amazonaws.com
+      ap-southeast-1:
+        S3HostedZoneId: Z3O0J2DXBE1FTB
+        S3WebsiteEndpoint: s3-website-ap-southeast-1.amazonaws.com
+      ap-southeast-2:
+        S3HostedZoneId: Z1WCIGYICN2BYD
+        S3WebsiteEndpoint: s3-website-ap-southeast-2.amazonaws.com
+      ap-northeast-1:
+        S3HostedZoneId: Z2M4EHUR26P7ZW
+        S3WebsiteEndpoint: s3-website-ap-northeast-1.amazonaws.com
+      eu-central-1:
+        S3HostedZoneId: Z21DNDUVLTQW6Q
+        S3WebsiteEndpoint: s3-website.eu-central-1.amazonaws.com
+      eu-west-1:
+        S3HostedZoneId: Z1BKCTXD74EZPE
+        S3WebsiteEndpoint: s3-website-eu-west-1.amazonaws.com
+      eu-west-2:
+        S3HostedZoneId: Z3GKZC51ZF0DB4
+        S3WebsiteEndpoint: s3-website.eu-west-2.amazonaws.com
+      eu-west-3:
+        S3HostedZoneId: Z3R1K369G5AVDG
+        S3WebsiteEndpoint: s3-website.eu-west-3.amazonaws.com
+      sa-east-1:
+        S3HostedZoneId: Z7KQH4QJS55SO
+        S3WebsiteEndpoint: s3-website-sa-east-1.amazonaws.com
+
+  Resources:
+    Bucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${env:DOMAIN_NAME}
+        WebsiteConfiguration:
+          ErrorDocument: index.html
+          IndexDocument: index.html
+
+    BucketPolicy:
+      Type: AWS::S3::BucketPolicy
+      Properties:
+        Bucket: {Ref: Bucket}
+        PolicyDocument:
+          Statement:
+            - Action: ['s3:GetObject']
+              Effect: Allow
+              Principal: '*'
+              Resource: {'Fn::Join': ['', ['arn:aws:s3:::', {Ref: Bucket}, '/*']]}
+              Sid: PublicReadGetObject
+
+    Distribution:
+      Type: AWS::CloudFront::Distribution
+      Properties:
+        # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cloudfront-distribution-distributionconfig.html
+        DistributionConfig:
+          Aliases:
+            - ${env:DOMAIN_NAME}
+          DefaultCacheBehavior:
+            AllowedMethods: [GET, HEAD]
+            Compress: true
+            DefaultTTL: 30
+            ForwardedValues: {QueryString: true}
+            MinTTL: 10
+            TargetOriginId: S3Origin
+            ViewerProtocolPolicy: redirect-to-https
+          DefaultRootObject: index.html
+          Enabled: true
+          HttpVersion: http2
+          Origins:
+            - CustomOriginConfig:
+                HTTPPort: 80
+                HTTPSPort: 443
+                OriginProtocolPolicy: http-only
+              DomainName: {'Fn::Join': ['', [{Ref: Bucket}, '.', {'Fn::FindInMap': [RegionMap, {Ref: 'AWS::Region'}, S3WebsiteEndpoint]}]]}
+              Id: S3Origin
+          PriceClass: PriceClass_100
+          ViewerCertificate:
+            AcmCertificateArn: ${env:CERTIFICATE_ARN}
+            MinimumProtocolVersion: TLSv1.1_2016
+            SslSupportMethod: sni-only
+
+    RecordSetGroup:
+      Type: AWS::Route53::RecordSetGroup
+      Properties:
+        HostedZoneName: ${env:HOSTED_ZONE}.
+        RecordSets:
+          - Name: ${env:DOMAIN_NAME}.
+            Type: A
+            AliasTarget:
+              DNSName: {'Fn::GetAtt': Distribution.DomainName}
+              HostedZoneId: Z2FDTNDATAQYW2 # cloudfront's hosted zone id
+          - Name: ${env:DOMAIN_NAME}.
+            Type: AAAA
+            AliasTarget:
+              DNSName: {'Fn::GetAtt': Distribution.DomainName}
+              HostedZoneId: Z2FDTNDATAQYW2 # cloudfront's hosted zone id
