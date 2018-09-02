@@ -21,13 +21,14 @@ export NODE_CONTAINER = \
 build:
 	@docker run --env-file $(ENV_FILE) $(NODE_CONTAINER) yarn run build
 
-deploy:
-	@make stop-docker
-	@docker run --env-file $(ENV_FILE) $(NODE_CONTAINER) yarn run deploy
-
 check:
 	@make tsc
 	@make tslint
+
+deploy:
+	@make stop-docker
+	@make build
+	@docker run --env-file $(ENV_FILE) $(NODE_CONTAINER) node node_modules/.bin/serverless client deploy
 
 dev:
 	@docker run --env-file $(ENV_FILE) $(NODE_CONTAINER) /bin/bash
@@ -40,6 +41,10 @@ install:
 
 profile:
 	@docker run --env-file $(ENV_FILE) $(NODE_CONTAINER) yarn run profile
+
+provision:
+	@make stop-docker
+	@docker run --env-file $(ENV_FILE) $(NODE_CONTAINER) node node_modules/.bin/serverless deploy --stage $(ENV)
 
 start:
 	@docker run --env-file $(ENV_FILE) --publish 3000:3000 $(NODE_CONTAINER) yarn run start
