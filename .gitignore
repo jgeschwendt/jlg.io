@@ -61,4 +61,7 @@ typings/
 # next.js build output
 .next
 
+# serverless build output
+.serverless
+
 dist
