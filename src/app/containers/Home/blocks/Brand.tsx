@@ -1,5 +1,5 @@
 import * as React from 'react'
-import styled, { keyframes } from '../../../styled'
+import styled, { css, keyframes, media } from '../../../styled'
 
 const selectLength = ({ length }) => length
 
@@ -26,7 +26,23 @@ const animatePath = ({ length }) => keyframes`
 const Logo: any = styled.div`
   display: block;
   margin: 2rem auto;
-  padding: .5rem;
+  text-align: center;
+
+  ${media.breakpoint.up('sm', css`
+    margin: 4rem auto 2rem;
+  `)}
+
+  ${media.breakpoint.up('md', css`
+    margin: 6rem auto 2rem;
+  `)}
+
+  ${media.breakpoint.up('lg', css`
+    margin: 8rem auto 2rem;
+  `)}
+
+  ${media.breakpoint.up('xl', css`
+    margin: 10rem auto 2rem;
+  `)}
 
   svg {
     height: 12rem;
