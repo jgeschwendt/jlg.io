@@ -17,6 +17,16 @@ export const Main = styled.main`
     transition: transform 700ms ease-in, opacity 1000ms ease-in;
   }
 
+  .latest-work {
+    opacity: 0;
+    transition: opacity 1s ease-in;
+  }
+
+  .latest-work-enter-done {
+    opacity: 1;
+    transition: opacity 1s ease-in;
+  }
+
   .social {
     opacity: 0;
     transition: opacity 1s ease-in;
