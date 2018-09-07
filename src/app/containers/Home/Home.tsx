@@ -4,6 +4,7 @@ import { CSSTransition } from 'react-transition-group'
 import { Main, Statement, StatementContainer } from './styles'
 import Brand from './blocks/Brand'
 import Languages from './blocks/Languages'
+import LatestWork from './blocks/LatestWork'
 import Skills from './blocks/Skills'
 import Social from './blocks/Social'
 
@@ -44,13 +45,21 @@ export default class extends React.Component<any, any> {
           </StatementContainer>
         </CSSTransition>
 
+        <CSSTransition
+          classNames='latest-work'
+          in={!this.state.loading}
+          timeout={1500}
+          unmountOnExit={true}
+        ><LatestWork className='latest-work'/>
+        </CSSTransition>
+
         {/* <Skills /> */}
         {/* <Languages /> */}
 
         <CSSTransition
           classNames='social'
           in={!this.state.loading}
-          timeout={1500}
+          timeout={2000}
           unmountOnExit={true}
         ><Social className='social' />
         </CSSTransition>
