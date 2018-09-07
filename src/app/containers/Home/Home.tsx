@@ -9,8 +9,8 @@ import Skills from './blocks/Skills'
 import Social from './blocks/Social'
 
 const statement = `
-  I'm a seasoned software developer with seven years of professional experience from Grand Rapids, Michigan.
-  I specialize in cloud-based Node.js services and React applications with a wide umbrella of web and data driven skill-sets.
+  I'm a seasoned software developer with seven years of professional experience located in Grand Rapids, Michigan.
+  I specialize in cloud-based Node.js services and React applications with a wide umbrella of web and data-driven skill sets.
 `
 
 export default class extends React.Component<any, any> {
