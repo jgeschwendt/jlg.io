@@ -28,7 +28,7 @@ check:
 deploy:
 	@make stop-docker
 	@make build
-	@docker run --env-file $(ENV_FILE) $(NODE_CONTAINER) node node_modules/.bin/serverless client deploy
+	@docker run --env-file $(ENV_FILE) $(NODE_CONTAINER) node node_modules/.bin/serverless client deploy --no-confirm
 
 dev:
 	@docker run --env-file $(ENV_FILE) $(NODE_CONTAINER) /bin/bash
