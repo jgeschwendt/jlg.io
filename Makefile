@@ -9,7 +9,8 @@ endif
 include $(ENV_FILE)
 
 # Export these variables for docker-compose usage
-export CONTAINER_NAME = jlg.io/devbox
+export CONTAINER_NAME = jlg/jlg.io
+export CONTAINER_MOUNT = jlg.io.mount
 export NODE_CONTAINER = \
 	--interactive \
 	--rm \
@@ -34,10 +35,26 @@ dev:
 	@docker run --env-file $(ENV_FILE) $(NODE_CONTAINER) /bin/bash
 
 devbox:
+	# create a new image
+	@docker build --tag $(CONTAINER_NAME) .
+
+devbox-no-cache:
 	@docker build --no-cache --tag $(CONTAINER_NAME) .
 
 install:
-	@docker run $(NODE_CONTAINER) yarn install
+	# remove old dependencies
+	@rm -rf node_modules && rm -f yarn.lock
+
+	# create a temporary container mount
+	@docker create --name $(CONTAINER_MOUNT) $(CONTAINER_NAME)
+
+	# copy dependencies
+	@docker cp $(CONTAINER_MOUNT):/var/task/node_modules ./node_modules
+	@docker cp $(CONTAINER_MOUNT):/var/task/yarn.lock    ./yarn.lock
+
+	# remove temporary container mount
+	@docker rm --force --volumes $(CONTAINER_MOUNT)
+
 
 profile:
 	@docker run --env-file $(ENV_FILE) $(NODE_CONTAINER) yarn run profile
