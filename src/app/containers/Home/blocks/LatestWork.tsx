@@ -26,10 +26,10 @@ const Statement = styled.p`
 
 export default ({ className = null }) => (
   <LatestWork className={className}>
-    <Statement>Checkout some of my latest public works</Statement>
+    <Statement>Checkout some of my latest work</Statement>
     <Links>
+      <Link href="https://www.dig.solutions" target="_blank">https://www.dig.solutions</Link>
       <Link href="https://www.hurleyfoundation.org" target="_blank">https://www.hurleyfoundation.org</Link>
-      <Link href="https://thinkblackinc.com" target="_blank">https://thinkblackinc.com</Link>
       <Link href="https://imcs.solutions" target="_blank">https://imcs.solutions</Link>
     </Links>
   </LatestWork>
