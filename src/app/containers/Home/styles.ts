@@ -1,4 +1,4 @@
-import styled, { css, media } from '../../styled'
+import styled, { css, media } from '../../styled';
 
 export const Main = styled.main`
   height: 100%;
@@ -36,7 +36,7 @@ export const Main = styled.main`
     opacity: 1;
     transition: opacity 1s ease-in;
   }
-`
+`;
 
 export const StatementContainer = styled.div`
   margin: 2rem auto;
@@ -48,7 +48,7 @@ export const StatementContainer = styled.div`
     font-size: 1.5rem;
     margin: 4rem auto;
   `)}
-`
+`;
 
 export const Statement = styled.p`
   color: rgba(255, 255, 255, .8);
@@ -62,4 +62,4 @@ export const Statement = styled.p`
   ${media.breakpoint.up('md', css`
     font-size: 1.5rem;
   `)}
-`
+`;

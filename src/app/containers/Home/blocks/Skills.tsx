@@ -1,5 +1,5 @@
-import * as React from 'react'
-import styled, { css, media } from '../../../styled'
+import * as React from 'react';
+import styled, { css, media } from '../../../styled';
 
 const Skills = styled.ul`
   margin: auto;
@@ -8,14 +8,15 @@ const Skills = styled.ul`
   ${media.breakpoint.up('md', css`
     max-width: 50rem;
   `)}
-`
-const SkillItem = styled.li``
+`;
+const SkillItem = styled.li``;
 
+/* eslint-disable-next-line */
 const Skill = ({ filter = null, name = null, production = false }) => (
   <SkillItem>{name}</SkillItem>
-)
+);
 
-export default () => (
+const SkillsComponent = (): JSX.Element => (
   <Skills>
     <Skill name='Apollo' production={true} />
     <Skill name='CraftCMS' production={true} />
@@ -26,4 +27,6 @@ export default () => (
     <Skill name='Rollup/Webpack' production={true} />
     <Skill name='Wordpress' production={true} />
   </Skills>
-)
+);
+
+export default SkillsComponent;
