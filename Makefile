@@ -45,6 +45,9 @@ install:
 	# remove old dependencies
 	@rm -rf node_modules && rm -f yarn.lock
 
+	# rebuild container image changes
+	@make devbox
+
 	# create a temporary container mount
 	@docker create --name $(CONTAINER_MOUNT) $(CONTAINER_NAME)
 

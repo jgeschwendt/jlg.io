@@ -9,10 +9,10 @@
   "private": true,
   "scripts": {
     "build": "BABEL_ENV=production NODE_ENV=production webpack",
+    "lint": "eslint --ext .ts --ext .tsx src/",
+    "lint-fix": "eslint --ext .ts --ext .tsx --fix src/",
     "start": "webpack-dev-server",
-    "tsc": "tsc --project tsconfig.json",
-    "tslint": "tslint --project tsconfig.json",
-    "tslint-fix": "tslint --fix --project tsconfig.json"
+    "tsc": "tsc --project tsconfig.json"
   },
   "dependencies": {
     "polished": "3.2.0",
@@ -20,14 +20,10 @@
     "react-dom": "16.8.6",
     "react-ga": "2.5.7",
     "react-helmet": "5.2.0",
-    "react-redux": "6.0.1",
     "react-router": "5.0.0",
     "react-router-config": "5.0.0",
     "react-router-dom": "5.0.0",
     "react-transition-group": "2.9.0",
-    "redux": "4.0.1",
-    "redux-form":"8.1.0",
-    "sitemap": "2.1.0",
     "styled-components": "4.2.0",
     "styled-transition-group": "2.0.0"
   },
@@ -47,13 +43,15 @@
     "html-webpack-plugin": "3.2.0",
     "eslint": "5.16.0",
     "eslint-loader": "2.1.2",
+    "eslint-plugin-react": "7.12.4",
     "jest": "24.7.1",
+    "prop-types": "15.7.2",
     "serverless": "1.40.0",
     "serverless-finch": "2.4.2",
-    "typescript": "3.4.2",
-    "webpack": "4.29.6",
-    "webpack-bundle-analyzer": "3.2.0",
+    "typescript": "3.4.3",
+    "webpack": "4.30.0",
+    "webpack-bundle-analyzer": "3.3.2",
     "webpack-cli": "3.3.0",
-    "webpack-dev-server": "3.3.0"
+    "webpack-dev-server": "3.3.1"
   }
 }
