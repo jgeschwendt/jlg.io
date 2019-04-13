@@ -1,6 +1,5 @@
-
-import * as React from 'react'
-import styled, { css, media } from '../../../styled'
+import * as React from 'react';
+import styled, { css, media } from '../../../styled';
 
 const LinkDock = styled.div`
   display: flex;
@@ -13,7 +12,7 @@ const LinkDock = styled.div`
   ${media.breakpoint.up('sm', css`
     font-size: 2rem;
   `)}
-`
+`;
 
 const Row = styled.div`
   text-align: center;
@@ -22,7 +21,7 @@ const Row = styled.div`
   ${media.breakpoint.up('sm', css`
     width: auto;
   `)}
-`
+`;
 
 const Col = styled.div`
   display: inline-block;
@@ -31,7 +30,7 @@ const Col = styled.div`
   ${media.breakpoint.up('sm', css`
     width: auto;
   `)}
-`
+`;
 
 const Link = styled.a`
   color: rgba(255, 255, 255, .8);
@@ -39,7 +38,7 @@ const Link = styled.a`
   margin: 1rem;
   text-align: center;
   text-decoration: none;
-`
+`;
 
 const Icon: any = styled.i`
   display: block;
@@ -49,7 +48,7 @@ const Icon: any = styled.i`
   ${media.breakpoint.up('sm', css`
     font-size: 2rem;
   `)}
-`
+`;
 
 const Text = styled.span`
   display: block;
@@ -60,9 +59,9 @@ const Text = styled.span`
   ${media.breakpoint.up('sm', css`
     font-size: .8rem;
   `)}
-`
+`;
 
-export default ({ className = null }) => (
+const SocialComponent = ({ className = null }): JSX.Element => (
   <LinkDock className={className}>
     <Row>
       <Col>
@@ -93,4 +92,6 @@ export default ({ className = null }) => (
       </Col>
     </Row>
   </LinkDock>
-)
+);
+
+export default SocialComponent;

@@ -15,6 +15,7 @@ COPY package.json .
 RUN yarn install
 
 VOLUME node_modules
+VOLUME yarn.lock
 
 COPY . .
 
