@@ -1,7 +1,7 @@
 import { css, InterpolationValue } from 'styled-components';
 import theme from './theme';
 
-type MediaBreakpointEnum = 'sm' | 'md' | 'lg' | 'xl'
+type MediaBreakpointEnum = 'sm' | 'md' | 'lg' | 'xl';
 
 class BreakpointFactory {
   private theme
@@ -10,7 +10,7 @@ class BreakpointFactory {
     this.theme = { ...this.theme, ...$theme };
   }
 
-  public up (media: MediaBreakpointEnum, rules: InterpolationValue[]): any {
+  public up (media: MediaBreakpointEnum, rules: InterpolationValue[]): InterpolationValue[] {
     return css`
       @media (min-width: ${this.theme.breakpoints[media]}px) {
         ${rules}
@@ -18,7 +18,7 @@ class BreakpointFactory {
     `;
   }
 
-  public down (media: MediaBreakpointEnum, rules: string): any {
+  public down (media: MediaBreakpointEnum, rules: InterpolationValue[]): InterpolationValue[] {
     return css`
       @media (max-width: ${this.theme.breakpoints[media] - .02}px) {
         ${rules}
@@ -29,7 +29,7 @@ class BreakpointFactory {
 
 export default {
   breakpoint: new BreakpointFactory(theme),
-  print: (rules: string): any => css`
+  print: (rules: InterpolationValue[]): InterpolationValue[] => css`
     @media print {
       ${rules}
     }
