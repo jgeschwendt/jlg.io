@@ -5,86 +5,89 @@ else
 export ENV_FILE = .env
 endif
 
-# Include the envionment variables in this Makefile
+# include variables for use in this Makefile
 include $(ENV_FILE)
 
-# Export these variables for docker-compose usage
+# export variables for command usage (ie. docker-compose)
 export CONTAINER_NAME = jlg/jlg.io
 export CONTAINER_MOUNT = jlg.io.mount
 export NODE_CONTAINER = \
 	--interactive \
 	--rm \
 	--tty \
-	--volume $(shell pwd):/var/task \
+	--volume $(shell pwd)/dist:/var/task/dist \
+	--volume $(shell pwd)/src:/var/task/src \
 	--workdir /var/task \
 	$(CONTAINER_NAME)
 
+
+# npm scripts`
+
 build:
-	@docker run --env-file $(ENV_FILE) $(NODE_CONTAINER) yarn run build
+	docker run --env-file $(ENV_FILE) $(NODE_CONTAINER) npm run build
 
 check:
-	@make tsc
-	@make tslint
-
-deploy:
-	@make stop-docker
-	@make build
-	@docker run --env-file $(ENV_FILE) $(NODE_CONTAINER) node node_modules/.bin/serverless client deploy --no-confirm
-
-dev:
-	@docker run --env-file $(ENV_FILE) $(NODE_CONTAINER) /bin/bash
-
-devbox:
-	# create a new image
-	@docker build --tag $(CONTAINER_NAME) .
-
-devbox-no-cache:
-	@docker build --no-cache --tag $(CONTAINER_NAME) .
+	docker run --env-file $(ENV_FILE) $(NODE_CONTAINER) npm run lint-fix
+	docker run --env-file $(ENV_FILE) $(NODE_CONTAINER) npm run tsc
 
 install:
-	# remove old dependencies
-	@rm -rf node_modules && rm -f yarn.lock
+	rm -rf node_modules
+	rm -f package-lock.json
+	docker build --tag $(CONTAINER_NAME) .
+	docker create --name $(CONTAINER_MOUNT) $(CONTAINER_NAME)
+	docker cp $(CONTAINER_MOUNT):/var/task/node_modules ./node_modules
+	docker cp $(CONTAINER_MOUNT):/var/task/package-lock.json ./package-lock.json
+	docker rm --force --volumes $(CONTAINER_MOUNT)
 
-	# rebuild container image changes
-	@make devbox
+lint:
+	docker run --env-file $(ENV_FILE) $(NODE_CONTAINER) npm run lint
 
-	# create a temporary container mount
-	@docker create --name $(CONTAINER_MOUNT) $(CONTAINER_NAME)
+lint-fix:
+	docker run --env-file $(ENV_FILE) $(NODE_CONTAINER) npm run lint-fix
 
-	# copy dependencies
-	@docker cp $(CONTAINER_MOUNT):/var/task/node_modules ./node_modules
-	@docker cp $(CONTAINER_MOUNT):/var/task/yarn.lock    ./yarn.lock
+npm-check:
+	docker run --env-file $(ENV_FILE) $(NODE_CONTAINER) npm run npm-check-updates
 
-	# remove temporary container mount
-	@docker rm --force --volumes $(CONTAINER_MOUNT)
-
+npm-check-updates:
+	docker run --env-file $(ENV_FILE) $(NODE_CONTAINER) npm run npm-check-updates -u
 
 profile:
-	@docker run --env-file $(ENV_FILE) $(NODE_CONTAINER) yarn run profile
+	docker run --env-file $(ENV_FILE) $(NODE_CONTAINER) npm run profile
 
-provision:
-	@make stop-docker
-	@docker run --env-file $(ENV_FILE) $(NODE_CONTAINER) node node_modules/.bin/serverless deploy --stage $(ENV)
+profile-dev:
+	docker run --env-file $(ENV_FILE) $(NODE_CONTAINER) npm run profile-dev
 
 start:
-	@docker run --env-file $(ENV_FILE) --publish 3000:3000 $(NODE_CONTAINER) yarn run start
-
-start-hard:
-	rm -rf node_modules
-	rm -f yarn.lock
-	make devbox
-	make install
-	make start
-
-stop-docker:
-	@docker ps -aq | xargs docker stop
-	@docker ps -aq | xargs docker rm
+	docker run --env-file $(ENV_FILE) --publish 3000:3000 $(NODE_CONTAINER) npm run start
 
 tsc:
-	@docker run --env-file $(ENV_FILE) $(NODE_CONTAINER) yarn run tsc
+	docker run --env-file $(ENV_FILE) $(NODE_CONTAINER) npm run tsc
 
-tslint:
-	@docker run --env-file $(ENV_FILE) $(NODE_CONTAINER) yarn run tslint
+tsc-watch:
+	docker run --env-file $(ENV_FILE) $(NODE_CONTAINER) npm run tsc-watch
 
-tslint-fix:
-	@docker run --env-file $(ENV_FILE) $(NODE_CONTAINER) yarn run tslint-fix
+
+# infrastructure
+
+build-container:
+	docker build --tag $(CONTAINER_NAME) .
+
+build-container-no-cache:
+	docker build --no-cache --tag $(CONTAINER_NAME) .
+
+deploy:
+	rm -rf dist
+	docker run --env-file $(ENV_FILE) $(NODE_CONTAINER) yarn run build
+	docker run --env-file $(ENV_FILE) $(NODE_CONTAINER) node node_modules/.bin/serverless client deploy --no-confirm
+
+provision:
+	docker run --env-file $(ENV_FILE) $(NODE_CONTAINER) node node_modules/.bin/serverless deploy --stage $(ENV)
+
+# utils
+
+dev:
+	docker run --env-file $(ENV_FILE) $(NODE_CONTAINER) /bin/bash
+
+kill-containers:
+	-docker stop $(shell docker ps --all --quiet)
+	-docker rm $(shell docker ps --all --quiet)

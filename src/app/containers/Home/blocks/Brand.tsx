@@ -1,13 +1,13 @@
 import * as React from 'react';
 import styled, { css, keyframes, media } from '../../../styled';
 
-interface PropTypes {
+interface LogoPropTypes {
   length: number;
 }
 
-const selectLength = ({ length }: PropTypes): number => length;
+const selectLength = ({ length }: LogoPropTypes): number => length;
 
-const animatePath = ({ length }: PropTypes): any => keyframes`
+const animatePath = ({ length }: LogoPropTypes): string => keyframes`
   0% {
     fill: rgba(255, 255, 255, 0);
     stroke-dashoffset: ${length};
@@ -27,7 +27,7 @@ const animatePath = ({ length }: PropTypes): any => keyframes`
   }
 `;
 
-const Logo: any = styled.div`
+const Logo: React.StatelessComponent<LogoPropTypes> = styled.div`
   display: block;
   margin: 2rem auto;
   text-align: center;
@@ -64,31 +64,20 @@ const Logo: any = styled.div`
 
 const jlgPath = 'M140,20 L140,56 L104,20 L140,20 Z M88,20 L88,124 C59.281193,124 36,100.718807 36,72 C36,43.281193 59.281193,20 88,20 Z M88,176 L88,140 C96.836556,140 104,132.836556 104,124 L104,72 L140,72 L140,124 C140,152.718807 116.718807,176 88,176 Z';
 
-export default class Brand extends React.Component<{className: string | null}> {
-  private path: React.RefObject<any>;
-
-  public constructor (props) {
-    super(props);
-
-    this.path = React.createRef();
-    this.state = { loading: true };
-  }
-
-  public componentDidMount (): void {
-    /* eslint-disable-next-line no-undef */
-    window.setTimeout((): void => this.setState({ loading: false }));
-  }
-
-  public render (): JSX.Element {
-    return (
-      <Logo
-        className={this.props.className}
-        length={this.path.current ? this.path.current.getTotalLength() : 0}
-      >
-        <svg viewBox='0 0 192 192'>
-          <path d={jlgPath} ref={this.path} />
-        </svg>
-      </Logo>
-    );
-  }
+interface PropTypes {
+  className: string | null;
 }
+
+const Brand = (props: PropTypes): JSX.Element => {
+  const ref: React.MutableRefObject<SVGPathElement> = React.useRef();
+
+  return (
+    <Logo length={ref.current ? ref.current.getTotalLength() : 0} {...props}>
+      <svg viewBox='0 0 192 192'>
+        <path d={jlgPath} ref={ref} />
+      </svg>
+    </Logo>
+  );
+};
+
+export default Brand;

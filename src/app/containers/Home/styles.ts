@@ -1,4 +1,4 @@
-import styled, { css, media } from '../../styled';
+import styled from '../../styled';
 
 export const Main = styled.main`
   height: 100%;
@@ -19,12 +19,12 @@ export const Main = styled.main`
 
   .latest-work {
     opacity: 0;
-    transition: opacity 1s ease-in;
+    transition: opacity 3s ease-in;
   }
 
   .latest-work-enter-done {
     opacity: 1;
-    transition: opacity 1s ease-in;
+    transition: opacity 3s ease-in;
   }
 
   .social {
@@ -36,30 +36,4 @@ export const Main = styled.main`
     opacity: 1;
     transition: opacity 1s ease-in;
   }
-`;
-
-export const StatementContainer = styled.div`
-  margin: 2rem auto;
-  max-width: 50rem;
-  padding: 0 1rem;
-  width: 100%;
-
-  ${media.breakpoint.up('md', css`
-    font-size: 1.5rem;
-    margin: 4rem auto;
-  `)}
-`;
-
-export const Statement = styled.p`
-  color: rgba(255, 255, 255, .8);
-  font-size: 1.25rem;
-  font-weight: 100;
-  letter-spacing: 1px;
-  line-height: 1.5;
-  margin: 0;
-  text-align: center;
-
-  ${media.breakpoint.up('md', css`
-    font-size: 1.5rem;
-  `)}
 `;
