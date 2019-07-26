@@ -4,9 +4,8 @@ import styled from '../../../styled';
 const Languages = styled.ul``;
 const LanguageItem = styled.li``;
 
-/* eslint-disable-next-line */
-const Language = ({ filter = null, name = null, production = false }) => (
-  <LanguageItem>{name}</LanguageItem>
+const Language = ({ name, production = false }): JSX.Element => (
+  <LanguageItem className={production ? 'prod' : 'play'}>{name}</LanguageItem>
 );
 
 const LanguageComponent = (): JSX.Element => (
