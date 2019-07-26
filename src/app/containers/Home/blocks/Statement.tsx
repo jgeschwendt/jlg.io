@@ -3,7 +3,7 @@ import styled, { css, media } from '../../../styled';
 
 const statement = `
   I'm a seasoned software engineer with seven years of professional experience located in Grand Rapids, Michigan.
-  I specialize in Cloud Elixir and Node.js services, along with React applications with a wide umbrella of web and data-driven skill sets.
+  I specialize in Elixir and Node.js services along with React applications and have a wide umbrella of web and data-driven skill sets.
 `;
 
 const resume = 'https://rawgit.com/geschwendt/jlg-resume/master/resume.pdf';
