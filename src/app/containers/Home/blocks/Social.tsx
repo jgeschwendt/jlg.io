@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Envelope, GitHub, LinkedIn } from '../../../components/Icons';
+import { Envelope, GitHub, LinkedIn /*Entypo*/ } from '../../../components/Icons';
 import styled, { css, media } from '../../../styled';
 
 const Links = styled.div`
@@ -7,7 +7,7 @@ const Links = styled.div`
   flex-direction: row;
   flex-wrap: wrap;
   justify-content: center;
-  margin: 2rem auto;
+  margin-top: 2rem !important;
   padding: 0 1rem;
 
   ${media.breakpoint.up('sm', css`
@@ -47,16 +47,19 @@ const SocialComponent = ({ className = null }): JSX.Element => (
       <Col>
         <Link href='mailto:joshua@geschwendt.com'>
           <Envelope />
+          {/* <Entypo.MailWithCircle /> */}
         </Link>
       </Col>
       <Col>
         <Link href='https://www.github.com/jgeschwendt/' target='_blank'>
           <GitHub />
+          {/* <Entypo.GitHubWithCircle /> */}
         </Link>
       </Col>
       <Col>
         <Link href='https://www.linkedin.com/in/jgeschwendt/' target='_blank'>
           <LinkedIn />
+          {/* <Entypo.LinkedInWithCircle /> */}
         </Link>
       </Col>
     </Row>

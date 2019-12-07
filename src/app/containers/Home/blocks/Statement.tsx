@@ -1,24 +1,16 @@
 import * as React from 'react';
+import { Container } from '../../../components';
 import styled, { css, media } from '../../../styled';
 
 const statement = `
-  I'm a seasoned software engineer with seven years of professional experience located in Grand Rapids, Michigan.
-  I specialize in Elixir and Node.js services along with React applications and have a wide umbrella of web and data-driven skill sets.
+  I'm a seasoned software engineer with eight years of professional experience located in Grand Rapids, Michigan.
+  I specialize in Node.js services and React applications.
 `;
 
 const resume = 'https://rawgit.com/geschwendt/jlg-resume/master/resume.pdf';
 
-export const StatementContainer = styled.div`
-  margin: 2rem auto;
-  max-width: 50rem;
-  padding: 0 1rem;
+export const StatementContainer = styled(Container)`
   text-align: center;
-  width: 100%;
-
-  ${media.breakpoint.up('md', css`
-    font-size: 1.5rem;
-    margin: 4rem auto;
-  `)}
 `;
 
 export const Statement = styled.p`

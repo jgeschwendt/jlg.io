@@ -15,29 +15,55 @@ export NODE_CONTAINER = \
 	--interactive \
 	--rm \
 	--tty \
-	--volume $(shell pwd)/dist:/var/task/dist \
-	--volume $(shell pwd)/src:/var/task/src \
+	--volume $(shell pwd):/var/task/ \
 	--workdir /var/task \
 	$(CONTAINER_NAME)
 
+# workspace
 
-# npm scripts`
+bash:
+	@docker run --env-file $(ENV_FILE) $(NODE_CONTAINER) /bin/bash
 
-build:
-	docker run --env-file $(ENV_FILE) $(NODE_CONTAINER) npm run build
+container:
+	docker build --tag $(CONTAINER_NAME) .
 
-check:
-	docker run --env-file $(ENV_FILE) $(NODE_CONTAINER) npm run lint-fix
-	docker run --env-file $(ENV_FILE) $(NODE_CONTAINER) npm run tsc
+container-no-cache:
+	docker build --no-cache --tag $(CONTAINER_NAME) .
 
 install:
 	rm -rf node_modules
-	rm -f package-lock.json
 	docker build --tag $(CONTAINER_NAME) .
 	docker create --name $(CONTAINER_MOUNT) $(CONTAINER_NAME)
 	docker cp $(CONTAINER_MOUNT):/var/task/node_modules ./node_modules
 	docker cp $(CONTAINER_MOUNT):/var/task/package-lock.json ./package-lock.json
 	docker rm --force --volumes $(CONTAINER_MOUNT)
+
+start:
+	@make install
+	@docker-compose -f docker-compose.yml up -d --no-recreate --remove-orphans
+	# give webpack a couple seconds to get the dev server running
+	@sleep 2
+	open http://0.0.0.0:3000
+
+stop:
+	@docker-compose -f docker-compose.yml down --remove-orphans --volumes
+
+stop-docker:
+	@make stop
+	@docker ps -aq | xargs docker stop
+	@docker ps -aq | xargs docker rm
+
+tail-logs:
+	@docker-compose logs -f jlg.io
+
+# npm run-scripts
+
+build:
+	docker run --env-file $(ENV_FILE) $(NODE_CONTAINER) npm run build
+
+check:
+	@make link
+	@make tsc
 
 lint:
 	docker run --env-file $(ENV_FILE) $(NODE_CONTAINER) npm run lint
@@ -45,10 +71,10 @@ lint:
 lint-fix:
 	docker run --env-file $(ENV_FILE) $(NODE_CONTAINER) npm run lint-fix
 
-npm-check:
+nc:
 	docker run --env-file $(ENV_FILE) $(NODE_CONTAINER) npm run npm-check-updates
 
-npm-check-updates:
+ncu:
 	docker run --env-file $(ENV_FILE) $(NODE_CONTAINER) npm run npm-check-updates -u
 
 profile:
@@ -57,37 +83,18 @@ profile:
 profile-dev:
 	docker run --env-file $(ENV_FILE) $(NODE_CONTAINER) npm run profile-dev
 
-start:
-	docker run --env-file $(ENV_FILE) --publish 3000:3000 $(NODE_CONTAINER) npm run start
-
 tsc:
 	docker run --env-file $(ENV_FILE) $(NODE_CONTAINER) npm run tsc
 
 tsc-watch:
 	docker run --env-file $(ENV_FILE) $(NODE_CONTAINER) npm run tsc-watch
 
-
-# infrastructure
-
-build-container:
-	docker build --tag $(CONTAINER_NAME) .
-
-build-container-no-cache:
-	docker build --no-cache --tag $(CONTAINER_NAME) .
+# ???
 
 deploy:
 	rm -rf dist
 	docker run --env-file $(ENV_FILE) $(NODE_CONTAINER) yarn run build
-	docker run --env-file $(ENV_FILE) $(NODE_CONTAINER) node node_modules/.bin/serverless client deploy --no-confirm
+	docker run --env-file $(ENV_FILE) $(NODE_CONTAINER) npx serverless client deploy --no-confirm
 
 provision:
-	docker run --env-file $(ENV_FILE) $(NODE_CONTAINER) node node_modules/.bin/serverless deploy --stage $(ENV)
-
-# utils
-
-dev:
-	docker run --env-file $(ENV_FILE) $(NODE_CONTAINER) /bin/bash
-
-kill-containers:
-	-docker stop $(shell docker ps --all --quiet)
-	-docker rm $(shell docker ps --all --quiet)
+	docker run --env-file $(ENV_FILE) $(NODE_CONTAINER) npx serverless deploy --stage $(ENV)

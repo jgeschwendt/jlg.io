@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "baseUrl": ".",
+    "esModuleInterop": true,
     "jsx": "preserve",
     "lib": [
       "dom",
@@ -9,12 +10,15 @@
     "module": "commonjs",
     "moduleResolution": "node",
     "noEmit": true,
-    "paths": {},
     "pretty": true,
     "skipLibCheck": true,
-    "target": "esnext",
+    "target": "esnext"
   },
+  "exclude": [
+    "node_modules"
+  ],
   "include": [
-    "src/**/*"
+    "src/**/*",
+    "typings/**/*"
   ]
 }

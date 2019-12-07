@@ -6,6 +6,7 @@ RUN npm --version
 WORKDIR /var/task
 
 COPY package.json .
+COPY package-lock.json .
 
 RUN npm install
 
