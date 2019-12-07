@@ -2,13 +2,16 @@ import * as React from 'react';
 import { ClientRect } from '../../../components';
 import styled, { css, media } from '../../../styled';
 
-const LatestWork = styled.div``;
+const LatestWork = styled.div`
+`;
 
 const Links = styled.div`
+  background-color: white;
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
   justify-content: center;
+  padding: 4rem 0;
 
   &:hover {
     cursor: pointer;
@@ -16,7 +19,8 @@ const Links = styled.div`
 `;
 
 const Link = styled.a`
-  border-radius: 4px;
+  border: 1px solid #333;
+  border-radius: .5rem;
   color: white;
   margin: .5rem;
   overflow: hidden;
@@ -39,6 +43,18 @@ const Link = styled.a`
   ${media.breakpoint.up('xl', css`
     width: ${(1 / 5) * 100}%;
   `)}
+`;
+
+const Box = styled.div`
+  background-color: #555;
+  padding: .5rem;
+`;
+const BoxUrl = styled.div`
+  background-color: #333;
+  border-radius: 20px;
+  font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
+  font-size: .75rem;
+  padding: .5rem 1rem;
 `;
 
 const deriveRatio = (ratio, viewport): number => {
@@ -65,8 +81,8 @@ const IFrame = styled.iframe`
   height: ${({ aspectRatio, viewport }): number => deriveRatio(aspectRatio, viewport)}px;
   pointer-events: none;
   transform-origin: 0 0;
-  transform: scale(${({ scale }): number => (scale / 1280)});
-  width: 1280px;
+  transform: scale(${({ scale, viewport }): number => (scale / viewport)});
+  width: ${({ viewport }): number => viewport}px;
 `;
 
 const Statement = styled.p`
@@ -88,6 +104,9 @@ const LatestWorkComponent = (props: PropTypes): JSX.Element => (
       'https://www.dig.solutions',
     ].map((url): JSX.Element => (
       <Link href={url} key={url} target='_blank'>
+        <Box>
+          <BoxUrl>{url}</BoxUrl>
+        </Box>
         <AspectRatio>
           <ClientRect>{({ width }): JSX.Element => (
             <IFrame

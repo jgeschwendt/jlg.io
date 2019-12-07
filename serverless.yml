@@ -11,7 +11,7 @@ plugins:
 custom:
   client:
     bucketName: ${env:DOMAIN_NAME}
-    distributionFolder: 'dist'
+    distributionFolder: dist
 
 resources:
   Mappings:
@@ -65,6 +65,11 @@ resources:
       sa-east-1:
         S3HostedZoneId: Z7KQH4QJS55SO
         S3WebsiteEndpoint: s3-website-sa-east-1.amazonaws.com
+
+  Outputs:
+    DistributionIdKey:
+      Value:
+        Ref: Distribution
 
   Resources:
     Bucket:

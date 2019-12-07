@@ -1,5 +1,5 @@
 import * as React from 'react';
-import styled, { css, keyframes, media } from '../../../styled';
+import styled, { keyframes } from '../../../styled';
 
 interface LogoPropTypes {
   length: number;
@@ -29,24 +29,9 @@ const animatePath = ({ length }: LogoPropTypes): string => keyframes`
 
 const Logo: React.StatelessComponent<LogoPropTypes> = styled.div`
   display: block;
+  fill: rgba(255, 255, 255, 0);
   margin: 2rem auto;
   text-align: center;
-
-  ${media.breakpoint.up('sm', css`
-    margin: 4rem auto 2rem;
-  `)}
-
-  ${media.breakpoint.up('md', css`
-    margin: 6rem auto 2rem;
-  `)}
-
-  ${media.breakpoint.up('lg', css`
-    margin: 8rem auto 2rem;
-  `)}
-
-  ${media.breakpoint.up('xl', css`
-    margin: 10rem auto 2rem;
-  `)}
 
   svg {
     height: 12rem;
@@ -58,7 +43,7 @@ const Logo: React.StatelessComponent<LogoPropTypes> = styled.div`
     stroke-width: 1;
     stroke-dasharray: ${selectLength};
     stroke-dashoffset: ${selectLength};
-    animation: ${animatePath} 2s linear forwards;
+    animation: ${animatePath} 2s 500ms linear forwards;
   }
 `;
 
@@ -69,10 +54,17 @@ interface PropTypes {
 }
 
 const Brand = (props: PropTypes): JSX.Element => {
+  const [loading, setLoading] = React.useState(true);
   const ref: React.MutableRefObject<SVGPathElement> = React.useRef();
 
+  React.useLayoutEffect(() => {
+    if (loading) {
+      setLoading(false);
+    }
+  }, [loading]);
+
   return (
-    <Logo length={ref.current ? ref.current.getTotalLength() : 0} {...props}>
+    <Logo length={ref.current ? ref.current.getTotalLength() : 1e+10} {...props}>
       <svg viewBox='0 0 192 192'>
         <path d={jlgPath} ref={ref} />
       </svg>

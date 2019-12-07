@@ -1,0 +1,23 @@
+version: '3'
+services:
+  jlg.io:
+    container_name: jlg.io
+    command: npm run start
+    env_file:
+      - ${ENV_FILE}
+    image: ${CONTAINER_NAME}
+    ports:
+      - 3000:3000
+    restart: always
+    volumes:
+      - ./.serverless_plugins:/var/task/.serverless_plugins
+      - ./config:/var/task/config
+      - ./dist:/var/task/dist
+      - ./scripts:/var/task/scripts
+      - ./src:/var/task/src
+      - ./typings:/var/task/typings
+      - ./package-lock.json:/var/task/package-lock.json
+      - ./package.json:/var/task/package.json
+      - ./serverless.yaml:/var/task/serverless.yaml
+      - ./tsconfig.json:/var/task/tsconfig.json
+    working_dir: /var/task
