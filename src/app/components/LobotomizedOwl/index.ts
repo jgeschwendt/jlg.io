@@ -1,1 +1,0 @@
-export { LobotomizedOwl } from './LobotomizedOwl';

@@ -2,7 +2,7 @@
 const CircularDependencyPlugin = require('circular-dependency-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const path = require('path');
-const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
+const TerserPlugin = require('terser-webpack-plugin');
 const webpack = require('webpack');
 const DashboardPlugin = require('webpack-dashboard/plugin');
 /* eslint-enable @typescript-eslint/no-var-requires */
@@ -28,8 +28,16 @@ const config = {
         use: [{
           loader: require.resolve('eslint-loader'),
           options: {
-            emitWarning: MODE !== 'production',
+            // todo(): remove override when work is done
+            emitWarning: true || MODE !== 'production',
           },
+        }],
+      },
+      {
+        exclude: /node_modules/,
+        test: /\.elm$/,
+        use: [{
+          loader: require.resolve('elm-webpack-loader'),
         }],
       },
       {
@@ -70,7 +78,7 @@ const config = {
     new HtmlWebpackPlugin({ filename: 'index.html', template: 'src/index.html' }),
   ],
   resolve: {
-    extensions: [ '.wasm', '.mjs', '.js', '.json', '.jsx', '.ts', '.tsx' ],
+    extensions: [ '.wasm', '.mjs', '.elm', '.js', '.json', '.jsx', '.ts', '.tsx' ],
     modules: [ path.resolve(process.cwd(), 'node_modules'), 'node_modules', 'src' ],
   },
   target: 'web',
@@ -83,6 +91,7 @@ if (DASHBOARD) {
 if (DEV_SERVER) {
   config.devServer = {
     contentBase: path.join(__dirname, 'dist'),
+    historyApiFallback: true,
     host: process.env.HOST || '0.0.0.0',
     port: 3000,
     publicPath: '/',
@@ -100,11 +109,11 @@ switch (MODE) {
     config.plugins.push(new webpack.optimize.ModuleConcatenationPlugin());
     config.plugins.push(new webpack.optimize.OccurrenceOrderPlugin());
     config.optimization.minimizer.push(
-      new UglifyJsPlugin({
+      new TerserPlugin({
         parallel: true,
         sourceMap: true,
         // https://github.com/mishoo/UglifyJS2#minify-options
-        uglifyOptions: {
+        terserOptions: {
           compress: {},
           ie8: false,
           // eslint-disable-next-line
