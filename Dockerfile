@@ -3,17 +3,12 @@ FROM node:latest
 RUN node --version
 RUN npm --version
 
+COPY package.json package-lock.json* /var/task/
+
 WORKDIR /var/task
-
-COPY package.json .
-COPY package-lock.json .
-
 RUN npm install
-
-VOLUME node_modules
-VOLUME package-lock.json
-
-COPY . .
 
 EXPOSE 3000:3000
 EXPOSE 3001:3001
+
+COPY . .

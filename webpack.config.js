@@ -21,18 +21,18 @@ const config = {
   mode: MODE,
   module: {
     rules: [
-      {
-        enforce: 'pre',
-        exclude: /node_modules/,
-        test: /\.(ts|tsx)$/,
-        use: [{
-          loader: require.resolve('eslint-loader'),
-          options: {
-            // todo(): remove override when work is done
-            emitWarning: true || MODE !== 'production',
-          },
-        }],
-      },
+      // {
+      //   enforce: 'pre',
+      //   exclude: /node_modules/,
+      //   test: /\.(ts|tsx)$/,
+      //   use: [{
+      //     loader: require.resolve('eslint-loader'),
+      //     options: {
+      //       // todo(): remove override when work is done
+      //       emitWarning: false, // MODE !== 'production',
+      //     },
+      //   }],
+      // },
       {
         exclude: /node_modules/,
         test: /\.elm$/,
@@ -93,6 +93,7 @@ if (DEV_SERVER) {
     contentBase: path.join(__dirname, 'dist'),
     historyApiFallback: true,
     host: process.env.HOST || '0.0.0.0',
+    hot: true,
     port: 3000,
     publicPath: '/',
   };

@@ -1,6 +1,9 @@
+import {
+  Container,
+  media,
+} from '@jlg/styled-components';
 import * as React from 'react';
-import { Container } from '../../../components';
-import styled, { css, media } from '../../../styled';
+import styled, { css } from '../../../styled';
 
 const statement = `
   I'm a seasoned software engineer with eight years of professional experience located in Grand Rapids, Michigan.
@@ -34,7 +37,7 @@ export const Link = styled.a`
 `;
 
 const Component = (props): JSX.Element => (
-  <StatementContainer {...props}>
+  <StatementContainer maxWidth='1000px' {...props}>
     <Statement>{statement}</Statement>
     <Link href={resume} target='_blank'>[&ensp;View My Resume&ensp;]</Link>
   </StatementContainer>

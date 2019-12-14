@@ -30,6 +30,9 @@ container:
 container-no-cache:
 	docker build --no-cache --tag $(CONTAINER_NAME) .
 
+log:
+	@docker-compose logs -f jlg.io
+
 install:
 	rm -rf node_modules
 	docker build --tag $(CONTAINER_NAME) .
@@ -39,7 +42,7 @@ install:
 	docker rm --force --volumes $(CONTAINER_MOUNT)
 
 start:
-	@make install
+	@make stop
 	@docker-compose -f docker-compose.yml up -d --no-recreate --remove-orphans
 	# give webpack a couple seconds to get the dev server running
 	@sleep 2
@@ -53,8 +56,6 @@ stop-docker:
 	@docker ps -aq | xargs docker stop
 	@docker ps -aq | xargs docker rm
 
-tail-logs:
-	@docker-compose logs -f jlg.io
 
 # npm run-scripts
 
