@@ -1,6 +1,6 @@
 # directories
+elm-stuff
 node_modules
 
 # files
 Makefile
-yarn.lock

@@ -16,8 +16,10 @@ services:
       - ./scripts:/var/task/scripts
       - ./src:/var/task/src
       - ./typings:/var/task/typings
+      - ./elm.json:/var/task/elm.json
       - ./package-lock.json:/var/task/package-lock.json
       - ./package.json:/var/task/package.json
       - ./serverless.yaml:/var/task/serverless.yaml
       - ./tsconfig.json:/var/task/tsconfig.json
+      - ./webpack.config.json:/var/task/webpack.config.json
     working_dir: /var/task
