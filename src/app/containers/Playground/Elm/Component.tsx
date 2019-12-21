@@ -7,10 +7,16 @@ import { ElmProvider, useElm } from './ElmProvider';
 const Styled = styled.div`
   background-color: white;
   width: 100%;
-`
+`;
 
 const initModel = {
   count: 0,
+  frame: 1,
+  response: '',
+  loading: false,
+  error: false,
+  openSlot1: 0,
+  openSlot2: 0,
 };
 
 const worker = Program.Elm.Main.init({ flags: initModel });
@@ -28,10 +34,16 @@ const App = () => {
     actions.reset.send();
   };
 
+  const handleDoRequest = (e: React.MouseEvent) => {
+    e.preventDefault();
+    actions.doRequest.send();
+  };
+
   return (
     <Styled>
       <button onClick={handleIncrement}>[+]</button>
       <button onClick={handleReset}>[-]</button>
+      <button onClick={handleDoRequest}>[find cat]</button>
       <pre>{JSON.stringify(model, null, 2)}</pre>
     </Styled>
   );
