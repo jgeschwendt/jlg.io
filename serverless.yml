@@ -99,6 +99,11 @@ resources:
         DistributionConfig:
           Aliases:
             - ${env:DOMAIN_NAME}
+          CustomErrorResponses:
+            - ErrorCachingMinTTL: 300
+              ErrorCode: 403
+              ResponseCode: 200
+              ResponsePagePath: /index.html
           DefaultCacheBehavior:
             AllowedMethods: [GET, HEAD]
             Compress: true

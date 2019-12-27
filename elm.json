@@ -1,7 +1,7 @@
 {
     "type": "application",
     "source-directories": [
-        "src/app/containers/Playground/Elm/",
+        "src/app/containers/Playground/Elm/InsideWorld/",
         "src/app/containers/Playground/ElmMineSweeper/"
     ],
     "elm-version": "0.19.1",
