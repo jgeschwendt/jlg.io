@@ -3,21 +3,16 @@ import React from 'react';
 const ElmModelContext = React.createContext(void 0);
 const ElmPortsContext = React.createContext(void 0);
 
-function ElmProvider({ children, flags, ports }) {
+function ElmProvider({ children, flags, ports }): JSX.Element {
   const [model, setModel] = React.useState(flags);
 
   const { store, ...actions } = ports;
 
   React.useEffect(() => {
-    store.subscribe((update: any) => {
-      setModel(update);
-    });
+    store.subscribe(setModel);
 
-    return () => {
-      store.unsubscribe(() => {
-        console.log(arguments);
-        debugger;
-      });
+    return (): void => {
+      store.unsubscribe(setModel);
     };
   }, [store]);
 
@@ -30,7 +25,7 @@ function ElmProvider({ children, flags, ports }) {
   );
 }
 
-function useElmModel() {
+function useElmModel(): any {
   const context = React.useContext(ElmModelContext);
   if (context === undefined) {
     throw new Error('useElmModel must be used within a ElmProvider');
@@ -38,7 +33,7 @@ function useElmModel() {
   return context;
 }
 
-function useElmPorts() {
+function useElmPorts(): any {
   const context = React.useContext(ElmPortsContext);
   if (context === undefined) {
     throw new Error('useElmPorts must be used within a ElmProvider');
@@ -46,8 +41,8 @@ function useElmPorts() {
   return context;
 }
 
-function useElm() {
+function useElm(): [any, any] {
   return [useElmModel(), useElmPorts()];
 }
 
-export {ElmProvider, useElm, useElmModel, useElmPorts};
+export { ElmProvider, useElm, useElmModel, useElmPorts };

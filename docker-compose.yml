@@ -1,4 +1,4 @@
-version: '3'
+version: "3"
 services:
   jlg.io:
     container_name: jlg.io
@@ -19,7 +19,7 @@ services:
       - ./elm.json:/var/task/elm.json
       - ./package-lock.json:/var/task/package-lock.json
       - ./package.json:/var/task/package.json
-      - ./serverless.yaml:/var/task/serverless.yaml
+      - ./serverless.yml:/var/task/serverless.yml
       - ./tsconfig.json:/var/task/tsconfig.json
-      - ./webpack.config.json:/var/task/webpack.config.json
+      - ./webpack.config.js:/var/task/webpack.config.js
     working_dir: /var/task
