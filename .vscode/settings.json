@@ -1,7 +1,5 @@
 {
   "editor.tabSize": 2,
-  "elm.compiler": "./node_modules/.bin/elm",
-  "elm.formatCommand": "./node_modules/.bin/elm-format",
   "[elm]": {
     "editor.formatOnSave": true,
     "editor.tabSize": 4,

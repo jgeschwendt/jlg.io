@@ -38,6 +38,9 @@ const config = {
         test: /\.elm$/,
         use: [{
           loader: require.resolve('elm-webpack-loader'),
+          options: {
+            optimize: MODE === 'production',
+          },
         }],
       },
       {
@@ -78,8 +81,8 @@ const config = {
     new HtmlWebpackPlugin({ filename: 'index.html', template: 'src/index.html' }),
   ],
   resolve: {
-    extensions: [ '.wasm', '.mjs', '.elm', '.js', '.json', '.jsx', '.ts', '.tsx' ],
-    modules: [ path.resolve(process.cwd(), 'node_modules'), 'node_modules', 'src' ],
+    extensions: ['.wasm', '.mjs', '.elm', '.js', '.json', '.jsx', '.ts', '.tsx'],
+    modules: [path.resolve(process.cwd(), 'node_modules'), 'node_modules', 'src'],
   },
   target: 'web',
 };
