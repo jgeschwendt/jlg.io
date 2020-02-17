@@ -69,7 +69,7 @@
     "prop-types": "15.7.2",
     "serverless": "1.63.0",
     "serverless-finch": "2.5.2",
-    "terser-webpack-plugin": "2.3.4",
+    "terser-webpack-plugin": "2.3.5",
     "typescript": "3.7.5",
     "webpack": "4.41.6",
     "webpack-bundle-analyzer": "3.6.0",
