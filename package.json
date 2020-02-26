@@ -67,7 +67,7 @@
     "jest": "24.9.0",
     "npm-check-updates": "4.0.1",
     "prop-types": "15.7.2",
-    "serverless": "1.64.0",
+    "serverless": "1.64.1",
     "serverless-finch": "2.5.2",
     "terser-webpack-plugin": "2.3.5",
     "typescript": "3.8.2",
