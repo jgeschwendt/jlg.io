@@ -35,7 +35,7 @@ export const routes: RouteConfig[] = [
   },
 ];
 
-export default () => (
+export const App = (): JSX.Element => (
   <BrowserRouter>
     {renderRoutes(routes)}
   </BrowserRouter>

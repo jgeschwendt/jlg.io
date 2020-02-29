@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Envelope, GitHub, LinkedIn /*Entypo*/ } from '../../../components/Icons';
+import { Entypo } from '../../../components/Icons';
 import styled, { css, media } from '../../../styled';
 
 const Links = styled.div`
@@ -12,7 +12,7 @@ const Links = styled.div`
 
   ${media.breakpoint.up('sm', css`
     font-size: 2rem;
-  `)}
+  ` as any)}
 `;
 
 const Row = styled.div`
@@ -21,7 +21,7 @@ const Row = styled.div`
 
   ${media.breakpoint.up('sm', css`
     width: auto;
-  `)}
+  ` as any)}
 `;
 
 const Col = styled.div`
@@ -30,15 +30,16 @@ const Col = styled.div`
 
   ${media.breakpoint.up('sm', css`
     width: auto;
-  `)}
+  ` as any)}
 `;
 
 const Link = styled.a`
   color: rgba(255, 255, 255, .8);
   display: block;
-  margin: 1rem;
+  margin: .5rem;
   text-align: center;
   text-decoration: none;
+  width: 3rem;
 `;
 
 const SocialComponent = ({ className = null }): JSX.Element => (
@@ -46,20 +47,17 @@ const SocialComponent = ({ className = null }): JSX.Element => (
     <Row>
       <Col>
         <Link href='mailto:joshua@geschwendt.com'>
-          <Envelope />
-          {/* <Entypo.MailWithCircle /> */}
+          <Entypo.MailWithCircle />
         </Link>
       </Col>
       <Col>
         <Link href='https://www.github.com/jgeschwendt/' target='_blank'>
-          <GitHub />
-          {/* <Entypo.GitHubWithCircle /> */}
+          <Entypo.GitHubWithCircle />
         </Link>
       </Col>
       <Col>
         <Link href='https://www.linkedin.com/in/jgeschwendt/' target='_blank'>
-          <LinkedIn />
-          {/* <Entypo.LinkedInWithCircle /> */}
+          <Entypo.LinkedInWithCircle />
         </Link>
       </Col>
     </Row>

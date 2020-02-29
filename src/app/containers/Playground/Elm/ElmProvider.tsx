@@ -1,48 +1,65 @@
 import React from 'react';
 
-const ElmModelContext = React.createContext(void 0);
-const ElmPortsContext = React.createContext(void 0);
 
-function ElmProvider({ children, flags, ports }): JSX.Element {
-  const [model, setModel] = React.useState(flags);
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface Context {
+}
 
+export interface ContextType<ThisContext extends Context> {
+  flags: ThisContext['flags'] & {};
+  model: ThisContext['model'] & {};
+  ports: ThisContext['ports'] & {};
+}
+
+const ElmContext = {
+  Model: React.createContext(void 0),
+  Ports: React.createContext(void 0),
+};
+
+function ElmProvider<T extends {
+  children: any;
+  flags?: Context['flags'];
+  model?: Context['model'];
+  ports?: Context['ports'] & { store: { subscribe: Function } };
+}>({ children, flags, ports }: T): JSX.Element {
+  const [model, updateModel] = React.useState<T['flags']>(flags);
   const { store, ...actions } = ports;
 
   React.useEffect(() => {
-    store.subscribe(setModel);
+    store.subscribe(updateModel);
 
     return (): void => {
-      store.unsubscribe(setModel);
+      (store as any).unsubscribe(updateModel);
     };
   }, [store]);
 
   return (
-    <ElmModelContext.Provider value={model}>
-      <ElmPortsContext.Provider value={actions}>
+    <ElmContext.Model.Provider value={model as typeof flags}>
+      <ElmContext.Ports.Provider value={actions as typeof ports}>
         {children}
-      </ElmPortsContext.Provider>
-    </ElmModelContext.Provider>
+      </ElmContext.Ports.Provider>
+    </ElmContext.Model.Provider>
   );
 }
 
-function useElmModel(): any {
-  const context = React.useContext(ElmModelContext);
+function useElmModel<Model extends Context['model']>(): Model {
+  const context = React.useContext(ElmContext.Model);
   if (context === undefined) {
     throw new Error('useElmModel must be used within a ElmProvider');
   }
   return context;
 }
 
-function useElmPorts(): any {
-  const context = React.useContext(ElmPortsContext);
+function useElmPorts<Ports extends Context['ports']>(): Ports {
+  const context = React.useContext(ElmContext.Ports);
   if (context === undefined) {
     throw new Error('useElmPorts must be used within a ElmProvider');
   }
   return context;
 }
 
-function useElm(): [any, any] {
-  return [useElmModel(), useElmPorts()];
+function useElm<C extends Context>(): [C['model'], C['ports']] {
+  return [useElmModel<C['model']>(), useElmPorts<C['ports']>()];
 }
 
 export { ElmProvider, useElm, useElmModel, useElmPorts };
