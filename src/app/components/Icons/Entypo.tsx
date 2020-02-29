@@ -1,10 +1,16 @@
 import React from 'react';
 import styled from 'styled-components';
 
-const Icon = styled.img``;
+const Icon = styled.img`
+  width: 100%;
+`;
+
+const IconComponent = (icon: string, name: string): () => JSX.Element => (): JSX.Element => (
+  <Icon src={`http://entypo.com/images/${icon}.svg`} alt={name} />
+);
 
 export const Entypo = {
-  GitHubWithCircle: () => <Icon src='http://entypo.com/images/github-with-circle.svg' alt='GitHub with circle' />,
-  LinkedInWithCircle: () => <Icon src='http://entypo.com/images/linkedin-with-circle.svg' alt='LinkedIn with circle' />,
-  MailWithCircle: () => <Icon src='http://entypo.com/images/mail-with-circle.svg' alt='Mail with circle' />,
+  GitHubWithCircle:    IconComponent('github-with-circle',    'GitHub with circle'),
+  LinkedInWithCircle:  IconComponent('linkedin-with-circle',  'LinkedIn with circle'),
+  MailWithCircle:      IconComponent('mail-with-circle',      'Mail with circle'),
 };

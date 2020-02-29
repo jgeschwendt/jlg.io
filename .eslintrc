@@ -7,6 +7,10 @@
     "plugin:react/recommended",
     "plugin:@typescript-eslint/recommended"
   ],
+  "ignorePatterns": [
+    "src/app/containers/Playground/Elm/**/*.d.ts",
+    "src/app/containers/Playground/ElmMineSweeper/"
+  ],
   "plugins": [
     "react-hooks"
   ],

@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 import bootstrap from './bootstrap';
 
 bootstrap('jlg');

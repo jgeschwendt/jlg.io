@@ -1,6 +1,5 @@
 {
   "plugins": [
-    ["module-resolver", { "extensions": [".ts", ".tsx"], "root": ["./src"] }],
     ["styled-components"]
   ],
   "presets": [
