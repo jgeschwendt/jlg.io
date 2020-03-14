@@ -6,12 +6,19 @@ provider:
   deploymentBucket: ${env:ARTIFACTS_BUCKET}
 
 plugins:
-  - serverless-finch
+  - serverless-s3-sync
+  - serverless-cloudfront-invalidate
 
 custom:
-  client:
-    bucketName: ${env:DOMAIN_NAME}
-    distributionFolder: dist
+  cloudfrontInvalidate:
+    distributionIdKey: DistributionIdKey
+    items:
+      - "/*"
+
+  s3Sync:
+    - acl: public-read
+      bucketName: ${env:DOMAIN_NAME}
+      localDir: dist
 
 resources:
   Mappings:
@@ -56,6 +63,10 @@ resources:
           Aliases:
             - ${env:DOMAIN_NAME}
           CustomErrorResponses:
+            - ErrorCachingMinTTL: 300
+              ErrorCode: 403
+              ResponseCode: 200
+              ResponsePagePath: /index.html
             - ErrorCachingMinTTL: 300
               ErrorCode: 404
               ResponseCode: 200
