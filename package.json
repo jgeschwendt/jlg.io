@@ -34,7 +34,7 @@
     "react-router-config": "5.1.1",
     "react-router-dom": "5.1.2",
     "react-transition-group": "4.3.0",
-    "styled-components": "5.0.1",
+    "styled-components": "5.1.0",
     "styled-reboot": "4.0.3"
   },
   "devDependencies": {
