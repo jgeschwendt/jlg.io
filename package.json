@@ -67,7 +67,7 @@
     "npm-check-updates": "4.1.2",
     "serverless": "1.70.1",
     "serverless-cloudfront-invalidate": "1.4.0",
-    "serverless-s3-sync": "1.14.0",
+    "serverless-s3-sync": "1.14.1",
     "terser-webpack-plugin": "2.3.6",
     "typescript": "3.8.3",
     "webpack": "4.43.0",
