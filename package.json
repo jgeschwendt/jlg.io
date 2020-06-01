@@ -38,7 +38,7 @@
     "styled-reboot": "4.0.3"
   },
   "devDependencies": {
-    "@babel/core": "7.10.1",
+    "@babel/core": "7.10.2",
     "@babel/preset-env": "7.10.1",
     "@babel/preset-react": "7.10.1",
     "@babel/preset-typescript": "7.10.1",
