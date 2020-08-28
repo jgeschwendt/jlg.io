@@ -52,7 +52,7 @@
     "@typescript-eslint/eslint-plugin": "2.34.0",
     "@typescript-eslint/parser": "2.34.0",
     "babel-loader": "8.1.0",
-    "babel-plugin-styled-components": "1.10.7",
+    "babel-plugin-styled-components": "1.11.1",
     "circular-dependency-plugin": "5.2.0",
     "elm-analyse": "0.16.5",
     "elm-format": "0.8.3",
