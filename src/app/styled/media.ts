@@ -1,16 +1,18 @@
-import { css, InterpolationValue } from 'styled-components';
+import { FlattenSimpleInterpolation, css } from 'styled-components';
 import theme from './theme';
 
 type MediaBreakpointEnum = 'sm' | 'md' | 'lg' | 'xl';
 
 class BreakpointFactory {
-  private theme
+  private theme: {
+    breakpoints: Record<string, number>;
+  };
 
   public constructor ($theme = {}) {
     this.theme = { ...this.theme, ...$theme };
   }
 
-  public up (media: MediaBreakpointEnum, rules: InterpolationValue[]): InterpolationValue[] {
+  public up (media: MediaBreakpointEnum, rules: FlattenSimpleInterpolation): FlattenSimpleInterpolation {
     return css`
       @media (min-width: ${this.theme.breakpoints[media]}px) {
         ${rules}
@@ -18,7 +20,7 @@ class BreakpointFactory {
     `;
   }
 
-  public down (media: MediaBreakpointEnum, rules: InterpolationValue[]): InterpolationValue[] {
+  public down (media: MediaBreakpointEnum, rules: FlattenSimpleInterpolation): FlattenSimpleInterpolation {
     return css`
       @media (max-width: ${this.theme.breakpoints[media] - .02}px) {
         ${rules}
@@ -29,7 +31,7 @@ class BreakpointFactory {
 
 export default {
   breakpoint: new BreakpointFactory(theme),
-  print: (rules: InterpolationValue[]): InterpolationValue[] => css`
+  print: (rules: FlattenSimpleInterpolation): FlattenSimpleInterpolation => css`
     @media print {
       ${rules}
     }

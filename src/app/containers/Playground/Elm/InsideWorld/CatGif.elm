@@ -16,7 +16,7 @@ import Types exposing (Msg(..))
 
 type alias CatGifModel =
     { data : Maybe String
-    , error : Maybe Http.Error
+    , error : Maybe String
     , loading : Bool
     }
 
@@ -25,7 +25,7 @@ encodeCatGif : CatGifModel -> Encode.Value
 encodeCatGif model =
     Encode.object
         [ ( "data", maybe Encode.string model.data )
-        , ( "error", maybe encodeHttpError model.error )
+        , ( "error", maybe Encode.string model.error )
         , ( "loading", Encode.bool model.loading )
         ]
 
@@ -50,7 +50,7 @@ setDataOnCatGif data model =
 
 setErrorOnCatGif : Maybe Http.Error -> CatGifModel -> CatGifModel
 setErrorOnCatGif error model =
-    { model | error = error }
+    { model | error = encodeHttpError error }
 
 
 setLoadingOnCatGif : Bool -> CatGifModel -> CatGifModel
