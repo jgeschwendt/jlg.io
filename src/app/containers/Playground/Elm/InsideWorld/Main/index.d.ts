@@ -13,7 +13,7 @@ export namespace Elm {
           send(data: {  }): void
         }
         store: {
-          subscribe(callback: (data: unknown) => void): void
+          subscribe(callback: (data: { catGif: { data: string | null; error: string | null; loading: boolean }; count: number; frame: number }) => void): void
         }
         doRequest: {
           send(data: {  }): void
@@ -22,7 +22,7 @@ export namespace Elm {
     }
     export function init(options: {
       node?: HTMLElement | null;
-      flags: { catGifUrl: string | null; count: number; frame: number };
+      flags: { catGif: { data: string | null; error: string | null; loading: boolean }; count: number; frame: number };
     }): Elm.Main.App;
   }
 }

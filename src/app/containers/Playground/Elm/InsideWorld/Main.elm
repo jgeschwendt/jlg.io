@@ -2,18 +2,16 @@ module Main exposing (main)
 
 import CatGif
     exposing
-        ( CatGifModel
-        , encodeCatGif
-        , getRandomCatGif
+        ( getRandomCatGif
         , updateCatGifRequest
         , updateCatGifResponseErr
         , updateCatGifResponseOk
         )
-import Json.Encode as Encode
 import Platform exposing (worker)
 import Ports
     exposing
-        ( doRequest
+        ( Model
+        , doRequest
         , increment
         , reset
         , store
@@ -22,44 +20,9 @@ import Time
 import Types exposing (Msg(..))
 
 
-type alias Flags =
-    { catGifUrl : Maybe String
-    , count : Int
-    , frame : Int
-    }
-
-
-type alias Model =
-    { catGif : CatGifModel
-    , count : Int
-    , frame : Int
-    }
-
-
-setup : Flags -> Model
-setup flags =
-    { count = flags.count
-    , frame = flags.frame
-    , catGif =
-        { data = flags.catGifUrl
-        , loading = False
-        , error = Nothing
-        }
-    }
-
-
-init : Flags -> ( Model, Cmd Msg )
-init flags =
-    ( setup flags, Cmd.none )
-
-
-encodeModel : Model -> Encode.Value
-encodeModel model =
-    Encode.object
-        [ ( "catGif", encodeCatGif model.catGif )
-        , ( "count", Encode.int model.count )
-        , ( "frame", Encode.int model.frame )
-        ]
+init : Model -> ( Model, Cmd Msg )
+init model =
+    ( model, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg
@@ -97,13 +60,13 @@ update msg model =
                 Reset ->
                     ( { model | count = 0, frame = 0 }, Cmd.none )
     in
-    ( state, Cmd.batch [ store (encodeModel state), cmd ] )
+    ( state, Cmd.batch [ store state, cmd ] )
 
 
-main : Program Flags Model Msg
+main : Program Model Model Msg
 main =
     worker
-        { init = \flags -> init flags
-        , subscriptions = subscriptions
+        { init = init
         , update = update
+        , subscriptions = subscriptions
         }

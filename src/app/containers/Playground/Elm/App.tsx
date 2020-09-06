@@ -6,6 +6,7 @@ const Styled = styled.div`
   background-color: white;
   bottom: 0;
   left: 0;
+  padding: 1rem;
   position: absolute;
   right: 0;
   top: 0;
@@ -13,30 +14,45 @@ const Styled = styled.div`
 
 const ElmStateDebugger = styled.pre`
   background-color: white;
-  bottom: 0;
-  right: 0;
-  position: absolute;
-  width: 600px;
-  height: 200px;
-  border: 2px solid #eee;
-  padding: 1rem;
   border-radius: .25rem;
-  overflow: hidden;
+  border: 2px solid #eee;
+  bottom: 0;
+  height: 200px;
   max-width: 100%;
+  overflow: hidden;
+  padding: 1rem;
+  position: absolute;
+  right: 0;
+  width: 600px;
 `;
 
 const Img = styled.div`
   background-size: cover;
   bottom: 250px;
+  height: 300px;
   position: absolute;
   right: 45px;
   width: 300px;
-  height: 300px;
 `;
 
-const Progress = styled.progress`
-  display: block;
-  width: 100%;
+const Circle = styled.div`
+	border-radius: 150px;
+	border: 5px solid rgba(0, 0, 0, .7);
+	height: 300px;
+	position: relative;
+  transform-origin: 50% 50%;
+	width: 300px;
+
+  &::after {
+    content: "";
+    background-color: rgba(0, 0, 0, 1);
+    border-radius: 25px;
+    height: 50px;
+    left: 30px;
+    position: absolute;
+    top: 5px;
+    width: 50px;
+  }
 `;
 
 export const App = (): JSX.Element => {
@@ -59,16 +75,9 @@ export const App = (): JSX.Element => {
 
   return (
     <Styled>
-      <Progress value={(model.frame / 100) % 60} max="60"></Progress>
-      <Progress value={(model.frame / 90) % 60} max="60"></Progress>
-      <Progress value={(model.frame / 80) % 60} max="60"></Progress>
-      <Progress value={(model.frame / 70) % 60} max="60"></Progress>
-      <Progress value={(model.frame / 60) % 60} max="60"></Progress>
-      <Progress value={(model.frame / 50) % 60} max="60"></Progress>
-      <Progress value={(model.frame / 40) % 60} max="60"></Progress>
-      <Progress value={(model.frame / 30) % 60} max="60"></Progress>
-      <Progress value={(model.frame / 20) % 60} max="60"></Progress>
-      <div>{(model.frame / 100) % 60}</div>
+      <Circle style={{ transform: `rotate(${(model.frame / 60) % 360}deg)`}}/>
+      <pre>{(model.frame / 100) % 60}</pre>
+      <pre>{(model.frame / 100)}</pre>
       <div>
         {
           model.catGif &&

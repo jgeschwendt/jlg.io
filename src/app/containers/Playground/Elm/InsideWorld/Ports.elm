@@ -1,6 +1,22 @@
-port module Ports exposing (doRequest, increment, reset, store)
+port module Ports exposing
+    ( Model
+    , doRequest
+    , increment
+    , reset
+    , store
+    )
 
-import Json.Encode as Encode
+import CatGif exposing (CatGifModel)
+
+
+type alias Model =
+    { catGif : CatGifModel
+    , count : Int
+    , frame : Int
+    }
+
+
+port doRequest : ({} -> msg) -> Sub msg
 
 
 port increment : (Int -> msg) -> Sub msg
@@ -9,7 +25,4 @@ port increment : (Int -> msg) -> Sub msg
 port reset : ({} -> msg) -> Sub msg
 
 
-port store : Encode.Value -> Cmd msg
-
-
-port doRequest : ({} -> msg) -> Sub msg
+port store : Model -> Cmd msg
