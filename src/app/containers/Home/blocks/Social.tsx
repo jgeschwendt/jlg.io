@@ -1,6 +1,6 @@
-import * as React from 'react';
+import React from 'react';
 import { Entypo } from '../../../components/Icons';
-import styled, { css, media } from '../../../styled';
+import styled from '../../../styled';
 
 const Links = styled.div`
   display: flex;
@@ -9,28 +9,6 @@ const Links = styled.div`
   justify-content: center;
   margin-top: 2rem !important;
   padding: 0 1rem;
-
-  ${media.breakpoint.up('sm', css`
-    font-size: 2rem;
-  ` as any)}
-`;
-
-const Row = styled.div`
-  text-align: center;
-  width: 100%;
-
-  ${media.breakpoint.up('sm', css`
-    width: auto;
-  ` as any)}
-`;
-
-const Col = styled.div`
-  display: inline-block;
-  width: 7rem;
-
-  ${media.breakpoint.up('sm', css`
-    width: auto;
-  ` as any)}
 `;
 
 const Link = styled.a`
@@ -42,26 +20,18 @@ const Link = styled.a`
   width: 3rem;
 `;
 
-const SocialComponent = ({ className = null }): JSX.Element => (
-  <Links className={className}>
-    <Row>
-      <Col>
-        <Link href='mailto:joshua@geschwendt.com'>
-          <Entypo.MailWithCircle />
-        </Link>
-      </Col>
-      <Col>
-        <Link href='https://www.github.com/jgeschwendt/' target='_blank'>
-          <Entypo.GitHubWithCircle />
-        </Link>
-      </Col>
-      <Col>
-        <Link href='https://www.linkedin.com/in/jgeschwendt/' target='_blank'>
-          <Entypo.LinkedInWithCircle />
-        </Link>
-      </Col>
-    </Row>
+export const Social = (): JSX.Element => (
+  <Links>
+    <Link href='mailto:joshua@geschwendt.com'>
+      <Entypo.MailWithCircle />
+    </Link>
+
+    <Link href='https://www.github.com/jgeschwendt/' target='_blank'>
+      <Entypo.GitHubWithCircle />
+    </Link>
+
+    <Link href='https://www.linkedin.com/in/jgeschwendt/' target='_blank'>
+      <Entypo.LinkedInWithCircle />
+    </Link>
   </Links>
 );
-
-export default SocialComponent;

@@ -1,22 +1,20 @@
-import {
-  Container,
-  media,
-} from '@jlg/styled-components';
-import * as React from 'react';
-import styled, { css } from '../../../styled';
+import React from 'react';
+import styled, { css } from 'styled-components';
+import { media } from '../../../styled';
 
 const statement = `
   I'm a seasoned software engineer with eight years of professional experience located in Grand Rapids, Michigan.
   I specialize in Node.js services and React applications.
-`;
+`.trim();
 
-const resume = 'https://rawgit.com/geschwendt/jlg-resume/master/resume.pdf';
+const resume = 'https://jgeschwendt.github.io/jlg-resume/';
 
-export const StatementContainer = styled(Container)`
+export const StatementContainer = styled.div`
+  padding: 0 1rem;
   text-align: center;
 `;
 
-export const Statement = styled.p`
+export const StatementComponent = styled.p`
   color: rgba(255, 255, 255, .8);
   font-size: 1.25rem;
   font-weight: 100;
@@ -36,11 +34,10 @@ export const Link = styled.a`
   text-transform: uppercase;
 `;
 
-const Component = (props): JSX.Element => (
-  <StatementContainer maxWidth='1000px' {...props}>
-    <Statement>{statement}</Statement>
+export const Statement = (): JSX.Element => (
+  <StatementContainer>
+    <StatementComponent>{statement}</StatementComponent>
     <Link href={resume} target='_blank'>[&ensp;View My Resume&ensp;]</Link>
   </StatementContainer>
 );
 
-export default Component;
