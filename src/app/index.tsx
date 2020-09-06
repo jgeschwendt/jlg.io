@@ -1,15 +1,15 @@
-import React from 'react';
+import React, { Fragment } from 'react';
+import { RouteConfig, RouteConfigComponentProps, renderRoutes } from 'react-router-config';
 import { BrowserRouter } from 'react-router-dom';
-import { renderRoutes, RouteConfig } from 'react-router-config';
 
 import { default as Home } from './containers/Home';
 import { default as ElmPlayground } from './containers/Playground/Elm';
 // import { default as MineSweeper } from './containers/Playground/ElmMineSweeper';
 
-const RootTemplate = ({ route }: any): JSX.Element => (
-  <div>
+const RootTemplate = ({ route }: RouteConfigComponentProps): JSX.Element => (
+  <Fragment>
     {renderRoutes(route.routes)}
-  </div>
+  </Fragment>
 );
 
 export const routes: RouteConfig[] = [
