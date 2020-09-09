@@ -1,11 +1,8 @@
-/* eslint-disable @typescript-eslint/no-var-requires, no-undef */
 const CircularDependencyPlugin = require('circular-dependency-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const path = require('path');
-const TerserPlugin = require('terser-webpack-plugin');
 const webpack = require('webpack');
 const DashboardPlugin = require('webpack-dashboard/plugin');
-/* eslint-enable @typescript-eslint/no-var-requires */
 
 const DASHBOARD = process.env.WEBPACK_DASHBOARD;
 const DEV_SERVER = process.argv.find(v => v.includes('webpack-dev-server'));
@@ -53,7 +50,6 @@ const config = {
     ],
   },
   optimization: {
-    minimizer: [],
     noEmitOnErrors: false,
     // https://webpack.js.org/plugins/split-chunks-plugin/#split-chunks-example-2
     splitChunks: {
@@ -81,7 +77,7 @@ const config = {
     new HtmlWebpackPlugin({ filename: 'index.html', template: 'src/index.html' }),
   ],
   resolve: {
-    extensions: ['.wasm', '.mjs', '.elm', '.js', '.json', '.jsx', '.ts', '.tsx'],
+    extensions: ['.elm', '.js', '.json', '.jsx', '.ts', '.tsx'],
     modules: [path.resolve(process.cwd(), 'node_modules'), 'node_modules', 'src'],
   },
   target: 'web',
@@ -109,29 +105,6 @@ switch (MODE) {
 
   case 'production':
   default:
-    config.plugins.push(new webpack.optimize.AggressiveMergingPlugin());
-    config.plugins.push(new webpack.optimize.ModuleConcatenationPlugin());
-    config.plugins.push(new webpack.optimize.OccurrenceOrderPlugin());
-    config.optimization.minimizer.push(
-      new TerserPlugin({
-        parallel: true,
-        sourceMap: true,
-        // https://github.com/mishoo/UglifyJS2#minify-options
-        terserOptions: {
-          compress: {},
-          ie8: false,
-          // eslint-disable-next-line
-          keep_fnames: false,
-          mangle: true,
-          nameCache: null,
-          output: null,
-          parse: {},
-          toplevel: false,
-          warnings: false,
-        },
-      }),
-    );
-
     break;
 }
 

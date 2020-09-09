@@ -90,7 +90,7 @@ resources:
           PriceClass: PriceClass_100
           ViewerCertificate:
             AcmCertificateArn: ${env:CERTIFICATE_ARN}
-            MinimumProtocolVersion: TLSv1.1_2016
+            MinimumProtocolVersion: TLSv1.2_2019
             SslSupportMethod: sni-only
 
     RecordSetGroup:

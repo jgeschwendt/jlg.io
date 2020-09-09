@@ -1,8 +1,6 @@
 import { HTMLMotionProps, motion } from 'framer-motion';
 import React from 'react';
-import { Brand } from './blocks/Brand';
-import { Social } from './blocks/Social';
-import { Statement } from './blocks/Statement';
+import { Brand, Social, Statement } from './components';
 import styled, { css, media } from '../../styled';
 
 const MotionList = ({ children, ...props }: React.PropsWithChildren<HTMLMotionProps<'div'>>) => (

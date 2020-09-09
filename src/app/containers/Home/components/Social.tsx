@@ -12,12 +12,12 @@ const Links = styled.div`
 `;
 
 const Link = styled.a`
-  color: rgba(255, 255, 255, .8);
+  color: rgba(255, 255, 255, .9);
   display: block;
+  font-size: 3rem;
   margin: .5rem;
   text-align: center;
   text-decoration: none;
-  width: 3rem;
 `;
 
 export const Social = (): JSX.Element => (
