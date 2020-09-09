@@ -6,6 +6,9 @@ export namespace Elm {
   namespace Main {
     export interface App {
       ports: {
+        doRequest: {
+          send(data: {  }): void
+        }
         increment: {
           send(data: number): void
         }
@@ -14,9 +17,6 @@ export namespace Elm {
         }
         store: {
           subscribe(callback: (data: { catGif: { data: string | null; error: string | null; loading: boolean }; count: number; frame: number }) => void): void
-        }
-        doRequest: {
-          send(data: {  }): void
         }
       };
     }
