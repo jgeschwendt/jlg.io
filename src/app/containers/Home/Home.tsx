@@ -6,8 +6,12 @@ import styled, { css, media } from '../../styled';
 const MotionList = ({ children, ...props }: React.PropsWithChildren<HTMLMotionProps<'div'>>) => (
   <motion.div
     variants={{
-      in: { transition: { delayChildren: 2, staggerChildren: 0.25 } },
-      out: { transition: { staggerChildren: 0.25, staggerDirection: -1 } },
+      in: {
+        transition: { delayChildren: 2, staggerChildren: 0.25 },
+      },
+      out: {
+        transition: { staggerChildren: 0.25, staggerDirection: -1 },
+      },
     }}
     {...props}
   >{children}
@@ -19,12 +23,12 @@ const MotionItem = ({ children, ...props }: React.PropsWithChildren<HTMLMotionPr
     variants={{
       in: {
         opacity: 1,
-        transition: { y: { duration: 0.5, stiffness: 1000 } },
+        transition: { y: { duration: 0.5, type: 'spring' } },
         y: 0,
       },
       out: {
         opacity: 0,
-        transition: { y: { duration: 0.5, stiffness: 1000 } },
+        transition: { y: { duration: 0.5, type: 'spring' } },
         y: 25,
       },
     }}
@@ -39,7 +43,7 @@ const Main = styled.div`
   flex-direction: column;
   justify-content: center;
   margin: 0 auto;
-  max-width: 900px;
+  max-width: 1000px;
   min-height: 100%;
   min-height: 100vh;
   padding: 2rem 0;
