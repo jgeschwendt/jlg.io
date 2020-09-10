@@ -30,6 +30,7 @@ export const StatementComponent = styled.p`
 export const Link = styled.a`
   color: rgba(255, 255, 255, .8);
   font-size: 1rem;
+  font-weight: 700;
   text-decoration: none;
   text-transform: uppercase;
 `;
@@ -37,7 +38,7 @@ export const Link = styled.a`
 export const Statement = (): JSX.Element => (
   <StatementContainer>
     <StatementComponent>{statement}</StatementComponent>
-    <Link href={resume} target='_blank'>[&ensp;View My Resume&ensp;]</Link>
+    <Link href={resume} target='_blank'>[&ensp;View my resume&ensp;]</Link>
   </StatementContainer>
 );
 
