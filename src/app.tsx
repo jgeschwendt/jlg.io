@@ -1,10 +1,10 @@
-import React, { Fragment } from 'react';
+import React, { Fragment, Suspense, lazy } from 'react';
 import { RouteConfig, RouteConfigComponentProps, renderRoutes } from 'react-router-config';
-import { BrowserRouter } from 'react-router-dom';
+import { BrowserRouter, Route, Switch } from 'react-router-dom';
 
-import { default as Home } from './containers/Home';
-import { default as ElmPlayground } from './containers/Playground/Elm';
-// import { default as MineSweeper } from './containers/Playground/ElmMineSweeper';
+import { default as Home } from './pages/Home';
+
+const ElmPlayground = lazy(() => import('./pages/Playground/Elm'));
 
 const RootTemplate = ({ route }: RouteConfigComponentProps): JSX.Element => (
   <Fragment>
@@ -16,11 +16,6 @@ export const routes: RouteConfig[] = [
   {
     component: RootTemplate,
     routes: [
-      {
-        component: Home,
-        exact: true,
-        path: '/',
-      },
       {
         component: ElmPlayground,
         exact: true,
@@ -37,6 +32,11 @@ export const routes: RouteConfig[] = [
 
 export const App = (): JSX.Element => (
   <BrowserRouter>
-    {renderRoutes(routes)}
+    <Route component={Home} exact={true} path="/" />
+    <Suspense fallback={null}>
+      <Switch>
+        {renderRoutes(routes)}
+      </Switch>
+    </Suspense>
   </BrowserRouter>
 );
