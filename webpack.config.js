@@ -5,7 +5,7 @@ const webpack = require('webpack');
 const DashboardPlugin = require('webpack-dashboard/plugin');
 
 const DASHBOARD = process.env.WEBPACK_DASHBOARD;
-const DEV_SERVER = process.argv.find(v => v.includes('webpack-dev-server'));
+const DEV_SERVER = process.argv.find(v => v.includes('serve'));
 const MODE = process.env.NODE_ENV || 'production';
 
 const config = {
@@ -18,18 +18,6 @@ const config = {
   mode: MODE,
   module: {
     rules: [
-      // {
-      //   enforce: 'pre',
-      //   exclude: /node_modules/,
-      //   test: /\.(ts|tsx)$/,
-      //   use: [{
-      //     loader: require.resolve('eslint-loader'),
-      //     options: {
-      //       // todo(): remove override when work is done
-      //       emitWarning: false, // MODE !== 'production',
-      //     },
-      //   }],
-      // },
       {
         exclude: /node_modules/,
         test: /\.elm$/,
@@ -50,7 +38,6 @@ const config = {
     ],
   },
   optimization: {
-    noEmitOnErrors: false,
     // https://webpack.js.org/plugins/split-chunks-plugin/#split-chunks-example-2
     splitChunks: {
       cacheGroups: {
@@ -73,8 +60,8 @@ const config = {
     ].reduce((obj, key) => ({ ...obj, [`process.env.${key}`]: JSON.stringify(process.env[key]) }), {
       'process.env.PACKAGE_VERSION': JSON.stringify(require('./package.json').version),
     })),
-    new CircularDependencyPlugin({ exclude: /node_modules/, failOnError: true }),
     new HtmlWebpackPlugin({ filename: 'index.html', template: 'src/index.html' }),
+    new CircularDependencyPlugin({ exclude: /.elm|.html|node_modules/, failOnError: true }),
   ],
   resolve: {
     extensions: ['.elm', '.js', '.json', '.jsx', '.ts', '.tsx'],

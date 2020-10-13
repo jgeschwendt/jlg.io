@@ -8,7 +8,7 @@ const entypo = {
 };
 
 // eslint-disable-next-line react/display-name
-const Icon = (icon: keyof typeof entypo, name: string) => ({ ...props}: React.SVGProps<SVGSVGElement>): JSX.Element => (
+const Icon = (icon: keyof typeof entypo, name: string) => (props: React.SVGProps<SVGSVGElement>): JSX.Element => (
   <svg name={name} height="1em" width="1em" viewBox="0 0 20 20" {...props}>
     <path d={entypo[icon]} fill="currentColor" />
   </svg>
