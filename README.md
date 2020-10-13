@@ -1,2 +1,1 @@
-# jlg.io
-:space_invader:
+# jlg.io 👾

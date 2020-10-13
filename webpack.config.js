@@ -2,9 +2,7 @@ const CircularDependencyPlugin = require('circular-dependency-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const path = require('path');
 const webpack = require('webpack');
-const DashboardPlugin = require('webpack-dashboard/plugin');
 
-const DASHBOARD = process.env.WEBPACK_DASHBOARD;
 const DEV_SERVER = process.argv.find(v => v.includes('serve'));
 const MODE = process.env.NODE_ENV || 'production';
 
@@ -18,16 +16,6 @@ const config = {
   mode: MODE,
   module: {
     rules: [
-      {
-        exclude: /node_modules/,
-        test: /\.elm$/,
-        use: [{
-          loader: require.resolve('elm-webpack-loader'),
-          options: {
-            optimize: MODE === 'production',
-          },
-        }],
-      },
       {
         exclude: /node_modules/,
         test: /\.(ts|tsx)$/,
@@ -60,19 +48,14 @@ const config = {
     ].reduce((obj, key) => ({ ...obj, [`process.env.${key}`]: JSON.stringify(process.env[key]) }), {
       'process.env.PACKAGE_VERSION': JSON.stringify(require('./package.json').version),
     })),
+    new CircularDependencyPlugin({ exclude: /.html|node_modules/, failOnError: true }),
     new HtmlWebpackPlugin({ filename: 'index.html', template: 'src/index.html' }),
-    new CircularDependencyPlugin({ exclude: /.elm|.html|node_modules/, failOnError: true }),
   ],
   resolve: {
-    extensions: ['.elm', '.js', '.json', '.jsx', '.ts', '.tsx'],
-    modules: [path.resolve(process.cwd(), 'node_modules'), 'node_modules', 'src'],
+    extensions: ['.js', '.json', '.jsx', '.ts', '.tsx'],
   },
   target: 'web',
 };
-
-if (DASHBOARD) {
-  config.plugins.push(new DashboardPlugin());
-}
 
 if (DEV_SERVER) {
   config.devServer = {

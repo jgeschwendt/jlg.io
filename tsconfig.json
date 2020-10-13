@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    "baseUrl": ".",
     "esModuleInterop": true,
     "jsx": "preserve",
     "lib": [
@@ -13,12 +12,5 @@
     "pretty": true,
     "skipLibCheck": true,
     "target": "esnext"
-  },
-  "exclude": [
-    "node_modules"
-  ],
-  "include": [
-    "src/**/*",
-    "typings/**/*"
-  ]
+  }
 }

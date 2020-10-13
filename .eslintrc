@@ -10,10 +10,6 @@
     "plugin:import/errors",
     "plugin:import/warnings"
   ],
-  "ignorePatterns": [
-    "src/app/containers/Playground/Elm/**/*.d.ts",
-    "src/app/containers/Playground/ElmMineSweeper/"
-  ],
   "overrides": [{
     "extends": [
       "plugin:react/recommended",
