@@ -4,6 +4,8 @@ import { BrowserRouter, Switch } from 'react-router-dom';
 
 import { default as Home } from './pages/Home';
 
+const ProjectEuler = React.lazy(() => import('./pages/ProjectEuler'));
+
 const RootTemplate = ({ route }: RouteConfigComponentProps): JSX.Element => (
   <Fragment>
     {renderRoutes(route.routes)}
@@ -18,6 +20,11 @@ export const routes: RouteConfig[] = [
         component: Home,
         exact: true,
         path: '/',
+      },
+      {
+        component: ProjectEuler,
+        exact: true,
+        path: '/project-euler',
       },
     ],
   },
