@@ -4,6 +4,7 @@ module.exports = {
     ["jest-html-reporter", {
       "outputPath": "dist/test-report.html",
       "pageTitle": "Test Report",
+      "sort": "titleAsc",
     }],
   ],
   "testMatch": [
