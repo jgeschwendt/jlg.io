@@ -1,13 +1,11 @@
 module.exports = {
-  "reporters": [
-    "default",
-    ["jest-html-reporter", {
-      "outputPath": "dist/test-report.html",
-      "pageTitle": "Test Report",
-      "sort": "titleAsc",
-    }],
+  reporters: ['default', ['jest-html-reporter', {
+    outputPath: 'dist/test-report.html',
+    pageTitle: 'Test Report',
+    sort: 'titleAsc',
+  }]],
+  testRegex: [
+    /\d+-\d+\/\d+.ts/,
   ],
-  "testMatch": [
-    "<rootDir>/problems/*.ts",
-  ],
+  testSequencer: './jest.sequencer.js',
 };
