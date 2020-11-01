@@ -1,10 +1,7 @@
 import { is } from '../lib';
 
 /**
- * A palindromic number reads the same both ways.
- * The largest palindrome made from the product of two 2-digit numbers is 9009 = 91 × 99.
- *
- * Find the largest palindrome made from the product of two 3-digit numbers.
+ * @link https://projecteuler.net/problem=4
  */
 describe('Problem 4', () => {
   // A = 100000x + 10000y + 1000z + 100z + 10y + x
