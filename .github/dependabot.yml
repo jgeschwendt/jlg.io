@@ -1,0 +1,37 @@
+version: 2
+updates:
+- package-ecosystem: npm
+  directory: "/"
+  schedule:
+    interval: monthly
+    time: "09:00"
+    timezone: US/Eastern
+  open-pull-requests-limit: 10
+  target-branch: dependabot
+  versioning-strategy: increase
+  ignore:
+  - dependency-name: webpack-cli
+    versions:
+    - 4.3.1
+    - 4.4.0
+    - 4.5.0
+  - dependency-name: "@types/react"
+    versions:
+    - 17.0.0
+  - dependency-name: serverless
+    versions:
+    - 2.18.0
+    - 2.21.1
+  - dependency-name: "@types/react-dom"
+    versions:
+    - 17.0.0
+  - dependency-name: webpack-bundle-analyzer
+    versions:
+    - 4.3.0
+  - dependency-name: framer-motion
+    versions:
+    - 3.2.0
+    - 3.2.1
+  - dependency-name: elm-format
+    versions:
+    - 0.8.4
