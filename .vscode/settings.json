@@ -3,14 +3,4 @@
     "source.fixAll.eslint": true
   },
   "editor.tabSize": 2,
-  "cSpell.words": [
-    "cloudfront",
-    "collatz",
-    "crossorigin",
-    "devtool",
-    "ensp",
-    "entypo",
-    "esnext",
-    "linkedin"
-  ]
 }
