@@ -1,16 +1,31 @@
 {
   "compilerOptions": {
+    "allowJs": false,
     "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
     "jsx": "preserve",
+    "jsxImportSource": "@emotion/react",
     "lib": [
       "dom",
       "esnext"
     ],
+    "incremental": true,
+    "isolatedModules": true,
     "module": "commonjs",
     "moduleResolution": "node",
     "noEmit": true,
     "pretty": true,
+    "resolveJsonModule": true,
     "skipLibCheck": true,
-    "target": "esnext"
-  }
+    "strict": true,
+    "target": "esnext",
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }

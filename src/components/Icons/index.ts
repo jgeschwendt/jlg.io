@@ -1,1 +1,0 @@
-export { Entypo } from './Entypo';

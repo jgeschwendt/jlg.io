@@ -1,21 +1,31 @@
+'use strict';
+
 module.exports = (api) => (
   api.env('test') ? {
-    plugins: [
-      ['styled-components'],
-    ],
+    // plugins: ['@emotion/babel-plugin'],
     presets: [
-      ['@babel/env', { targets: { node: 'current' } }],
-      ['@babel/react'],
-      ['@babel/typescript'],
+      [
+        'next/babel',
+        // {
+        //   'preset-react': {
+        //     importSource: '@emotion/react',
+        //     runtime: 'automatic',
+        //   },
+        // },
+      ],
     ],
   } : {
-    plugins: [
-      ['styled-components'],
-    ],
+    plugins: ['@emotion/babel-plugin'],
     presets: [
-      ['@babel/env', { modules: false }],
-      ['@babel/react'],
-      ['@babel/typescript'],
+      [
+        'next/babel',
+        {
+          'preset-react': {
+            importSource: '@emotion/react',
+            runtime: 'automatic',
+          },
+        },
+      ],
     ],
   }
 );
