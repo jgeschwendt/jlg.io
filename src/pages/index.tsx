@@ -12,9 +12,9 @@ const STATEMENT = (
 
 const BUTTONS = [
   [Icon.File, 'https://jgeschwendt.github.io/jlg-resume/'],
-  [Icon.Envelope, 'mailto:joshua@geschwendt.com'],
   [Icon.GitHub, 'https://github.com/jgeschwendt'],
   [Icon.LinkedInIn, 'https://www.linkedin.com/in/jgeschwendt'],
+  [Icon.Envelope, 'mailto:joshua@geschwendt.com'],
 ] as const;
 
 const [HIDE, SHOW] = ['hide', 'show'];
@@ -46,7 +46,7 @@ export default function Main() {
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'center',
-          minHeight: '100vh',
+          minHeight: 'fill-available',
         })}
       >
         <div
