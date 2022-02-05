@@ -1,6 +1,9 @@
 {
+  "cSpell.words": ["fontawesome", "fortawesome", "svgr", "svgs"],
   "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": true
+    "source.fixAll": true
   },
-  "editor.tabSize": 2,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true,
+  "editor.tabSize": 2
 }

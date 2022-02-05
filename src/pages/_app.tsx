@@ -1,5 +1,8 @@
 import 'bootstrap/dist/css/bootstrap-reboot.css';
+import type { AppProps } from 'next/app';
 
-export default function App({ Component, pageProps }: any) {
-  return <Component {...pageProps} />
-}
+const App = ({ Component, pageProps }: AppProps) => (
+  <Component {...pageProps} />
+);
+
+export default App;

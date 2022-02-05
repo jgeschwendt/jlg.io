@@ -1,12 +1,13 @@
-import { css, Global } from '@emotion/react';
+import { Global, css, keyframes } from '@emotion/react';
 import { LazyMotion, domAnimation, m as motion } from 'framer-motion';
 import { Icon } from '../components';
 
+const Y_O_E = new Date().getFullYear() - 2012;
 const STATEMENT = (
   <>
-    I&apos;m a seasoned web engineer with {new Date().getFullYear() - 2012}{' '}
-    years of professional experience located in Grand Rapids, Michigan. I
-    specialize in Node.js services and React applications.
+    I&apos;m a seasoned web engineer with {Y_O_E} years of professional
+    experience located in Grand Rapids, Michigan. I specialize in Node.js
+    services and React applications.
   </>
 );
 
@@ -42,7 +43,7 @@ export default function Main() {
             alignItems: 'center',
             display: 'flex',
             justifyContent: 'center',
-            minHeight: ['fill-available', '100%']
+            minHeight: ['fill-available', '100%'],
           },
         })}
       />
@@ -79,8 +80,8 @@ export default function Main() {
               d="M13.5 20C13.5 14.921 17.4857 10.7729 22.5 10.5129V29.4871C17.4857 29.2271 13.5 25.079 13.5 20ZM26.5 10.5H32.5V30C32.5 35.079 28.5143 39.2271 23.5 39.4871V33.4646C25.1961 33.2219 26.5 31.7632 26.5 30V10.5Z"
               initial={HIDE}
               transition={{
-                default: { delay: 0.5, duration: 2, ease: 'easeIn' },
-                fill: { delay: 1, duration: 2, ease: 'easeIn' },
+                default: { delay: 0.25, duration: 1.75, ease: 'easeIn' },
+                fill: { delay: 1.25, duration: 0.75, ease: 'easeIn' },
               }}
               variants={{
                 [HIDE]: {
@@ -108,10 +109,7 @@ export default function Main() {
           initial={HIDE}
           variants={{
             [SHOW]: {
-              transition: {
-                delayChildren: 2,
-                staggerChildren: 0.1,
-              },
+              transition: { delayChildren: 2, staggerChildren: 0.1 },
             },
           }}
         >
@@ -157,13 +155,24 @@ export default function Main() {
               <motion.a
                 css={css({
                   alignItems: 'center',
-                  backgroundColor: 'rgba(255, 255, 255, .5)',
-                  borderRadius: '1.75rem',
+                  backgroundColor: 'rgba(255, 255, 255, .125)',
+                  borderColor: 'rgba(255, 255, 255, .25)',
+                  borderRadius: '.5rem',
+                  borderStyle: 'solid',
+                  borderWidth: 2,
                   display: 'flex',
                   height: '2.75rem',
                   justifyContent: 'center',
-                  marginInline: '.5rem',
+                  marginInline: '.25rem',
                   width: '2.75rem',
+                  transition:
+                    'background-color 600ms ease-out, border-color 600ms ease-out',
+                  ':hover': {
+                    backgroundColor: 'rgba(255, 255, 255, .25)',
+                    borderColor: 'rgba(255, 255, 255, .5)',
+                    transition:
+                      'background-color 300ms ease-out, border-color 300ms ease-out',
+                  },
                 })}
                 href={href}
                 key={href}
