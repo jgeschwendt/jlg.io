@@ -1,5 +1,5 @@
 import { css, Global } from '@emotion/react';
-import { LazyMotion, domAnimation, m } from 'framer-motion';
+import { LazyMotion, domAnimation, m as motion } from 'framer-motion';
 import { Icon } from '../components';
 
 const STATEMENT = (
@@ -63,7 +63,7 @@ export default function Main() {
             width: '16rem',
           })}
         >
-          <m.svg
+          <motion.svg
             css={css({
               stroke: '#fff',
               strokeWidth: 0.5,
@@ -74,7 +74,7 @@ export default function Main() {
             viewBox="0 0 48 48"
             xmlns="http://www.w3.org/2000/svg"
           >
-            <m.path
+            <motion.path
               animate={SHOW}
               d="M13.5 20C13.5 14.921 17.4857 10.7729 22.5 10.5129V29.4871C17.4857 29.2271 13.5 25.079 13.5 20ZM26.5 10.5H32.5V30C32.5 35.079 28.5143 39.2271 23.5 39.4871V33.4646C25.1961 33.2219 26.5 31.7632 26.5 30V10.5Z"
               initial={HIDE}
@@ -95,10 +95,10 @@ export default function Main() {
                 },
               }}
             />
-          </m.svg>
+          </motion.svg>
         </div>
 
-        <m.div
+        <motion.div
           animate={SHOW}
           css={css({
             alignItems: 'center',
@@ -115,7 +115,7 @@ export default function Main() {
             },
           }}
         >
-          <m.p
+          <motion.p
             css={css({
               marginInline: '1rem',
               marginBlockEnd: '2rem',
@@ -141,9 +141,9 @@ export default function Main() {
             }}
           >
             {STATEMENT}
-          </m.p>
+          </motion.p>
 
-          <m.div
+          <motion.div
             css={css({ display: 'flex' })}
             variants={{
               [SHOW]: {
@@ -154,7 +154,7 @@ export default function Main() {
             }}
           >
             {BUTTONS.map(([Icon_, href]) => (
-              <m.a
+              <motion.a
                 css={css({
                   alignItems: 'center',
                   backgroundColor: 'rgba(255, 255, 255, .5)',
@@ -191,10 +191,10 @@ export default function Main() {
                   })}
                   fill="white"
                 />
-              </m.a>
+              </motion.a>
             ))}
-          </m.div>
-        </m.div>
+          </motion.div>
+        </motion.div>
       </main>
     </LazyMotion>
   );
