@@ -9,16 +9,25 @@ const fontFace = `
   font-family: 'Lato';
   src: url('${Lato.Light}') format('woff2');
 }
-`
-  .replace(/\n/g, '')
-  .trim();
+`;
 
 export default function Document() {
   return (
     <Html>
       <Head>
-        <link as="font" href={Lato.Light} rel="preload" type="font/woff2" />
-        <style type="text/css" dangerouslySetInnerHTML={{ __html: fontFace }} />
+        <link
+          as="font"
+          crossOrigin=""
+          href={Lato.Light}
+          rel="preload"
+          type="font/woff2"
+        />
+        <style
+          type="text/css"
+          dangerouslySetInnerHTML={{
+            __html: fontFace.replace(/\n/g, '').replace(/\s+/g, '').trim(),
+          }}
+        />
       </Head>
       <body>
         <Main />
