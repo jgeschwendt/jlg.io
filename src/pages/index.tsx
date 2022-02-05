@@ -33,9 +33,16 @@ export default function Main() {
     <>
       <Global
         styles={css({
+          html: {
+            height: '100%',
+          },
           body: {
             '--bs-body-bg': '#1a1a1a',
             '--bs-body-font-family': 'Lato, sans-serif',
+            alignItems: 'center',
+            display: 'flex',
+            justifyContent: 'center',
+            minHeight: ['fill-available', '100%']
           },
         })}
       />
@@ -46,7 +53,6 @@ export default function Main() {
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'center',
-          minHeight: 'fill-available',
         })}
       >
         <div
