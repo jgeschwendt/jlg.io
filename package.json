@@ -12,6 +12,7 @@
   "scripts": {
     "build": "next build",
     "dev": "next dev",
+    "favicon": "npx svg-to-ico public/jg.svg public/favicon.ico",
     "ncu": "npm-check-updates -u && npm i && npm audit fix",
     "lint": "next lint",
     "start": "next start"
@@ -24,7 +25,8 @@
     "framer-motion": "6.2.4",
     "next": "12.0.10",
     "react": "17.0.2",
-    "react-dom": "17.0.2"
+    "react-dom": "17.0.2",
+    "sharp": "0.30.0"
   },
   "devDependencies": {
     "@svgr/webpack": "6.2.1",
