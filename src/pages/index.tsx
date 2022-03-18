@@ -45,6 +45,9 @@ export default function Main() {
             justifyContent: 'center',
             minHeight: ['fill-available', '100%'],
           },
+          '*:focus-visible': {
+            outlineColor: 'red',
+          },
         })}
       />
       <main
