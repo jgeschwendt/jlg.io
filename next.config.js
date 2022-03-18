@@ -1,9 +1,12 @@
-"use strict";
-
 module.exports = {
+  experimental: {
+    emotion: true,
+    runtime: 'nodejs',
+  },
+  swcMinify: true,
   webpack(config) {
     const imageLoader = config.module.rules.findIndex(
-      ({ loader }) => loader === "next-image-loader"
+      ({ loader }) => loader === 'next-image-loader'
     );
 
     config.module.rules[imageLoader] = {
@@ -14,7 +17,7 @@ module.exports = {
           test: /\.svg$/i,
           use: [
             {
-              loader: "@svgr/webpack",
+              loader: '@svgr/webpack',
             },
           ],
         },
