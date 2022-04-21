@@ -2,7 +2,7 @@
   "name": "jlg.io",
   "description": "jlg.io",
   "engines": {
-    "node": "16.x"
+    "node": "14.x || 16.x"
   },
   "license": "UNLICENSED",
   "private": true,
