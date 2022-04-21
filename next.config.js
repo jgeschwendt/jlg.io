@@ -1,7 +1,7 @@
 module.exports = {
   experimental: {
     emotion: true,
-    runtime: 'nodejs',
+    runtime: 'edge',
   },
   swcMinify: true,
   webpack(config) {
