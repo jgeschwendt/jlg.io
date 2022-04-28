@@ -54,9 +54,13 @@ export default function Main(props: any) {
           },
           'body': {
             alignItems: 'center',
+            backgroundColor: '#1a1a1a',
             display: 'flex',
             justifyContent: 'center',
             minHeight: ['fill-available', '100%'],
+          },
+          'image, svg': {
+            verticalAlign: 'middle',
           },
           '*:focus-visible': {
             outlineColor: 'red',
@@ -131,8 +135,10 @@ export default function Main(props: any) {
         >
           <motion.p
             css={css({
+              lineHeight: 1.5,
               marginInline: '1rem',
               marginBlockEnd: '2rem',
+              marginBlockStart: 0,
               maxWidth: '50ch',
               textAlign: 'center',
               [bp.up.md]: {
