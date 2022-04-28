@@ -1,9 +1,9 @@
+/** @type {import('next').NextConfig} */
 module.exports = {
   experimental: {
     emotion: true,
     runtime: 'edge',
   },
-  swcMinify: true,
   webpack(config) {
     const imageLoader = config.module.rules.findIndex(
       ({ loader }) => loader === 'next-image-loader'
