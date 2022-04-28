@@ -1,11 +1,11 @@
-import { Global, css, keyframes } from '@emotion/react';
+import { Global, css } from '@emotion/react';
 import { LazyMotion, domAnimation, m as motion } from 'framer-motion';
+import { useEffect, useState } from 'react';
 import { Icon } from '../components';
 
-const Y_O_E = new Date().getFullYear() - 2012;
-const STATEMENT = (
+const Statement = ({ y_o_e }: { y_o_e: number }) => (
   <>
-    I&apos;m a seasoned web engineer with {Y_O_E} years of professional
+    I&apos;m a seasoned web engineer with {y_o_e} years of professional
     experience located in Grand Rapids, Michigan. I specialize in Node.js
     services and React applications.
   </>
@@ -20,26 +20,39 @@ const BUTTONS = [
 
 const [HIDE, SHOW] = ['hide', 'show'];
 
+const mq = (bp: number) => `@media (min-width: ${bp}px)`;
 const bp = {
   up: {
-    sm: '@media (min-width: 576px)',
-    md: '@media (min-width: 768px)',
-    lg: '@media (min-width: 992px)',
-    xl: '@media (min-width: 1200px)',
+    sm: mq(576),
+    md: mq(768),
+    lg: mq(992),
+    xl: mq(1200),
   },
 };
 
-export default function Main() {
+export const getServerSideProps = async () => ({
+  props: {
+    y_o_e: new Date().getFullYear() - 2012,
+  },
+});
+
+export default function Main(props: any) {
+  const [show, setShow] = useState(false);
+
+  useEffect(() => {
+    setTimeout(() => {
+      setShow(true);
+    }, 500);
+  }, []);
+
   return (
     <LazyMotion features={domAnimation}>
       <Global
         styles={css({
-          html: {
+          'html': {
             height: '100%',
           },
-          body: {
-            '--bs-body-bg': '#1a1a1a',
-            '--bs-body-font-family': 'Lato, sans-serif',
+          'body': {
             alignItems: 'center',
             display: 'flex',
             justifyContent: 'center',
@@ -79,12 +92,12 @@ export default function Main() {
             xmlns="http://www.w3.org/2000/svg"
           >
             <motion.path
-              animate={SHOW}
+              animate={show ? SHOW : HIDE}
               d="M13.5 20C13.5 14.921 17.4857 10.7729 22.5 10.5129V29.4871C17.4857 29.2271 13.5 25.079 13.5 20ZM26.5 10.5H32.5V30C32.5 35.079 28.5143 39.2271 23.5 39.4871V33.4646C25.1961 33.2219 26.5 31.7632 26.5 30V10.5Z"
               initial={HIDE}
               transition={{
-                default: { delay: 0.25, duration: 1.75, ease: 'easeIn' },
-                fill: { delay: 1.25, duration: 0.75, ease: 'easeIn' },
+                default: { duration: 1.75, ease: 'easeIn' },
+                fill: { delay: 1, duration: 0.75, ease: 'easeIn' },
               }}
               variants={{
                 [HIDE]: {
@@ -103,7 +116,7 @@ export default function Main() {
         </div>
 
         <motion.div
-          animate={SHOW}
+          animate={show ? SHOW : HIDE}
           css={css({
             alignItems: 'center',
             display: 'flex',
@@ -141,7 +154,7 @@ export default function Main() {
               },
             }}
           >
-            {STATEMENT}
+            <Statement {...props} />
           </motion.p>
 
           <motion.div
@@ -157,18 +170,18 @@ export default function Main() {
             {BUTTONS.map(([Icon_, href]) => (
               <motion.a
                 css={css({
-                  alignItems: 'center',
-                  backgroundColor: 'rgba(255, 255, 255, .125)',
-                  borderColor: 'rgba(255, 255, 255, .25)',
-                  borderRadius: '.5rem',
-                  borderStyle: 'solid',
-                  borderWidth: 2,
-                  display: 'flex',
-                  height: '2.75rem',
-                  justifyContent: 'center',
-                  marginInline: '.25rem',
-                  width: '2.75rem',
-                  transition:
+                  'alignItems': 'center',
+                  'backgroundColor': 'rgba(255, 255, 255, .125)',
+                  'borderColor': 'rgba(255, 255, 255, .25)',
+                  'borderRadius': '.5rem',
+                  'borderStyle': 'solid',
+                  'borderWidth': 2,
+                  'display': 'flex',
+                  'height': '2.75rem',
+                  'justifyContent': 'center',
+                  'marginInline': '.25rem',
+                  'width': '2.75rem',
+                  'transition':
                     'background-color 600ms ease-out, border-color 600ms ease-out',
                   ':hover': {
                     backgroundColor: 'rgba(255, 255, 255, .25)',
