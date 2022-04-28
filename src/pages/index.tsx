@@ -1,7 +1,8 @@
 import { Global, css } from '@emotion/react';
 import { LazyMotion, domAnimation, m as motion } from 'framer-motion';
+import Head from 'next/head';
 import { useEffect, useState } from 'react';
-import { Icon } from '../components';
+import { Font, Icon } from '../components';
 
 const Statement = ({ y_o_e }: { y_o_e: number }) => (
   <>
@@ -47,6 +48,10 @@ export default function Main(props: any) {
 
   return (
     <LazyMotion features={domAnimation}>
+      <Head>
+        <title>Joshua L Geschwendt&mdash;Web Engineer</title>
+      </Head>
+      <Font fontDisplay="block" lato={['light']} />
       <Global
         styles={css({
           'html': {
