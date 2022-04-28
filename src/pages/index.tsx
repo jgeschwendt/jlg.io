@@ -42,7 +42,7 @@ export default function Main(props: any) {
   useEffect(() => {
     setTimeout(() => {
       setShow(true);
-    }, 1000);
+    }, 500);
   }, []);
 
   return (
