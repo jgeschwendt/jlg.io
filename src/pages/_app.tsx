@@ -1,11 +1,9 @@
-import 'bootstrap/dist/css/bootstrap-reboot.css';
+import 'modern-normalize/modern-normalize.css';
 import { Global } from '@emotion/react';
 import type { AppProps } from 'next/app';
 import Head from 'next/head';
 
 const Lato = { Light: '/fonts/Lato/Lato-Light.woff2' };
-
-const backgroundColor = '#1a1a1a';
 
 const App = ({ Component, pageProps }: AppProps) => (
   <>
@@ -25,14 +23,8 @@ const App = ({ Component, pageProps }: AppProps) => (
           fontFamily: 'Lato',
           src: `url('${Lato.Light}') format('woff2')`,
         },
-
         'body': {
-          backgroundColor,
-        },
-
-        ':root': {
-          '--bs-body-bg': backgroundColor,
-          '--bs-body-font-family': 'Lato, sans-serif',
+          fontFamily: 'Lato, sans-serif',
         },
       }}
     />
