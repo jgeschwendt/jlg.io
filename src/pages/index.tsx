@@ -7,13 +7,13 @@ import { Font, Icon } from '../components';
 const Statement = ({ y_o_e }: { y_o_e: number }) => (
   <>
     I&apos;m a seasoned web engineer with {y_o_e} years of professional
-    experience located in Grand Rapids, Michigan. I specialize in Node.js
-    services and React applications.
+    experience located in West Michigan. I specialize in Node.js services and
+    React applications.
   </>
 );
 
 const BUTTONS = [
-  [Icon.File, 'https://jgeschwendt.github.io/jlg-resume/'],
+  [Icon.File, '/resume'],
   [Icon.GitHub, 'https://github.com/jgeschwendt'],
   [Icon.LinkedInIn, 'https://www.linkedin.com/in/jgeschwendt'],
   [Icon.Envelope, 'mailto:joshua@geschwendt.com'],
@@ -144,7 +144,7 @@ export default function Main(props: any) {
               marginInline: '1rem',
               marginBlockEnd: '2rem',
               marginBlockStart: 0,
-              maxWidth: '50ch',
+              maxWidth: '60ch',
               textAlign: 'center',
               [bp.up.md]: {
                 fontSize: '1.25rem',
