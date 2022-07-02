@@ -2,7 +2,7 @@
 module.exports = {
   experimental: {
     emotion: true,
-    runtime: 'edge',
+    runtime: 'experimental-edge',
   },
   webpack(config) {
     const imageLoader = config.module.rules.findIndex(

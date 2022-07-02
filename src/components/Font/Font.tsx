@@ -2,8 +2,11 @@ import { Global } from '@emotion/react';
 import Head from 'next/head';
 
 const Lato = {
-  medium: [500, '/fonts/Lato/Lato-Medium.woff2'],
+  thin: [200, '/fonts/Lato/Lato-Thin.woff2'],
   light: [300, '/fonts/Lato/Lato-Light.woff2'],
+  regular: [400, '/fonts/Lato/Lato-Regular.woff2'],
+  medium: [500, '/fonts/Lato/Lato-Medium.woff2'],
+  bold: [600, '/fonts/Lato/Lato-Bold.woff2'],
 } as const;
 
 const FontLato = ({

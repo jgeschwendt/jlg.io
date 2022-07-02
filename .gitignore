@@ -1,5 +1,6 @@
 .vercel
 .next
 node_modules
+src/pages/secret/
 .env
 .env.*
