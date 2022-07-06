@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 module.exports = {
+  emotion: true,
   experimental: {
-    emotion: true,
     runtime: 'experimental-edge',
   },
   webpack(config) {
