@@ -2,7 +2,7 @@
   "name": "jlg.io",
   "description": "jlg.io",
   "engines": {
-    "node": "14.x || 16.x"
+    "node": "16.x"
   },
   "license": "UNLICENSED",
   "private": true,
@@ -15,9 +15,8 @@
   },
   "dependencies": {
     "@emotion/react": "11.9.3",
-    "@emotion/styled": "11.9.3",
     "@fortawesome/fontawesome-free": "6.1.1",
-    "framer-motion": "6.3.16",
+    "framer-motion": "6.4.1",
     "modern-normalize": "1.1.0",
     "next": "12.2.0",
     "react": "18.2.0",
@@ -26,14 +25,14 @@
   },
   "devDependencies": {
     "@svgr/webpack": "6.2.1",
-    "@types/react": "18.0.14",
-    "@types/react-dom": "18.0.5",
-    "eslint": "8.18.0",
+    "@types/react": "18.0.15",
+    "@types/react-dom": "18.0.6",
+    "eslint": "8.19.0",
     "eslint-config-next": "12.2.0",
     "eslint-config-prettier": "8.5.0",
     "prettier": "2.7.1",
     "typescript": "4.7.4",
-    "vercel": "25.2.3"
+    "vercel": "26.0.0"
   },
   "scripts": {
     "build": "next build",
