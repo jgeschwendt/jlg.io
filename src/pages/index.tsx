@@ -1,8 +1,11 @@
 import { Global, css } from '@emotion/react';
 import { LazyMotion, domAnimation, m as motion } from 'framer-motion';
 import Head from 'next/head';
-import { useEffect, useState } from 'react';
+import Script from 'next/script';
+import { useLayoutEffect, useState } from 'react';
 import { Font, Icon } from '../components';
+
+const triggerAnimationEvent = 'animation-trigger';
 
 const Statement = ({ y_o_e }: { y_o_e: number }) => (
   <>
@@ -40,10 +43,10 @@ export const getServerSideProps = async () => ({
 export default function Main(props: any) {
   const [show, setShow] = useState(false);
 
-  useEffect(() => {
-    setTimeout(() => {
+  useLayoutEffect(() => {
+    window.addEventListener(triggerAnimationEvent, () => {
       setShow(true);
-    }, 500);
+    });
   }, []);
 
   return (
@@ -71,6 +74,13 @@ export default function Main(props: any) {
             outlineColor: 'red',
           },
         })}
+      />
+      <Script
+        dangerouslySetInnerHTML={{
+          __html: `(function(){window.dispatchEvent(new Event("${triggerAnimationEvent}"));})();`,
+        }}
+        id={triggerAnimationEvent}
+        strategy="lazyOnload"
       />
       <main
         css={{
