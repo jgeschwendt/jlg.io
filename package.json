@@ -14,31 +14,32 @@
     "singleQuote": true
   },
   "dependencies": {
-    "@emotion/react": "11.9.3",
-    "@fortawesome/fontawesome-free": "6.1.1",
-    "framer-motion": "6.4.1",
+    "@babel/core": "7.18.10",
+    "@emotion/react": "11.10.0",
+    "@fortawesome/fontawesome-free": "6.1.2",
+    "framer-motion": "7.0.1",
     "modern-normalize": "1.1.0",
-    "next": "12.2.0",
+    "next": "12.2.4",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "sharp": "0.30.7"
   },
   "devDependencies": {
-    "@svgr/webpack": "6.2.1",
-    "@types/react": "18.0.15",
+    "@svgr/webpack": "6.3.1",
+    "@types/react": "18.0.17",
     "@types/react-dom": "18.0.6",
-    "eslint": "8.19.0",
-    "eslint-config-next": "12.2.0",
+    "eslint": "8.21.0",
+    "eslint-config-next": "12.2.4",
     "eslint-config-prettier": "8.5.0",
     "prettier": "2.7.1",
     "typescript": "4.7.4",
-    "vercel": "26.0.0"
+    "vercel": "27.4.0"
   },
   "scripts": {
     "build": "next build",
     "dev": "next dev",
     "favicon": "npx svg-to-ico public/jg.svg public/favicon.ico",
-    "ncu": "npx npm-check-updates -u && yarn",
+    "ncu": "npx npm-check-updates -u && pnpm install",
     "lint": "next lint",
     "start": "next start"
   }
