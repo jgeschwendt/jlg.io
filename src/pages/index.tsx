@@ -47,7 +47,7 @@ export default function Main(props: any) {
   }, []);
 
   return (
-    <LazyMotion features={domAnimation}>
+    <LazyMotion features={domAnimation} strict={true}>
       <Head>
         <title>Joshua L Geschwendt&mdash;Web Engineer</title>
       </Head>
@@ -73,30 +73,30 @@ export default function Main(props: any) {
         })}
       />
       <main
-        css={css({
+        css={{
           alignItems: 'center',
           color: 'white',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'center',
-        })}
+        }}
       >
         <div
-          css={css({
+          css={{
             display: 'block',
             margin: '0 auto',
             maxWidth: '100%',
             width: '16rem',
-          })}
+          }}
         >
           <motion.svg
-            css={css({
+            css={{
               stroke: '#fff',
               strokeWidth: 0.5,
               strokeLinejoin: 'round',
               strokeLinecap: 'round',
               width: '100%',
-            })}
+            }}
             viewBox="0 0 48 48"
             xmlns="http://www.w3.org/2000/svg"
           >
@@ -126,11 +126,11 @@ export default function Main(props: any) {
 
         <motion.div
           animate={show ? SHOW : HIDE}
-          css={css({
+          css={{
             alignItems: 'center',
             display: 'flex',
             flexDirection: 'column',
-          })}
+          }}
           initial={HIDE}
           variants={{
             [SHOW]: {
@@ -139,7 +139,7 @@ export default function Main(props: any) {
           }}
         >
           <motion.p
-            css={css({
+            css={{
               lineHeight: 1.5,
               marginInline: '1rem',
               marginBlockEnd: '2rem',
@@ -149,7 +149,7 @@ export default function Main(props: any) {
               [bp.up.md]: {
                 fontSize: '1.25rem',
               },
-            })}
+            }}
             variants={{
               [HIDE]: {
                 opacity: 0,
@@ -169,7 +169,7 @@ export default function Main(props: any) {
           </motion.p>
 
           <motion.div
-            css={css({ display: 'flex' })}
+            css={{ display: 'flex' }}
             variants={{
               [SHOW]: {
                 transition: {
@@ -180,7 +180,7 @@ export default function Main(props: any) {
           >
             {BUTTONS.map(([Icon_, href]) => (
               <motion.a
-                css={css({
+                css={{
                   'alignItems': 'center',
                   'backgroundColor': 'rgba(255, 255, 255, .125)',
                   'borderColor': 'rgba(255, 255, 255, .25)',
@@ -200,7 +200,7 @@ export default function Main(props: any) {
                     transition:
                       'background-color 300ms ease-out, border-color 300ms ease-out',
                   },
-                })}
+                }}
                 href={href}
                 key={href}
                 variants={{
@@ -219,12 +219,12 @@ export default function Main(props: any) {
                 }}
               >
                 <Icon_
-                  css={css({
+                  css={{
                     height: '100%',
                     maxHeight: '1.25rem',
                     maxWidth: '1.25rem',
                     width: '100%',
-                  })}
+                  }}
                   fill="white"
                 />
               </motion.a>

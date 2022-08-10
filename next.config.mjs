@@ -1,10 +1,12 @@
 /** @type {import('next').NextConfig} */
-module.exports = {
-  emotion: true,
+const config = {
+  compiler: {
+    emotion: true,
+  },
   experimental: {
     runtime: 'experimental-edge',
   },
-  webpack(config) {
+  webpack(config, context) {
     const imageLoader = config.module.rules.findIndex(
       ({ loader }) => loader === 'next-image-loader'
     );
@@ -25,6 +27,15 @@ module.exports = {
       ],
     };
 
+    // https://github.com/vercel/next.js/issues/39229
+    if (context.nextRuntime === 'edge') {
+      if (!config.resolve.conditionNames) {
+        config.resolve.conditionNames = ['require', 'worker'];
+      }
+    }
+
     return config;
   },
 };
+
+export default config;
