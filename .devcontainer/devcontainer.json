@@ -15,5 +15,8 @@
 	},
 	"forwardPorts": [3000],
 	"postCreateCommand": "pnpm install",
-	"remoteUser": "node"
+	"remoteUser": "node",
+	"settings": {
+		"npm.packageManager": "pnpm"
+	}
 }
