@@ -2,7 +2,7 @@ import { Global, css } from '@emotion/react';
 import { LazyMotion, domAnimation, m as motion } from 'framer-motion';
 import Head from 'next/head';
 import Script from 'next/script';
-import { useLayoutEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Font, Icon } from '../components';
 
 const triggerAnimationEvent = 'animation-trigger';
@@ -43,7 +43,7 @@ export const getServerSideProps = async () => ({
 export default function Main(props: any) {
   const [show, setShow] = useState(false);
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     window.addEventListener(triggerAnimationEvent, () => {
       setShow(true);
     });
