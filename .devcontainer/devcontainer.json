@@ -1,22 +1,24 @@
 {
-	"name": "jlg.io",
-	"build": {
-		"dockerfile": "Dockerfile",
-		"args": { 
-			"VARIANT": "16-bullseye"
-		}
-	},
-	"customizations": {
-		"vscode": {
-			"extensions": [
-				"dbaeumer.vscode-eslint"
-			]
-		}
-	},
-	"forwardPorts": [3000],
-	"postCreateCommand": "pnpm install",
-	"remoteUser": "node",
-	"settings": {
-		"npm.packageManager": "pnpm"
-	}
+  "name": "jlg.io",
+  "build": {
+    "args": {
+      "VARIANT": "16-bullseye"
+    },
+    "dockerfile": "Dockerfile"
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "streetsidesoftware.code-spell-checker"
+      ]
+    }
+  },
+  "forwardPorts": [3000],
+  "postCreateCommand": "pnpm install",
+  "remoteUser": "node",
+  "settings": {
+    "npm.packageManager": "pnpm"
+  }
 }
