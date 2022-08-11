@@ -1,0 +1,19 @@
+{
+	"name": "jlg.io",
+	"build": {
+		"dockerfile": "Dockerfile",
+		"args": { 
+			"VARIANT": "16-bullseye"
+		}
+	},
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"dbaeumer.vscode-eslint"
+			]
+		}
+	},
+	"forwardPorts": [3000],
+	"postCreateCommand": "pnpm install",
+	"remoteUser": "node"
+}
