@@ -5,7 +5,7 @@ import Script from 'next/script';
 import { useEffect, useState } from 'react';
 import { Font, Icon } from '../components';
 
-const triggerAnimationEvent = 'animation-trigger';
+const AnimationTrigger = 'animation-trigger';
 
 const Statement = ({ y_o_e }: { y_o_e: number }) => (
   <>
@@ -14,6 +14,9 @@ const Statement = ({ y_o_e }: { y_o_e: number }) => (
     React applications.
   </>
 );
+
+const JG =
+  'M13.25 20C13.25 14.6988 17.4808 10.3858 22.75 10.2531V29.7469C17.4808 29.6142 13.25 25.3012 13.25 20ZM25.25 10.25H32.75V30C32.75 35.3012 28.5192 39.6142 23.25 39.7469V32.2363C24.375 32.1119 25.25 31.1581 25.25 30V10.25Z';
 
 const BUTTONS = [
   [Icon.File, '/resume'],
@@ -44,7 +47,7 @@ export default function Main(props: any) {
   const [show, setShow] = useState(false);
 
   useEffect(() => {
-    window.addEventListener(triggerAnimationEvent, () => {
+    window.addEventListener(AnimationTrigger, () => {
       setShow(true);
     });
   }, []);
@@ -77,9 +80,9 @@ export default function Main(props: any) {
       />
       <Script
         dangerouslySetInnerHTML={{
-          __html: `(function(){window.dispatchEvent(new Event("${triggerAnimationEvent}"));})();`,
+          __html: `(function(){window.dispatchEvent(new Event("${AnimationTrigger}"));})();`,
         }}
-        id={triggerAnimationEvent}
+        id={AnimationTrigger}
         strategy="lazyOnload"
       />
       <main
@@ -95,24 +98,22 @@ export default function Main(props: any) {
           css={{
             display: 'block',
             margin: '0 auto',
-            maxWidth: '100%',
-            width: '16rem',
           }}
         >
           <motion.svg
             css={{
               stroke: '#fff',
               strokeWidth: 0.5,
-              strokeLinejoin: 'round',
-              strokeLinecap: 'round',
-              width: '100%',
+              strokeLinejoin: 'miter',
+              strokeLinecap: 'square',
+              width: 48 * 4,
             }}
             viewBox="0 0 48 48"
             xmlns="http://www.w3.org/2000/svg"
           >
             <motion.path
               animate={show ? SHOW : HIDE}
-              d="M13.5 20C13.5 14.921 17.4857 10.7729 22.5 10.5129V29.4871C17.4857 29.2271 13.5 25.079 13.5 20ZM26.5 10.5H32.5V30C32.5 35.079 28.5143 39.2271 23.5 39.4871V33.4646C25.1961 33.2219 26.5 31.7632 26.5 30V10.5Z"
+              d={JG}
               initial={HIDE}
               transition={{
                 default: { duration: 1.75, ease: 'easeIn' },
