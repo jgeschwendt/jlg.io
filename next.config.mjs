@@ -6,7 +6,7 @@ const config = {
   experimental: {
     runtime: 'experimental-edge',
   },
-  webpack(config, context) {
+  webpack(config) {
     const imageLoader = config.module.rules.findIndex(
       ({ loader }) => loader === 'next-image-loader'
     );
@@ -26,13 +26,6 @@ const config = {
         config.module.rules[imageLoader],
       ],
     };
-
-    // https://github.com/vercel/next.js/issues/39229
-    if (context.nextRuntime === 'edge') {
-      if (!config.resolve.conditionNames) {
-        config.resolve.conditionNames = ['require', 'worker'];
-      }
-    }
 
     return config;
   },
