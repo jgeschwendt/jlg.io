@@ -1,11 +1,4 @@
 {
-  "cSpell.words": [
-    "fontawesome",
-    "fortawesome",
-    "springthrough",
-    "svgr",
-    "svgs"
-  ],
   "editor.codeActionsOnSave": {
     "source.fixAll": true
   },
