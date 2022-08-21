@@ -2,7 +2,6 @@ lockfileVersion: 5.4
 
 specifiers:
   '@babel/core': 7.18.10
-  '@emotion/cache': 11.10.1
   '@emotion/react': 11.10.0
   '@fortawesome/fontawesome-free': 6.1.2
   '@svgr/webpack': 6.3.1
@@ -25,7 +24,6 @@ specifiers:
 
 dependencies:
   '@babel/core': 7.18.10
-  '@emotion/cache': 11.10.1
   '@emotion/react': 11.10.0_msmmgljd7hl2w2irtggflhmema
   '@fortawesome/fontawesome-free': 6.1.2
   framer-motion: 7.2.0_biqbaboplfbrettd7655fr4n2y
