@@ -4,8 +4,12 @@ import Head from 'next/head';
 import Script from 'next/script';
 import { useEffect, useState } from 'react';
 import { Font, Icon } from '../components';
+import { bp } from '../styles';
 
 const AnimationTrigger = 'animation-trigger';
+
+const JG =
+  'M13.25 20C13.25 14.6988 17.4808 10.3858 22.75 10.2531V29.7469C17.4808 29.6142 13.25 25.3012 13.25 20ZM25.25 10.25H32.75V30C32.75 35.3012 28.5192 39.6142 23.25 39.7469V32.2363C24.375 32.1119 25.25 31.1581 25.25 30V10.25Z';
 
 const Statement = ({ y_o_e }: { y_o_e: number }) => (
   <>
@@ -15,27 +19,14 @@ const Statement = ({ y_o_e }: { y_o_e: number }) => (
   </>
 );
 
-const JG =
-  'M13.25 20C13.25 14.6988 17.4808 10.3858 22.75 10.2531V29.7469C17.4808 29.6142 13.25 25.3012 13.25 20ZM25.25 10.25H32.75V30C32.75 35.3012 28.5192 39.6142 23.25 39.7469V32.2363C24.375 32.1119 25.25 31.1581 25.25 30V10.25Z';
-
 const BUTTONS = [
-  [Icon.File, '/resume'],
+  [Icon.File, 'https://jgeschwendt.github.io/jlg-resume/'],
   [Icon.GitHub, 'https://github.com/jgeschwendt'],
   [Icon.LinkedInIn, 'https://www.linkedin.com/in/jgeschwendt'],
   [Icon.Envelope, 'mailto:joshua@geschwendt.com'],
 ] as const;
 
 const [HIDE, SHOW] = ['hide', 'show'];
-
-const mq = (bp: number) => `@media (min-width: ${bp}px)`;
-const bp = {
-  up: {
-    sm: mq(576),
-    md: mq(768),
-    lg: mq(992),
-    xl: mq(1200),
-  },
-};
 
 export const getServerSideProps = async () => ({
   props: {
@@ -59,7 +50,7 @@ export default function Main(props: any) {
       </Head>
       <Font fontDisplay="block" lato={['light']} />
       <Global
-        styles={css({
+        styles={{
           'html': {
             height: '100%',
           },
@@ -76,7 +67,7 @@ export default function Main(props: any) {
           '*:focus-visible': {
             outlineColor: 'red',
           },
-        })}
+        }}
       />
       <Script
         dangerouslySetInnerHTML={{
@@ -192,24 +183,27 @@ export default function Main(props: any) {
             {BUTTONS.map(([Icon_, href]) => (
               <motion.a
                 css={{
-                  'alignItems': 'center',
-                  'backgroundColor': 'rgba(255, 255, 255, .125)',
-                  'borderColor': 'rgba(255, 255, 255, .25)',
-                  'borderRadius': '.5rem',
-                  'borderStyle': 'solid',
-                  'borderWidth': 2,
-                  'display': 'flex',
-                  'height': '2.75rem',
-                  'justifyContent': 'center',
-                  'marginInline': '.25rem',
-                  'width': '2.75rem',
-                  'transition':
+                  alignItems: 'center',
+                  backgroundColor: 'rgba(255, 255, 255, .125)',
+                  borderColor: 'rgba(255, 255, 255, .25)',
+                  borderRadius: '.5rem',
+                  borderStyle: 'solid',
+                  borderWidth: 2,
+                  color: 'transparent',
+                  display: 'flex',
+                  height: '2.75rem',
+                  justifyContent: 'center',
+                  marginInline: '.25rem',
+                  transition:
                     'background-color 600ms ease-out, border-color 600ms ease-out',
-                  ':hover': {
-                    backgroundColor: 'rgba(255, 255, 255, .25)',
-                    borderColor: 'rgba(255, 255, 255, .5)',
-                    transition:
-                      'background-color 300ms ease-out, border-color 300ms ease-out',
+                  width: '2.75rem',
+                  ...{
+                    ':hover': {
+                      backgroundColor: 'rgba(255, 255, 255, .25)',
+                      borderColor: 'rgba(255, 255, 255, .5)',
+                      transition:
+                        'background-color 300ms ease-out, border-color 300ms ease-out',
+                    },
                   },
                 }}
                 href={href}
