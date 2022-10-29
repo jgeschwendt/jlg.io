@@ -1,10 +1,8 @@
 /** @type {import('next').NextConfig} */
 const config = {
-  compiler: {
-    emotion: true,
-  },
   experimental: {
-    runtime: 'experimental-edge',
+    appDir: true,
+    // runtime: 'experimental-edge',
   },
   webpack(config) {
     const imageLoader = config.module.rules.findIndex(
