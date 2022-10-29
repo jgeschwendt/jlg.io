@@ -4,3 +4,6 @@ node_modules
 src/pages/secret/
 .env
 .env.*
+
+.idea
+.vscode

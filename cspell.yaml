@@ -1,4 +1,4 @@
-version: '0.2'
+version: "0.2"
 language: en
 flagWords:
   - hte
@@ -7,8 +7,10 @@ words:
   - fortawesome
   - geschwendt
   - jgeschwendt
+  - lato
   - rockethomes
   - springthrough
   - stylis
   - svgr
   - svgs
+  - tailwindcss
