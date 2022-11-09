@@ -25,9 +25,11 @@ function Statement() {
           replace(
             'Node.js',
             <a
-              className="text-[#FF0080]"
+              className="text-[#339933]"
               href="https://nodejs.org/en/"
               key="node"
+              rel="noreferrer"
+              target="_blank"
             >
               Node.js
             </a>
@@ -35,9 +37,11 @@ function Statement() {
           replace(
             'React',
             <a
-              className="text-[#FF0080]"
+              className={`text-[#009ECA]`}
               href="https://reactjs.org/"
               key="react"
+              rel="noreferrer"
+              target="_blank"
             >
               React
             </a>
