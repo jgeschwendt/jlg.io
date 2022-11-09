@@ -7,20 +7,21 @@ import LinkedInIn from '@fortawesome/fontawesome-free/svgs/brands/linkedin-in.sv
 import { motion } from 'framer-motion';
 import JG from './jg';
 import { Statement } from './statement';
+import Link from 'next/link';
 
 const [HIDE, SHOW] = ['HIDE', 'SHOW'];
 
 // prettier-ignore
 const links = [
-  ['Resume',   File,       'https://jgeschwendt.github.io/jlg-resume/'],
-  ['GitHub',   GitHub,     'https://github.com/jgeschwendt'           ],
-  ['LinkedIn', LinkedInIn, 'https://www.linkedin.com/in/jgeschwendt'  ],
-  ['Email',    Envelope,   'mailto:joshua@geschwendt.com'             ],
+  [File,       'Resume',   '/resume'],
+  [GitHub,     'GitHub',   'https://github.com/jgeschwendt'           ],
+  [LinkedInIn, 'LinkedIn', 'https://www.linkedin.com/in/jgeschwendt'  ],
+  [Envelope,   'Email',    'mailto:joshua@geschwendt.com'             ],
 ] as const;
 
 export default function Content() {
   return (
-    <main className="flex items-center justify-center">
+    <main className="fixed inset-0 flex items-center justify-center">
       <motion.div
         animate={SHOW}
         className="flex flex-col items-center"
@@ -72,8 +73,9 @@ export default function Content() {
             },
           }}
         >
+          <h1 className="sr-only">Joshua L Geschwendt</h1>
           <motion.p
-            className="mx-4 mb-8 max-w-[72ch] text-center text-white"
+            className="mx-4 mb-8 max-w-[60ch] text-center text-white"
             variants={{
               [HIDE]: { opacity: 0, y: 25 },
               [SHOW]: {
@@ -100,7 +102,7 @@ export default function Content() {
               },
             }}
           >
-            {links.map(([label, Icon, href], key) => (
+            {links.map(([Icon, label, href], key) => (
               <motion.li
                 key={key}
                 variants={{
@@ -118,13 +120,13 @@ export default function Content() {
                   },
                 }}
               >
-                <a
+                <Link
                   aria-label={label}
                   className="mx-1 flex h-11 w-11 items-center justify-center rounded-lg border-2 border-[rgba(255,255,255,.25)] bg-[rgba(255,255,255,.125)] transition duration-300 hover:border-[rgba(255,255,255,.5)] hover:bg-[rgba(255,255,255,.25)]"
                   href={href}
                 >
                   <Icon className="max-w-5 max-h-5 w-full" fill="white" />
-                </a>
+                </Link>
               </motion.li>
             ))}
           </motion.ul>

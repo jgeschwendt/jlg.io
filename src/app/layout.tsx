@@ -1,6 +1,7 @@
+import { Lato } from '@next/font/google';
 import '../styles/global.css';
-import { lato } from '../styles/fonts';
-import { statement } from './statement';
+
+const lato = Lato({ subsets: ['latin'], weight: ['300'] });
 
 export default function RootLayout({
   children,
@@ -8,15 +9,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html className={`h-full ${lato._400.className}`} lang="en-US">
+    <html className={lato.className} lang="en-US">
       <head>
-        <title>Joshua L Geschwendt&mdash;Web Engineer</title>
-        <meta name="description" content={statement()} />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       </head>
-      <body className="flex h-full items-center justify-center bg-zinc-900 text-white">
-        {children}
-      </body>
+      <body className="bg-[#1a1a1a] text-white">{children}</body>
     </html>
   );
 }
