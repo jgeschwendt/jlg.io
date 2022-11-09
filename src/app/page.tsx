@@ -21,7 +21,7 @@ const links = [
 
 export default function Content() {
   return (
-    <main className="fixed inset-0 flex items-center justify-center">
+    <main className="absolute inset-0 flex items-center justify-center">
       <motion.div
         animate={SHOW}
         className="flex flex-col items-center"
