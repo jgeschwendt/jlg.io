@@ -5,7 +5,7 @@ import File from '@fortawesome/fontawesome-free/svgs/solid/file.svg?svgr';
 import GitHub from '@fortawesome/fontawesome-free/svgs/brands/github.svg?svgr';
 import LinkedInIn from '@fortawesome/fontawesome-free/svgs/brands/linkedin-in.svg?svgr';
 import Link from 'next/link';
-import { LazyMotion, domAnimation, motion } from 'framer-motion';
+import { LazyMotion, domAnimation, m as motion } from 'framer-motion';
 import JG from './jg';
 import { Statement } from './statement';
 
@@ -22,7 +22,7 @@ const links = [
 export default function Content() {
   return (
     <main className="absolute inset-0 flex items-center justify-center">
-      <LazyMotion features={domAnimation}>
+      <LazyMotion features={domAnimation} strict={true}>
         <motion.div
           animate={SHOW}
           className="flex flex-col items-center"
@@ -83,7 +83,8 @@ export default function Content() {
                 [SHOW]: {
                   opacity: 1,
                   transition: {
-                    y: { bounce: 0.5, duration: 1, type: 'spring' },
+                    opacity: { duration: 0.5 },
+                    y: { bounce: 0.5, duration: 1.25, type: 'spring' },
                   },
                   y: 0,
                 },
@@ -116,7 +117,7 @@ export default function Content() {
                       opacity: 1,
                       transition: {
                         opacity: { duration: 0.5 },
-                        y: { bounce: 0.5, duration: 1, type: 'spring' },
+                        y: { bounce: 0.5, duration: 1.25, type: 'spring' },
                       },
                       y: 0,
                     },
