@@ -3,6 +3,9 @@ module.exports = {
   content: ['./src/app/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['var(--font-lato)'],
+      },
       keyframes: () => ({
         highlight: {
           '0%': {

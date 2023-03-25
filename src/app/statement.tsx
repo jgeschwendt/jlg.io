@@ -1,4 +1,6 @@
+import { Fragment } from 'react';
 import { interleave, pipe } from '../lib';
+import { Link } from '../components/links';
 
 const getYearsOfExperience = () => new Date().getFullYear() - 2012;
 
@@ -24,31 +26,27 @@ function Statement() {
         pipe(
           replace(
             'Node.js',
-            <a
-              className="text-[#339933]"
+            <Link.Outbound
               href="https://nodejs.org/en/"
-              key="node"
-              rel="noreferrer"
-              target="_blank"
+              styles={{ color: '#339933' }}
             >
-              Node.js
-            </a>
+              {'Node.js'}
+            </Link.Outbound>
           ),
           replace(
             'React',
-            <a
-              className={`text-[#009ECA]`}
+            <Link.Outbound
               href="https://reactjs.org/"
-              key="react"
-              rel="noreferrer"
-              target="_blank"
+              styles={{ color: '#009ECA' }}
             >
-              React
-            </a>
+              {'React'}
+            </Link.Outbound>
           )
         )(statement().split(' ')),
         ' '
-      )}
+      ).map((component, key) => (
+        <Fragment key={key}>{component}</Fragment>
+      ))}
     </>
   );
 }
