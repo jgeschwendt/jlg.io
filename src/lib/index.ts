@@ -1,5 +1,7 @@
-const interleave = (array: unknown[], item: unknown) =>
-  array.flatMap((node) => [node, item]).slice(0, -1);
+const interleave = <T extends unknown, K extends unknown>(
+  array: T[],
+  item: K
+): (T | K)[] => array.flatMap((node) => [node, item]).slice(0, -1);
 
 const pipe =
   <T>(...functions: ((value: T) => T)[]) =>
