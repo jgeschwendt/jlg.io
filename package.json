@@ -2,7 +2,7 @@
   "name": "jlg.io",
   "description": "jlg.io",
   "engines": {
-    "node": "16.x"
+    "node": "18.x || 20.x"
   },
   "license": "UNLICENSED",
   "private": true,
@@ -16,31 +16,31 @@
     ]
   },
   "dependencies": {
-    "@fortawesome/fontawesome-free": "6.3.0",
+    "@fortawesome/fontawesome-free": "6.4.0",
     "@lit-labs/react": "1.1.1",
-    "@next/font": "13.2.4",
-    "framer-motion": "10.9.1",
-    "lit": "2.7.0",
-    "next": "13.2.4",
+    "@next/font": "13.4.2",
+    "framer-motion": "10.12.10",
+    "lit": "2.7.4",
+    "next": "13.4.2",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "sharp": "0.32.0"
+    "sharp": "0.32.1"
   },
   "devDependencies": {
-    "@svgr/webpack": "7.0.0",
-    "@types/node": "18.15.9",
-    "@types/react": "18.0.29",
-    "@types/react-dom": "18.0.11",
+    "@svgr/webpack": "8.0.1",
+    "@types/node": "20.1.3",
+    "@types/react": "18.2.6",
+    "@types/react-dom": "18.2.4",
     "cspell": "6.31.1",
-    "eslint": "8.36.0",
-    "eslint-config-next": "13.2.4",
+    "eslint": "8.40.0",
+    "eslint-config-next": "13.4.2",
     "eslint-config-prettier": "8.8.0",
-    "postcss": "8.4.21",
-    "prettier": "2.8.7",
-    "prettier-plugin-tailwindcss": "0.2.5",
-    "tailwindcss": "3.2.7",
-    "typescript": "5.0.2",
-    "vercel": "28.18.1"
+    "postcss": "8.4.23",
+    "prettier": "2.8.8",
+    "prettier-plugin-tailwindcss": "0.2.8",
+    "tailwindcss": "3.3.2",
+    "typescript": "5.0.4",
+    "vercel": "29.3.0"
   },
   "scripts": {
     "build": "next build",

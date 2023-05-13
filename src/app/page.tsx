@@ -1,15 +1,12 @@
 'use client';
 
-import Envelope from '@fortawesome/fontawesome-free/svgs/solid/envelope.svg?svgr';
-import File from '@fortawesome/fontawesome-free/svgs/solid/file.svg?svgr';
-import GitHub from '@fortawesome/fontawesome-free/svgs/brands/github.svg?svgr';
-import LinkedInIn from '@fortawesome/fontawesome-free/svgs/brands/linkedin-in.svg?svgr';
 import Link from 'next/link';
 import { LazyMotion, domAnimation, m as motion } from 'framer-motion';
-import JG from './jg';
+import { Envelope, File, GitHub, LinkedInIn } from '../components/icons';
+import { JG } from './jg';
 import { Statement } from './statement';
 
-const [HIDE, SHOW] = ['HIDE', 'SHOW'];
+const [HIDE, SHOW] = ['0', '1'];
 
 // prettier-ignore
 const links = [
@@ -79,7 +76,7 @@ export default function Content() {
             <motion.p
               className="mx-4 mb-8 max-w-[60ch] text-center text-white"
               variants={{
-                [HIDE]: { opacity: 0, y: 25 },
+                [HIDE]: { opacity: 0, y: 24 },
                 [SHOW]: {
                   opacity: 1,
                   transition: {
@@ -111,7 +108,7 @@ export default function Content() {
                   variants={{
                     [HIDE]: {
                       opacity: 0,
-                      y: 25,
+                      y: 24,
                     },
                     [SHOW]: {
                       opacity: 1,

@@ -1,6 +1,6 @@
-import { Lato } from '@next/font/google';
-import { statement } from './statement';
 import '../styles/global.css';
+import { Lato } from 'next/font/google';
+import { statement } from './statement';
 
 const lato = Lato({
   subsets: ['latin'],
