@@ -1,9 +1,5 @@
 /** @type {import('next').NextConfig} */
 const config = {
-  experimental: {
-    appDir: true,
-    // runtime: 'experimental-edge',
-  },
   webpack(config) {
     const imageLoader = config.module.rules.findIndex(
       ({ loader }) => loader === 'next-image-loader'
