@@ -16,7 +16,7 @@ const links = [
   [Envelope,   'Email',    'mailto:joshua@geschwendt.com'             ],
 ] as const;
 
-export default function Content() {
+export default function Page() {
   return (
     <main className="absolute inset-0 flex items-center justify-center">
       <LazyMotion features={domAnimation} strict={true}>
