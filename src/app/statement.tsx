@@ -33,7 +33,7 @@ function Statement() {
           ),
           replace(
             'React',
-            <Link href="https://reactjs.org/" style={{ color: '#009ECA' }}>
+            <Link href="https://react.dev/" style={{ color: '#149eca' }}>
               {'React'}
             </Link>,
           ),
