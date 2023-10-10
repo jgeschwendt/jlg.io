@@ -29,16 +29,16 @@ function Statement() {
             'Node.js',
             <Link href="https://nodejs.org/en/" style={{ color: '#339933' }}>
               {'Node.js'}
-            </Link>
+            </Link>,
           ),
           replace(
             'React',
             <Link href="https://reactjs.org/" style={{ color: '#009ECA' }}>
               {'React'}
-            </Link>
-          )
+            </Link>,
+          ),
         )(statement().split(' ')),
-        ' '
+        ' ',
       ).map((component, key) => (
         <Fragment key={key}>{component}</Fragment>
       ))}

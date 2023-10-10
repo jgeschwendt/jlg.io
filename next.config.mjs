@@ -2,7 +2,7 @@
 const config = {
   webpack(config) {
     const imageLoader = config.module.rules.findIndex(
-      ({ loader }) => loader === 'next-image-loader'
+      ({ loader }) => loader === 'next-image-loader',
     );
 
     config.module.rules[imageLoader] = {
