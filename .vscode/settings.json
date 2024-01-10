@@ -1,11 +1,9 @@
 {
   "css.lint.unknownAtRules": "ignore",
   "editor.codeActionsOnSave": {
-    "source.fixAll": true
+    "source.fixAll": "explicit"
   },
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.formatOnSave": true,
-  "editor.tabSize": 2,
-  "typescript.tsdk": "node_modules/.pnpm/typescript@5.0.2/node_modules/typescript/lib",
-  "typescript.enablePromptUseWorkspaceTsdk": true
+  "editor.tabSize": 2
 }
