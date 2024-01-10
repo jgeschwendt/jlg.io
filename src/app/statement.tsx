@@ -7,7 +7,7 @@ const getYearsOfExperience = () => new Date().getFullYear() - 2012;
 
 const statement = () =>
   [
-    `I'm a seasoned web engineer with ${getYearsOfExperience()} years of professional experience located in West Michigan.`,
+    `I’m a seasoned web engineer with ${getYearsOfExperience()} years of professional experience located in West Michigan.`,
     `I specialize in Node.js services and React applications.`,
   ].join(' ');
 
@@ -27,13 +27,19 @@ function Statement() {
         pipe(
           replace(
             'Node.js',
-            <Link href="https://nodejs.org/en/" style={{ color: '#339933' }}>
+            <Link
+              href="https://nodejs.org/en/"
+              style={{ color: '#339933', fontWeight: 500 }}
+            >
               {'Node.js'}
             </Link>,
           ),
           replace(
             'React',
-            <Link href="https://react.dev/" style={{ color: '#149eca' }}>
+            <Link
+              href="https://react.dev/"
+              style={{ color: '#149eca', fontWeight: 500 }}
+            >
               {'React'}
             </Link>,
           ),

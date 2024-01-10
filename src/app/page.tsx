@@ -18,8 +18,8 @@ const links = [
 
 export default function Page() {
   return (
-    <main className="absolute inset-0 flex items-center justify-center">
-      <LazyMotion features={domAnimation} strict={true}>
+    <LazyMotion features={domAnimation} strict={true}>
+      <main className="absolute inset-0 flex items-center justify-center px-4">
         <motion.div
           animate={SHOW}
           className="flex flex-col items-center"
@@ -74,7 +74,7 @@ export default function Page() {
           >
             <h1 className="sr-only">Joshua L Geschwendt</h1>
             <motion.p
-              className="mx-4 mb-8 max-w-[60ch] text-center text-white"
+              className="mb-8 max-w-xl text-center text-white"
               variants={{
                 [HIDE]: { opacity: 0, y: 24 },
                 [SHOW]: {
@@ -132,7 +132,7 @@ export default function Page() {
             </motion.ul>
           </motion.div>
         </motion.div>
-      </LazyMotion>
-    </main>
+      </main>
+    </LazyMotion>
   );
 }
