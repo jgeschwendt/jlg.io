@@ -1,24 +1,35 @@
 {
   "name": "jlg.io",
-  "build": {
-    "args": {
-      "VARIANT": "16-bullseye"
-    },
-    "dockerfile": "Dockerfile"
-  },
   "customizations": {
+    "codespaces": {
+      "openFiles": ["package.json"]
+    },
     "vscode": {
       "extensions": [
         "dbaeumer.vscode-eslint",
         "esbenp.prettier-vscode",
         "streetsidesoftware.code-spell-checker"
-      ]
+      ],
+      "settings": {
+        "npm.packageManager": "pnpm"
+      }
     }
   },
   "forwardPorts": [3000],
-  "postCreateCommand": "pnpm install",
-  "remoteUser": "node",
-  "settings": {
-    "npm.packageManager": "pnpm"
-  }
+  "hostRequirements": {
+    "cpus": 4
+  },
+  "image": "mcr.microsoft.com/devcontainers/universal:2",
+  "portsAttributes": {
+    "3000": {
+      "label": "Application",
+      "onAutoForward": "openPreview"
+    }
+  },
+  "postAttachCommand": {
+    "server": "pnpm run dev"
+  },
+  "postCreateCommand": "",
+  "updateContentCommand": "pnpm install && pnpm run build",
+  "waitFor": "onCreateCommand"
 }
