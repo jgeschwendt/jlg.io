@@ -1,7 +1,6 @@
 import Link from 'next/link';
-import { Fragment } from 'react';
+import { Fragment, type JSX } from 'react';
 import { interleave, pipe } from '../lib';
-// import { Link } from '../components/links';
 
 const getYearsOfExperience = () => new Date().getFullYear() - 2012;
 

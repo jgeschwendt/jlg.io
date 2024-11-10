@@ -125,7 +125,7 @@ export default function Page() {
                     className="mx-1 flex h-11 w-11 items-center justify-center rounded-lg border-2 border-[rgba(255,255,255,.25)] bg-[rgba(255,255,255,.125)] transition duration-300 hover:border-[rgba(255,255,255,.5)] hover:bg-[rgba(255,255,255,.25)]"
                     href={href}
                   >
-                    <Icon className="max-w-5 max-h-5 w-full" fill="white" />
+                    <Icon className="max-h-5 w-full max-w-5" fill="white" />
                   </Link>
                 </motion.li>
               ))}
