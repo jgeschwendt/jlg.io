@@ -1,5 +1,3 @@
-module.exports = {
-  plugins: {
-    tailwindcss: {},
-  },
-};
+const config = { plugins: { tailwindcss: {} } };
+
+export default config;
