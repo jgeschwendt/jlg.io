@@ -1,16 +1,9 @@
 version: '0.2'
 language: en
-flagWords:
-  - hte
 words:
-  - fontawesome
-  - fortawesome
+  - extralight
   - geschwendt
   - jgeschwendt
-  - lato
   - rockethomes
   - springthrough
-  - stylis
-  - svgr
-  - svgs
   - tailwindcss

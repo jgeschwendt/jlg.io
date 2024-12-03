@@ -1,12 +1,23 @@
 /** @type {import('tailwindcss').Config} */
-module.exports = {
-  content: ['./src/app/**/*.{js,ts,jsx,tsx}'],
+const config = {
+  content: ['./src/app/**/*.tsx', './src/components/**/*.tsx'],
   theme: {
     extend: {
       fontFamily: {
-        sans: ['var(--font-lato)'],
+        mono: ['var(--font-geist-mono)'],
       },
       keyframes: () => ({
+        fadeToTransparent: {
+          '0%': {
+            opacity: 1,
+          },
+          '40%': {
+            opacity: 1,
+          },
+          '100%': {
+            opacity: 0,
+          },
+        },
         highlight: {
           '0%': {
             background: 'pink',
@@ -19,10 +30,10 @@ module.exports = {
         },
         rerender: {
           '0%': {
-            ['border-color']: 'pink',
+            'border-color': 'pink',
           },
           '40%': {
-            ['border-color']: 'pink',
+            'border-color': 'pink',
           },
         },
         shimmer: {
@@ -35,18 +46,9 @@ module.exports = {
             transform: 'translateX(0)',
           },
         },
-        fadeToTransparent: {
-          '0%': {
-            opacity: 1,
-          },
-          '40%': {
-            opacity: 1,
-          },
-          '100%': {
-            opacity: 0,
-          },
-        },
       }),
     },
   },
 };
+
+export default config;
