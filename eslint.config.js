@@ -7,6 +7,8 @@ import typescript from 'typescript-eslint';
 import unicorn from 'eslint-plugin-unicorn';
 //_ import next from '@next/eslint-plugin-next';
 
+const jsxMaxDepth = 5;
+
 // https://eslint.org/docs/latest/rules/no-magic-numbers#options
 const magicNumbers = {
   detectObjects: true,
@@ -102,7 +104,14 @@ const config = typescript.config([
       '@typescript-eslint': typescript.plugin,
     },
     rules: {
+      '@typescript-eslint/naming-convention': 'off',
       '@typescript-eslint/no-magic-numbers': ['error', magicNumbersTypescript],
+      '@typescript-eslint/prefer-readonly-parameter-types': [
+        'off',
+        {
+          ignoreInferredTypes: true,
+        },
+      ],
     },
   },
   {
@@ -114,6 +123,18 @@ const config = typescript.config([
       // Align with `react/function-component-definition`
       'func-style': ['error', 'declaration'],
 
+      'react/forbid-component-props': [
+        'error',
+        {
+          forbid: [{ allowedFor: ['Link'], propName: 'className' }],
+        },
+      ],
+
+      'react/jsx-curly-brace-presence': [
+        'error',
+        { children: 'always', propElementValues: 'never', props: 'never' },
+      ],
+
       // Drop `.js`, add `.tsx`
       'react/jsx-filename-extension': [
         'error',
@@ -121,6 +142,8 @@ const config = typescript.config([
           extensions: ['.jsx', '.tsx'],
         },
       ],
+
+      'react/jsx-max-depth': ['error', { max: jsxMaxDepth }],
 
       // Re-enable on a per-project basis
       'react/jsx-props-no-spreading': 'off',
@@ -176,29 +199,9 @@ const config = typescript.config([
 
       'unicorn/filename-case': ['error', { case: 'kebabCase' }],
     },
-    settings: {
-      react: { version: 'detect' },
-    },
   },
   {
     rules: prettier.rules,
-  },
-  {
-    // [wip restoration]
-    rules: {
-      '@typescript-eslint/naming-convention': 'off',
-      '@typescript-eslint/prefer-for-of': 'off',
-      '@typescript-eslint/prefer-readonly-parameter-types': 'off',
-      'react/forbid-component-props': 'off',
-      'react/jsx-boolean-value': 'off',
-      'react/jsx-curly-brace-presence': 'off',
-      'react/jsx-max-depth': 'off',
-      'react/jsx-no-literals': 'off',
-      'react/jsx-pascal-case': 'off',
-      'react/no-array-index-key': 'off',
-      'react/no-danger': 'off',
-      'react/prefer-read-only-props': 'off',
-    },
   },
 ]);
 

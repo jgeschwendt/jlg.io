@@ -1,9 +1,8 @@
-import { LazyMotion, MotionConfig, domAnimation } from 'framer-motion';
-import { Main } from './Main';
+import { LazyMotion, MotionConfig, domAnimation } from 'motion/react';
 import { headers } from 'next/headers';
 import type { JSX } from 'react';
 import type { Metadata } from 'next';
-import { statement } from './Statement';
+import { Main, statement } from './home';
 
 export const generateMetadata = (): Metadata => ({
   description: statement(),
@@ -17,7 +16,7 @@ export default async function Page(): Promise<JSX.Element> {
 
   return (
     <MotionConfig nonce={nonce ?? undefined}>
-      <LazyMotion features={domAnimation} strict={true}>
+      <LazyMotion features={domAnimation} strict>
         <Main />
       </LazyMotion>
     </MotionConfig>

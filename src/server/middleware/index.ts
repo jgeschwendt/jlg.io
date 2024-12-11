@@ -4,13 +4,13 @@ import { ReasonPhrases, StatusCodes } from 'http-status-codes';
 import { logger } from '@/logger/logger';
 
 const createMiddleware = function createMiddleware(
-  middleware: ((
+  middleware: readonly ((
     request: NextRequest,
     response: NextResponse,
   ) => Response | PromiseLike<Response>)[],
 ) {
   // eslint-disable-next-line max-statements
-  return async (request: NextRequest): Promise<Response> => {
+  return async (request: Readonly<NextRequest>): Promise<Response> => {
     const modifiedResponse = new NextResponse();
 
     try {

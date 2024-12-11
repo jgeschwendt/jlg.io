@@ -3,7 +3,7 @@ import { Analytics } from '@vercel/analytics/react';
 import { GeistSans } from 'geist/font/sans';
 import type { Metadata } from 'next';
 import { headers } from 'next/headers';
-import type { JSX } from 'react';
+import type { JSX, PropsWithChildren } from 'react';
 
 export const generateMetadata = async (): Promise<Metadata> => {
   const readonlyHeaders = await headers();
@@ -19,9 +19,7 @@ export const generateMetadata = async (): Promise<Metadata> => {
 
 export default function RootLayout({
   children,
-}: {
-  children: React.ReactNode;
-}): JSX.Element {
+}: PropsWithChildren): JSX.Element {
   return (
     <html lang="en-US">
       <body

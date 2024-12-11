@@ -1,10 +1,10 @@
 'use client';
 
-import { m } from 'framer-motion';
+import { m } from 'motion/react';
 import Link from 'next/link';
 import type { JSX } from 'react';
 import { At, File, GitHub, LinkedIn } from '@/components/icons';
-import { JG } from './Jg';
+import { Jg } from './Jg';
 import { Statement } from './Statement';
 
 const [HIDE, SHOW] = ['0', '1'];
@@ -28,7 +28,7 @@ export function Main(): JSX.Element {
           [SHOW]: { opacity: 1, transition: { staggerChildren: 2 } },
         }}
       >
-        <JG
+        <Jg
           transition={{
             default: {
               duration: 1.75,
@@ -63,7 +63,7 @@ export function Main(): JSX.Element {
             },
           }}
         >
-          <h1 className="sr-only">Joshua L Geschwendt</h1>
+          <h1 className="sr-only">{'Joshua L Geschwendt'}</h1>
           <m.p
             className="mb-8 max-w-xl text-center text-white"
             variants={{
@@ -93,9 +93,9 @@ export function Main(): JSX.Element {
               },
             }}
           >
-            {links.map(([Icon, label, href], key) => (
+            {links.map(([Icon, label, href]) => (
               <m.li
-                key={key}
+                key={label}
                 variants={{
                   [HIDE]: {
                     opacity: 0,

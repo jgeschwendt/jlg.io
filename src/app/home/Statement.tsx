@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { Fragment, type JSX } from 'react';
-import { interleave, pipe } from '../lib';
+import { interleave, pipe } from '../../lib';
 
 function getYearsOfExperience(): number {
   const CAREER_YEAR_START = 2012;
@@ -45,7 +45,9 @@ function Statement(): JSX.Element[] {
       ),
     )(statement().split(' ')),
     ' ',
-  ).map((component, key) => <Fragment key={key}>{component}</Fragment>);
+  )
+    .map((component, key) => [component, key] as const)
+    .map(([component, key]) => <Fragment key={key}>{component}</Fragment>);
 }
 
 export { Statement, statement };
