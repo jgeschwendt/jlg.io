@@ -1,5 +1,6 @@
 import globals from 'globals';
 import javascript from '@eslint/js';
+import { FlatCompat } from '@eslint/eslintrc';
 import prettier from 'eslint-config-prettier';
 import imports from 'eslint-plugin-import';
 import react from 'eslint-plugin-react';
@@ -28,181 +29,209 @@ const magicNumbersTypescript = {
   ...magicNumbers,
 };
 
+const compat = new FlatCompat({ baseDirectory: import.meta.dirname });
+
 /** @type {import('eslint').Linter.Config[]} */
-const config = typescript.config([
-  {
-    ignores: ['.next', 'next-env.d.ts', '.secrets', 'out'],
-  },
-  {
-    languageOptions: {
-      globals: { ...globals.browser, ...globals.node },
+const config = [
+  ...typescript.config([
+    {
+      ignores: ['.next', 'next-env.d.ts', '.secrets', 'out'],
     },
-    linterOptions: {
-      noInlineConfig: false,
-      reportUnusedDisableDirectives: 'error',
-    },
-  },
-  {
-    extends: [
-      imports.flatConfigs.recommended,
-      javascript.configs.all,
-      unicorn.configs['flat/all'],
-    ],
-    files: ['**/*.{js,jsx,ts,tsx}'],
-    languageOptions: {
-      ecmaVersion: 'latest',
-      sourceType: 'module',
-    },
-    // https://typescript-eslint.io/troubleshooting/typed-linting/performance#eslint-plugin-import
-    rules: {
-      'capitalized-comments': [
-        'error',
-        'always',
-        {
-          block: {
-            ignoreInlineComments: true,
-            ignorePattern: ['c8'].join('|'),
-          },
-          line: {
-            ignorePattern: ['prettier-ignore'].join('|'),
-          },
-        },
-      ],
-      'id-length': [
-        'error',
-        {
-          exceptions: ['a', 'b', 'm', 'x', 'y', 'z'],
-        },
-      ],
-      'import/no-unresolved': 'off',
-      'max-lines-per-function': 'off',
-      'no-magic-numbers': ['error', magicNumbers],
-      'no-ternary': 'off',
-      'no-undefined': 'off',
-      'one-var': ['error', 'never'],
-      'sort-imports': 'off',
-      'sort-keys': ['error', 'asc', { natural: true }],
-      'unicorn/prevent-abbreviations': [
-        'error',
-        {
-          allowList: { props: true },
-        },
-      ],
-    },
-  },
-  {
-    extends: [typescript.configs.all],
-    files: ['**/*.{ts,tsx}'],
-    languageOptions: {
-      parser: typescript.parser,
-      parserOptions: {
-        projectService: true,
-        tsconfigRootDir: import.meta.dirname,
+    {
+      languageOptions: {
+        globals: { ...globals.browser, ...globals.node },
+      },
+      linterOptions: {
+        noInlineConfig: false,
+        reportUnusedDisableDirectives: true,
       },
     },
-    plugins: {
-      '@typescript-eslint': typescript.plugin,
+    {
+      extends: [javascript.configs.all, unicorn.configs['flat/all']],
+      files: ['**/*.{js,jsx,ts,tsx}'],
+      languageOptions: {
+        ecmaVersion: 'latest',
+        sourceType: 'module',
+      },
+      plugins: { import: imports },
+      rules: {
+        // https://typescript-eslint.io/troubleshooting/typed-linting/performance#eslint-plugin-import
+        ...Object.fromEntries([
+          ...Object.entries(imports.rules)
+            .filter(([, { meta }]) => !meta.deprecated)
+            .map(([name]) => [`import/${name}`, 'error']),
+          ...Object.entries({
+            'import/consistent-type-specifier-style': 'off',
+            'import/extensions': 'off',
+            'import/group-exports': 'off',
+            'import/no-default-export': 'off',
+            'import/no-internal-modules': 'off',
+            'import/no-named-export': 'off',
+            'import/no-unassigned-import': 'off',
+            'import/order': 'off',
+            'import/prefer-default-export': 'off',
+          }),
+        ]),
+
+        'capitalized-comments': [
+          'error',
+          'always',
+          {
+            block: {
+              ignoreInlineComments: true,
+              ignorePattern: ['c8'].join('|'),
+            },
+            line: {
+              ignorePattern: ['prettier-ignore'].join('|'),
+            },
+          },
+        ],
+        'id-length': [
+          'error',
+          {
+            exceptions: ['a', 'b', 'm', 'x', 'y', 'z'],
+          },
+        ],
+        'import/no-unresolved': 'off',
+        'max-lines-per-function': 'off',
+        'no-magic-numbers': ['error', magicNumbers],
+        'no-ternary': 'off',
+        'no-undefined': 'off',
+        'one-var': ['error', 'never'],
+        'sort-imports': 'off',
+        'sort-keys': ['error', 'asc', { natural: true }],
+        'unicorn/prevent-abbreviations': [
+          'error',
+          {
+            allowList: { props: true },
+          },
+        ],
+      },
     },
-    rules: {
-      '@typescript-eslint/naming-convention': 'off',
-      '@typescript-eslint/no-magic-numbers': ['error', magicNumbersTypescript],
-      '@typescript-eslint/prefer-readonly-parameter-types': [
-        'off',
-        {
-          ignoreInferredTypes: true,
+    {
+      extends: [typescript.configs.all],
+      files: ['**/*.{ts,tsx}'],
+      languageOptions: {
+        parser: typescript.parser,
+        parserOptions: {
+          projectService: true,
+          tsconfigRootDir: import.meta.dirname,
         },
-      ],
+      },
+      plugins: {
+        '@typescript-eslint': typescript.plugin,
+      },
+      rules: {
+        '@typescript-eslint/naming-convention': 'off',
+        '@typescript-eslint/no-magic-numbers': [
+          'error',
+          magicNumbersTypescript,
+        ],
+        '@typescript-eslint/prefer-readonly-parameter-types': [
+          'off',
+          {
+            ignoreInferredTypes: true,
+          },
+        ],
+      },
     },
-  },
-  {
-    extends: [react.configs.flat.all],
-    files: ['**/*.{jsx,tsx}'],
-    languageOptions: react.configs.flat.all.languageOptions,
-    plugins: { react: react.configs.flat.all.plugins.react },
-    rules: {
-      // Align with `react/function-component-definition`
-      'func-style': ['error', 'declaration'],
+    {
+      extends: [react.configs.flat.all],
+      files: ['**/*.{jsx,tsx}'],
+      languageOptions: react.configs.flat.all.languageOptions,
+      plugins: { react: react.configs.flat.all.plugins.react },
+      rules: {
+        // Align with `react/function-component-definition`
+        'func-style': ['error', 'declaration'],
 
-      'react/forbid-component-props': [
-        'error',
-        {
-          forbid: [{ allowedFor: ['Link'], propName: 'className' }],
-        },
-      ],
+        'react/forbid-component-props': [
+          'error',
+          {
+            forbid: [{ allowedFor: ['Link'], propName: 'className' }],
+          },
+        ],
 
-      'react/jsx-curly-brace-presence': [
-        'error',
-        { children: 'always', propElementValues: 'never', props: 'never' },
-      ],
+        'react/jsx-curly-brace-presence': [
+          'error',
+          { children: 'always', propElementValues: 'never', props: 'never' },
+        ],
 
-      // Drop `.js`, add `.tsx`
-      'react/jsx-filename-extension': [
-        'error',
-        {
-          extensions: ['.jsx', '.tsx'],
-        },
-      ],
+        // Drop `.js`, add `.tsx`
+        'react/jsx-filename-extension': [
+          'error',
+          {
+            extensions: ['.jsx', '.tsx'],
+          },
+        ],
 
-      'react/jsx-max-depth': ['error', { max: jsxMaxDepth }],
+        'react/jsx-max-depth': ['error', { max: jsxMaxDepth }],
 
-      // Re-enable on a per-project basis
-      'react/jsx-props-no-spreading': 'off',
+        // Re-enable on a per-project basis
+        'react/jsx-props-no-spreading': 'off',
 
-      // Modern automatic JSX transform
-      'react/react-in-jsx-scope': 'off',
+        // Modern automatic JSX transform
+        'react/react-in-jsx-scope': 'off',
 
-      // Match JSX Component Name
-      'unicorn/filename-case': ['error', { case: 'pascalCase' }],
+        // Match JSX Component Name
+        'unicorn/filename-case': ['error', { case: 'pascalCase' }],
+      },
+      settings: {
+        react: { version: 'detect' },
+      },
     },
-    settings: {
-      react: { version: 'detect' },
+    {
+      files: ['**/*.jsx'],
+      rules: {
+        'no-magic-numbers': [
+          'error',
+          { ...magicNumbers, detectObjects: false },
+        ],
+      },
     },
-  },
-  {
-    files: ['**/*.jsx'],
-    rules: {
-      'no-magic-numbers': ['error', { ...magicNumbers, detectObjects: false }],
+    {
+      files: ['**/*.tsx'],
+      rules: {
+        '@typescript-eslint/no-magic-numbers': [
+          'error',
+          { ...magicNumbersTypescript, detectObjects: false },
+        ],
+      },
     },
-  },
-  {
-    files: ['**/*.tsx'],
-    rules: {
-      '@typescript-eslint/no-magic-numbers': [
-        'error',
-        { ...magicNumbersTypescript, detectObjects: false },
-      ],
-    },
-  },
-  // https://nextjs.org/docs/app/api-reference/file-conventions
-  {
-    files: ['**/{layout,page}.{jsx,tsx}'],
-    languageOptions: react.configs.flat.all.languageOptions,
-    plugins: { react: react.configs.flat.all.plugins.react },
-    rules: {
-      // Match react rule
-      'func-style': [
-        'error',
-        'declaration',
-        {
-          overrides: { namedExports: 'expression' },
-        },
-      ],
+    // https://nextjs.org/docs/app/api-reference/file-conventions
+    {
+      files: ['**/{layout,page}.{jsx,tsx}'],
+      languageOptions: react.configs.flat.all.languageOptions,
+      plugins: { react: react.configs.flat.all.plugins.react },
+      rules: {
+        // Match react rule
+        'func-style': [
+          'error',
+          'declaration',
+          {
+            overrides: { namedExports: 'expression' },
+          },
+        ],
 
-      'react/jsx-filename-extension': [
-        'error',
-        {
-          extensions: ['.jsx', '.tsx'],
-        },
-      ],
-      'react/jsx-props-no-spreading': 'off',
-      'react/react-in-jsx-scope': 'off',
+        'react/jsx-filename-extension': [
+          'error',
+          {
+            extensions: ['.jsx', '.tsx'],
+          },
+        ],
+        'react/jsx-props-no-spreading': 'off',
+        'react/react-in-jsx-scope': 'off',
 
-      'unicorn/filename-case': ['error', { case: 'kebabCase' }],
+        'unicorn/filename-case': ['error', { case: 'kebabCase' }],
+      },
     },
-  },
-  {
-    rules: prettier.rules,
-  },
-]);
+    {
+      rules: prettier.rules,
+    },
+  ]),
+
+  ...compat.config({
+    extends: ['plugin:@next/next/core-web-vitals'],
+  }),
+];
 
 export default config;
