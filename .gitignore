@@ -1,9 +1,18 @@
-.vercel
-.next
-node_modules
-src/pages/secret/
+# environments and secrets
 .env
 .env.*
+.secrets
+src/app/secrets/
 
-.idea
-.vscode
+# dependencies
+node_modules
+
+# vercel
+.vercel
+
+# next.js
+.next
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
