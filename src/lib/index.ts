@@ -1,11 +1,16 @@
-const interleave = <T extends unknown, K extends unknown>(
-  list: T[],
-  item: K,
-): (T | K)[] => list.flatMap((node) => [node, item]).slice(0, -1);
+const interleave = <T, K>(list: readonly T[], item: K): (T | K)[] =>
+  list.flatMap((node) => [node, item]).slice(0, -1);
 
 const pipe =
-  <T>(...functions: ((value: T) => T)[]) =>
-  (initialValue: T) =>
-    functions.reduce((v, f) => f(v), initialValue);
+  <T>(...functions: readonly ((value: T) => T)[]) =>
+  (initialValue: T): T => {
+    let result = initialValue;
+
+    for (const functionInPipe of functions) {
+      result = functionInPipe(result);
+    }
+
+    return result;
+  };
 
 export { interleave, pipe };
