@@ -1,23 +1,32 @@
 import type { NextRequest, NextResponse } from 'next/server';
 
+/**
+ * @see https://vercel.com/docs/workflow-collaboration/vercel-toolbar/managing-toolbar#using-a-content-security-policy
+ */
 export const contentSecurityPolicy = function contentSecurityPolicy(
   request: NextRequest,
   response: NextResponse,
 ): NextResponse {
   const nonce = Buffer.from(crypto.randomUUID()).toString('base64');
+  const preview = process.env['VERCEL_ENV'] === 'preview';
+  const production = process.env.NODE_ENV !== 'development';
 
   const policy = [
-    "default-src 'self';",
-    process.env.NODE_ENV === 'development'
-      ? `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' 'unsafe-eval';`
-      : `script-src 'self' 'nonce-${nonce}' 'strict-dynamic';`,
-    `style-src 'self' 'unsafe-inline';`,
-    "img-src 'self' blob: data:;",
-    "font-src 'self';",
-    "object-src 'none';",
+    "default-src 'none';",
     "base-uri 'self';",
+    `connect-src ${preview ? 'https://vercel.live wss://ws-us3.pusher.com' : "'self'"};`,
+    `font-src ${preview ? ' https://vercel.live https://assets.vercel.com' : "'self'"};`,
     "form-action 'self';",
-    "frame-ancestors 'none';",
+    `frame-src ${preview ? 'https://vercel.live;' : "'none';"}`,
+    `img-src ${preview ? 'https://vercel.live https://vercel.com blob: data:' : 'blob: data:;'}`,
+    `script-src ${
+      production
+        ? `script-src 'nonce-${nonce}' ${preview ? 'https://vercel.live' : 'strict-dynamic'}`
+        : `script-src 'nonce-${nonce}' 'strict-dynamic' 'unsafe-eval';`
+    };`,
+    `style-src ${
+      preview ? "https://vercel.live 'unsafe-inline'" : "'unsafe-inline';"
+    }`,
     'upgrade-insecure-requests;',
   ].join(' ');
 
