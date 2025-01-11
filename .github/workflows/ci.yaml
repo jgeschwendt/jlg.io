@@ -1,0 +1,28 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  cancel-in-progress: true
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+
+jobs:
+  main:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          cache: pnpm
+          node-version: 22
+
+      - run: pnpm install
+      - run: pnpm prettier --check .
+      - run: pnpm lint
+      - run: pnpm build
