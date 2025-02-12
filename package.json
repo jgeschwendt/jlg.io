@@ -66,7 +66,6 @@
     "favicon": "pnpm dlx svg-to-ico public/jg.svg src/app/favicon.ico",
     "lint": "next lint",
     "ncu": "pnpm dlx npm-check-updates -u && pnpm up && pnpm install",
-    "start": "next start",
-    "try:tw4": "pnpm dlx @tailwindcss/upgrade@next"
+    "start": "next start"
   }
 }
