@@ -24,7 +24,7 @@ export default function RootLayout({
   return (
     <html lang="en-US">
       <body
-        className={`${GeistSans.variable} bg-[#1a1a1a] font-[family-name:var(--font-geist-sans)] font-extralight text-white`}
+        className={`${GeistSans.variable} bg-[oklch(.1_0_0)] font-[family-name:var(--font-geist-sans)] font-extralight text-white`}
       >
         {children}
         <Analytics />

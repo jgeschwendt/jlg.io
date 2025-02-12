@@ -113,7 +113,7 @@ export function Main(): JSX.Element {
               >
                 <Link
                   aria-label={label}
-                  className="mx-1 flex h-11 w-11 items-center justify-center rounded-lg border-2 border-[rgba(255,255,255,.25)] bg-[rgba(255,255,255,.125)] text-xl text-white transition duration-300 hover:border-[rgba(255,255,255,.5)] hover:bg-[rgba(255,255,255,.25)]"
+                  className="mx-1 flex h-11 w-11 items-center justify-center rounded-lg border-2 border-[oklch(1_0_0/.05)] bg-[oklch(1_0_0/.05)] text-xl text-white transition duration-300 hover:border-[oklch(1_0_0/.1)] hover:bg-[oklch(1_0_0/.1)]"
                   href={href}
                 >
                   <Icon />
