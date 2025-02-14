@@ -200,8 +200,6 @@ const config = [
     // https://nextjs.org/docs/app/api-reference/file-conventions
     {
       files: ['**/{layout,page}.{jsx,tsx}'],
-      languageOptions: react.configs.flat.all.languageOptions,
-      plugins: { react: react.configs.flat.all.plugins.react },
       rules: {
         // Match react rule
         'func-style': [
@@ -212,15 +210,6 @@ const config = [
           },
         ],
 
-        'react/jsx-filename-extension': [
-          'error',
-          {
-            extensions: ['.jsx', '.tsx'],
-          },
-        ],
-        'react/jsx-props-no-spreading': 'off',
-        'react/react-in-jsx-scope': 'off',
-
         'unicorn/filename-case': ['error', { case: 'kebabCase' }],
       },
     },
@@ -229,9 +218,7 @@ const config = [
     },
   ]),
 
-  ...compat.config({
-    extends: ['plugin:@next/next/core-web-vitals'],
-  }),
+  ...compat.config({ extends: ['plugin:@next/next/core-web-vitals'] }),
 ];
 
 export default config;

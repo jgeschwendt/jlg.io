@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { Fragment, type JSX } from 'react';
-import { interleave, pipe } from '../../lib';
+import { interleave, pipe } from '@/fns';
 
 function getYearsOfExperience(): number {
   const CAREER_YEAR_START = 2012;
