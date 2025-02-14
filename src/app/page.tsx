@@ -10,9 +10,9 @@ export const generateMetadata = (): Metadata => ({
 });
 
 export default async function Page(): Promise<JSX.Element> {
-  const readonlyHeaders = await headers();
+  const requestHeaders = await headers();
 
-  const nonce = readonlyHeaders.get('x-nonce');
+  const nonce = requestHeaders.get('x-nonce');
 
   return (
     <MotionConfig nonce={nonce ?? undefined}>
