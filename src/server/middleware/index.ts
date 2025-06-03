@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { serializeError } from 'serialize-error';
 import { ReasonPhrases, StatusCodes } from 'http-status-codes';
-import { logger } from '@/logger/logger';
+import { logger } from '@/logger';
 
 const createMiddleware = function createMiddleware(
   middleware: readonly ((
@@ -24,7 +24,6 @@ const createMiddleware = function createMiddleware(
     } catch (error) {
       if (error instanceof NextResponse) {
         return error;
-        /* c8 ignore start */
       }
 
       logger.error(serializeError(error), import.meta.url);
@@ -32,7 +31,6 @@ const createMiddleware = function createMiddleware(
       return new NextResponse(ReasonPhrases.INTERNAL_SERVER_ERROR, {
         status: StatusCodes.INTERNAL_SERVER_ERROR,
       });
-      /* c8 ignore stop */
     }
 
     const response = NextResponse.next({ request });
