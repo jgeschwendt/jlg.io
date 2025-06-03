@@ -1,9 +1,0 @@
-{
-  "css.lint.unknownAtRules": "ignore",
-  "editor.codeActionsOnSave": {
-    "source.fixAll": "always"
-  },
-  "editor.defaultFormatter": "esbenp.prettier-vscode",
-  "editor.formatOnSave": true,
-  "editor.tabSize": 2
-}
