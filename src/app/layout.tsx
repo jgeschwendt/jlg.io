@@ -27,7 +27,8 @@ export default function RootLayout({
       className={`${GeistSans.variable} ${GeistMono.variable}`}
       lang="en-US"
     >
-      <body className="bg-[oklch(.1_0_0)] font-extralight text-white">
+      {/* <body className="bg-[oklch(.1_0_0)]" /> */}
+      <body className="bg-[#030303] font-extralight text-white">
         {children}
         <Analytics />
         <SpeedInsights />

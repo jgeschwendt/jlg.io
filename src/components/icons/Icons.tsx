@@ -1,4 +1,3 @@
-/* eslint-disable react/no-multi-comp */
 import type { JSX } from 'react';
 import {
   type IconDefinition,
@@ -35,18 +34,18 @@ function FaIcon({
   );
 }
 
-export function At(props: Readonly<{ size?: string }>): JSX.Element {
-  return <FaIcon icon={faAt} {...props} />;
+export function At(properties: Readonly<{ size?: string }>): JSX.Element {
+  return <FaIcon icon={faAt} {...properties} />;
 }
 
-export function File(props: Readonly<{ size?: string }>): JSX.Element {
-  return <FaIcon icon={faFile} {...props} />;
+export function File(properties: Readonly<{ size?: string }>): JSX.Element {
+  return <FaIcon icon={faFile} {...properties} />;
 }
 
-export function GitHub(props: Readonly<{ size?: string }>): JSX.Element {
-  return <FaIcon icon={faGithub} {...props} />;
+export function GitHub(properties: Readonly<{ size?: string }>): JSX.Element {
+  return <FaIcon icon={faGithub} {...properties} />;
 }
 
-export function LinkedIn(props: Readonly<{ size?: string }>): JSX.Element {
-  return <FaIcon icon={faLinkedinIn} {...props} />;
+export function LinkedIn(properties: Readonly<{ size?: string }>): JSX.Element {
+  return <FaIcon icon={faLinkedinIn} {...properties} />;
 }
