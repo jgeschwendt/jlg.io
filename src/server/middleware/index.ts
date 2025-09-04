@@ -3,13 +3,12 @@ import { serializeError } from 'serialize-error';
 import { ReasonPhrases, StatusCodes } from 'http-status-codes';
 import { logger } from '@/logger';
 
-const createMiddleware = function createMiddleware(
+function createMiddleware(
   middleware: readonly ((
     request: NextRequest,
     response: NextResponse,
   ) => Response | PromiseLike<Response>)[],
 ) {
-  // eslint-disable-next-line max-statements
   return async (request: Readonly<NextRequest>): Promise<Response> => {
     const modifiedResponse = new NextResponse();
 
@@ -41,7 +40,7 @@ const createMiddleware = function createMiddleware(
 
     return response;
   };
-};
+}
 
 export default createMiddleware;
 export * from './content-security-policy';

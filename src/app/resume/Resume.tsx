@@ -1,4 +1,3 @@
-/* eslint-disable react/jsx-curly-brace-presence, react/jsx-no-literals */
 const experience = [
   [
     'Rocket Homes℠',

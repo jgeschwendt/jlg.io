@@ -1,2 +1,1 @@
-declare module '@/styles/global.css' {}
-export {};
+export declare module '@/styles/global.css' {}
