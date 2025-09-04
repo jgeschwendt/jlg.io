@@ -3,16 +3,16 @@
 import { m } from 'motion/react';
 import Link from 'next/link';
 import type { JSX } from 'react';
-import { At, File, GitHub, LinkedIn } from '@/components/icons';
 import { Statement } from './Statement';
+import { At, File, GitHub, LinkedIn } from '@/components/icons';
 
 const [HIDE, SHOW] = ['0', '1'];
 
 const links = [
-  [At, 'Email', 'mailto:joshua@geschwendt.com'],
-  [File, 'Resume', '/resume'],
-  [GitHub, 'GitHub', 'https://github.com/jgeschwendt'],
-  [LinkedIn, 'LinkedIn', 'https://www.linkedin.com/in/jgeschwendt'],
+  [{ svg: At }, 'Email', 'mailto:joshua@geschwendt.com'],
+  [{ svg: File }, 'Resume', '/resume'],
+  [{ svg: GitHub }, 'GitHub', 'https://github.com/jgeschwendt'],
+  [{ svg: LinkedIn }, 'LinkedIn', 'https://www.linkedin.com/in/jgeschwendt'],
 ] as const;
 
 export function Main(): JSX.Element {
@@ -94,7 +94,7 @@ export function Main(): JSX.Element {
               },
             }}
           >
-            {links.map(([Icon, label, href]) => (
+            {links.map(([icon, label, href]) => (
               <m.li
                 key={label}
                 variants={{
@@ -114,7 +114,7 @@ export function Main(): JSX.Element {
                   className="mx-1 flex h-11 w-11 items-center justify-center rounded-lg border-2 border-[oklch(1_0_0/.05)] bg-[oklch(1_0_0/.05)] text-xl text-white transition duration-300 hover:border-[oklch(1_0_0/.1)] hover:bg-[oklch(1_0_0/.1)]"
                   href={href}
                 >
-                  <Icon />
+                  <icon.svg />
                 </Link>
               </m.li>
             ))}

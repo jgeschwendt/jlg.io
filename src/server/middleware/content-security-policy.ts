@@ -3,7 +3,7 @@ import type { NextRequest, NextResponse } from 'next/server';
 /**
  * @see https://vercel.com/docs/workflow-collaboration/vercel-toolbar/managing-toolbar#using-a-content-security-policy
  */
-export const contentSecurityPolicy = function contentSecurityPolicy(
+export function contentSecurityPolicy(
   request: NextRequest,
   response: NextResponse,
 ): NextResponse {
@@ -49,4 +49,4 @@ export const contentSecurityPolicy = function contentSecurityPolicy(
   response.headers.set('content-security-policy', policy);
 
   return response;
-};
+}
