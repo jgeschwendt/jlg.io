@@ -1,7 +1,7 @@
 import type { NextRequest, NextResponse } from 'next/server';
 
 /**
- * @see https://vercel.com/docs/workflow-collaboration/vercel-toolbar/managing-toolbar#using-a-content-security-policy
+ * @see https://vercel.com/docs/vercel-toolbar/managing-toolbar#using-a-content-security-policy
  */
 export function contentSecurityPolicy(
   request: NextRequest,

@@ -17,10 +17,10 @@ const links = [
 
 export function Main(): JSX.Element {
   return (
-    <main className="absolute inset-0 flex items-center justify-center px-4">
+    <main className="pointer-events-none absolute inset-0 flex items-center justify-center px-4">
       <m.div
         animate={SHOW}
-        className="flex flex-col items-center"
+        className="pointer-events-auto flex flex-col items-center"
         initial={HIDE}
         variants={{
           [HIDE]: { opacity: 0 },

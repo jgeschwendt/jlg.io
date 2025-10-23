@@ -9,12 +9,13 @@
     "node": "22.x"
   },
   "type": "module",
-  "packageManager": "pnpm@10.15.1",
+  "packageManager": "pnpm@10.19.0",
   "pnpm": {
     "onlyBuiltDependencies": [
       "@tailwindcss/oxide",
       "@vercel/speed-insights",
       "esbuild",
+      "lefthook",
       "sharp"
     ]
   },
@@ -25,43 +26,51 @@
     "singleQuote": true,
     "tailwindStylesheet": "./src/app/global.css"
   },
+  "volta": {
+    "node": "22.21.0"
+  },
   "dependencies": {
-    "@fortawesome/free-brands-svg-icons": "7.0.1",
-    "@fortawesome/free-solid-svg-icons": "7.0.1",
+    "@fortawesome/free-brands-svg-icons": "7.1.0",
+    "@fortawesome/free-solid-svg-icons": "7.1.0",
+    "@react-three/drei": "^10.7.6",
+    "@react-three/fiber": "^9.4.0",
     "@vercel/analytics": "1.5.0",
     "@vercel/speed-insights": "1.2.0",
-    "geist": "1.4.2",
+    "geist": "1.5.1",
     "http-status-codes": "2.3.0",
-    "motion": "12.15.0",
-    "next": "15.5.2",
-    "react": "19.1.1",
-    "react-dom": "19.1.1",
+    "motion": "12.23.24",
+    "next": "16.0.0",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
     "serialize-error": "12.0.0",
-    "sharp": "0.34.3"
+    "sharp": "0.34.4",
+    "three": "^0.180.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "3.3.1",
-    "@eslint/js": "9.34.0",
+    "@eslint/js": "9.38.0",
     "@jlg/eslint": "github:jgeschwendt/jlg#next&path:packages/eslint",
     "@jlg/tsconfig": "github:jgeschwendt/jlg#next&path:packages/tsconfig",
-    "@next/eslint-plugin-next": "15.5.2",
-    "@tailwindcss/postcss": "4.1.12",
-    "@types/node": "24.3.0",
-    "@types/react": "19.1.12",
-    "@types/react-dom": "19.1.9",
-    "eslint": "9.34.0",
+    "@next/eslint-plugin-next": "16.0.0",
+    "@tailwindcss/postcss": "4.1.15",
+    "@types/node": "24.9.1",
+    "@types/react": "19.2.2",
+    "@types/react-dom": "19.2.2",
+    "@types/three": "^0.180.0",
+    "eslint": "9.38.0",
     "eslint-config-prettier": "10.1.8",
     "eslint-plugin-import": "2.32.0",
     "eslint-plugin-react": "7.37.5",
-    "eslint-plugin-unicorn": "60.0.0",
-    "globals": "16.3.0",
+    "eslint-plugin-unicorn": "61.0.2",
+    "globals": "16.4.0",
+    "lefthook": "^2.0.0",
     "postcss": "8.5.6",
     "prettier": "3.6.2",
-    "prettier-plugin-tailwindcss": "0.6.14",
-    "tailwindcss": "4.1.12",
-    "typescript": "5.9.2",
-    "typescript-eslint": "8.42.0",
-    "vercel": "47.0.4"
+    "prettier-plugin-tailwindcss": "0.7.1",
+    "tailwindcss": "4.1.15",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.46.2",
+    "vercel": "48.5.0"
   },
   "scripts": {
     "build": "next build",
@@ -69,7 +78,7 @@
     "dev": "next dev --turbopack",
     "favicon": "pnpm dlx svg-to-ico public/jg.svg src/app/favicon.ico",
     "lint": "eslint .",
-    "ncu": "pnpm dlx npm-check-updates -u && pnpm up && pnpm install",
+    "ncu": "pnpm dlx npm-check-updates -u && pnpm up && pnpm install && pnpm dedupe",
     "start": "next start"
   }
 }
