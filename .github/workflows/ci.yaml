@@ -20,12 +20,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           cache: pnpm
-          node-version: 22
-          registry-url: https://npm.pkg.github.com
+          node-version-file: package.json
 
       - run: pnpm install
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - run: pnpm prettier --check .
       - run: pnpm lint
       - run: pnpm build

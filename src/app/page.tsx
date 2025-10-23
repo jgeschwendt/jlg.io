@@ -3,6 +3,7 @@ import { headers } from 'next/headers';
 import type { JSX } from 'react';
 import type { Metadata } from 'next';
 import { Main, statement } from './home';
+import { WaterBackground } from '@/components/WaterBackground';
 
 export const generateMetadata = (): Metadata => ({
   description: statement(),
@@ -17,6 +18,7 @@ export default async function Page(): Promise<JSX.Element> {
   return (
     <MotionConfig nonce={nonce ?? undefined}>
       <LazyMotion features={domAnimation} strict>
+        <WaterBackground />
         <Main />
       </LazyMotion>
     </MotionConfig>
