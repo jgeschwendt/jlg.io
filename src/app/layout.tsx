@@ -5,7 +5,7 @@ import { GeistSans } from 'geist/font/sans';
 import { GeistMono } from 'geist/font/mono';
 import type { Metadata } from 'next';
 import { headers } from 'next/headers';
-import type { JSX, PropsWithChildren } from 'react';
+import type { JSX, PropsWithChildren, ReactNode } from 'react';
 
 export const generateMetadata = async (): Promise<Metadata> => {
   const readonlyHeaders = await headers();
@@ -21,7 +21,8 @@ export const generateMetadata = async (): Promise<Metadata> => {
 
 export default function RootLayout({
   children,
-}: PropsWithChildren): JSX.Element {
+  modal,
+}: PropsWithChildren<{ modal: ReactNode }>): JSX.Element {
   return (
     <html
       className={`${GeistSans.variable} ${GeistMono.variable}`}
@@ -30,6 +31,7 @@ export default function RootLayout({
       {/* <body className="bg-[oklch(.1_0_0)]" /> */}
       <body className="bg-[#030303] font-extralight text-white">
         {children}
+        {modal}
         <Analytics />
         <SpeedInsights />
       </body>
