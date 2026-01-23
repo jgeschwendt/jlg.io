@@ -54,7 +54,7 @@ const config = defineConfig(
     },
   },
   {
-    files: ['**/server/middleware/index.ts'],
+    files: ['**/server/proxy/index.ts', 'src/proxy.ts'],
     rules: {
       'import/no-default-export': 'off',
     },
