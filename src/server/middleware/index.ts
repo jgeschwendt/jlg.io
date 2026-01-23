@@ -3,20 +3,21 @@ import { serializeError } from 'serialize-error';
 import { ReasonPhrases, StatusCodes } from 'http-status-codes';
 import { logger } from '@/logger';
 
-function createMiddleware(
-  middleware: readonly ((
-    request: NextRequest,
-    response: NextResponse,
-  ) => Response | PromiseLike<Response>)[],
-) {
-  return async (request: Readonly<NextRequest>): Promise<Response> => {
+const createMiddleware =
+  (
+    middleware: readonly ((
+      request: NextRequest,
+      response: NextResponse,
+    ) => Response | PromiseLike<Response>)[],
+  ) =>
+  async (request: Readonly<NextRequest>): Promise<Response> => {
     const modifiedResponse = new NextResponse();
 
     try {
-      const tasks = [];
+      const tasks: PromiseLike<Response>[] = [];
 
       for (const handler of middleware) {
-        tasks.push(handler(request, modifiedResponse));
+        tasks.push(Promise.resolve(handler(request, modifiedResponse)));
       }
 
       await Promise.all(tasks);
@@ -40,7 +41,6 @@ function createMiddleware(
 
     return response;
   };
-}
 
 export default createMiddleware;
 export * from './content-security-policy';
