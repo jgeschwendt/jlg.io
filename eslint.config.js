@@ -1,11 +1,7 @@
-import { FlatCompat } from '@eslint/eslintrc';
 import { config as defineConfig } from '@jlg/eslint';
-
-const compat = new FlatCompat({ baseDirectory: import.meta.dirname });
 
 const config = defineConfig(
   {},
-  compat.config({ extends: ['plugin:@next/next/core-web-vitals'] }),
   {
     ignores: ['.next', 'next-env.d.ts', 'src/components/icons/Icons.tsx'],
   },
