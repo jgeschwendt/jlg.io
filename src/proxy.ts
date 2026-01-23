@@ -1,4 +1,4 @@
-import middleware, { contentSecurityPolicy } from '@/server/middleware';
+import proxy, { contentSecurityPolicy } from '@/server/proxy';
 
 export const config = {
   matcher: [
@@ -12,4 +12,4 @@ export const config = {
   ],
 };
 
-export default middleware([contentSecurityPolicy]);
+export default proxy([contentSecurityPolicy]);
