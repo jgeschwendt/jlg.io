@@ -22,7 +22,7 @@ export const generateMetadata = async (): Promise<Metadata> => {
 export default function RootLayout({
   children,
   modal,
-}: PropsWithChildren<{ modal: ReactNode }>): JSX.Element {
+}: PropsWithChildren<{ readonly modal: ReactNode }>): JSX.Element {
   return (
     <html
       className={`${GeistSans.variable} ${GeistMono.variable}`}
