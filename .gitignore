@@ -1,5 +1,4 @@
 # environments and secrets
-.obsidian
 .env
 .env.*
 .secrets
@@ -8,12 +7,10 @@ src/app/secrets/
 # dependencies
 node_modules
 
-# vercel
+# caches
+.next
 .vercel
 
-# next.js
-.next
-
-# typescript
+# outputs
 *.tsbuildinfo
 next-env.d.ts

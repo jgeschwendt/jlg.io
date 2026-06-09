@@ -1,8 +1,8 @@
 'use client';
 
-import { Canvas, createPortal, useFrame, useThree } from '@react-three/fiber';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { useFBO } from '@react-three/drei';
-import { useEffect, useRef, useState, type JSX } from 'react';
+import { type JSX, useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 
 // Simulation shader - classic 2D water ripple algorithm
@@ -140,18 +140,18 @@ const fragmentShader = `
   }
 `;
 
-interface WaterPlaneProps {
-  mousePos: THREE.Vector2;
-  mouseVelocity: number;
-  clicks: Array<{ pos: THREE.Vector2; time: number }>;
+interface WaterPlaneProperties {
+  readonly mousePos: THREE.Vector2;
+  readonly mouseVelocity: number;
+  readonly clicks: { pos: THREE.Vector2; time: number }[];
 }
 
 function WaterPlane({
   mousePos,
   mouseVelocity,
   clicks,
-}: WaterPlaneProps): JSX.Element {
-  const { viewport, size, gl, scene, camera } = useThree();
+}: WaterPlaneProperties): JSX.Element {
+  const { viewport, size, gl } = useThree();
 
   // Simulation resolution
   const simRes = 256;
@@ -171,12 +171,12 @@ function WaterPlane({
     type: THREE.FloatType,
   });
 
-  const fboRef = useRef({ read: fbo1, write: fbo2, prev: fbo1 });
+  const fboReference = useRef({ read: fbo1, write: fbo2, prev: fbo1 });
 
   // Simulation scene
   const simScene = useRef(new THREE.Scene());
   const simCamera = useRef(new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1));
-  const simMesh = useRef<THREE.Mesh>();
+  const simMesh = useRef<THREE.Mesh>(null);
 
   // Create simulation material
   const simMaterial = useRef(
@@ -230,13 +230,13 @@ function WaterPlane({
 
   useFrame((state) => {
     // Update uniforms
-    simMaterial.current.uniforms.uMouse.value.copy(mousePos);
-    simMaterial.current.uniforms.uMouseVelocity.value = mouseVelocity;
-    simMaterial.current.uniforms.uScreenResolution.value.set(
+    simMaterial.current.uniforms['uMouse']!.value.copy(mousePos);
+    simMaterial.current.uniforms['uMouseVelocity']!.value = mouseVelocity;
+    simMaterial.current.uniforms['uScreenResolution']!.value.set(
       size.width,
       size.height,
     );
-    simMaterial.current.uniforms.uTime.value = state.clock.elapsedTime;
+    simMaterial.current.uniforms['uTime']!.value = state.clock.elapsedTime;
 
     // Update clicks
     const now = Date.now();
@@ -247,25 +247,27 @@ function WaterPlane({
     while (clickData.length < 5) {
       clickData.push(new THREE.Vector4(0, 0, 999, 0));
     }
-    simMaterial.current.uniforms.uClicks.value = clickData;
+    simMaterial.current.uniforms['uClicks']!.value = clickData;
 
     // Run simulation - ping pong between FBOs
-    simMaterial.current.uniforms.uState.value = fboRef.current.read.texture;
-    simMaterial.current.uniforms.uPrevState.value = fboRef.current.prev.texture;
+    simMaterial.current.uniforms['uState']!.value =
+      fboReference.current.read.texture;
+    simMaterial.current.uniforms['uPrevState']!.value =
+      fboReference.current.prev.texture;
 
-    gl.setRenderTarget(fboRef.current.write);
+    gl.setRenderTarget(fboReference.current.write);
     gl.render(simScene.current, simCamera.current);
     gl.setRenderTarget(null);
 
     // Swap buffers
-    const temp = fboRef.current.prev;
-    fboRef.current.prev = fboRef.current.read;
-    fboRef.current.read = fboRef.current.write;
-    fboRef.current.write = temp;
+    const temporary = fboReference.current.prev;
+    fboReference.current.prev = fboReference.current.read;
+    fboReference.current.read = fboReference.current.write;
+    fboReference.current.write = temporary;
 
     // Update render material
-    renderMaterial.current.uniforms.uWaterState.value =
-      fboRef.current.read.texture;
+    renderMaterial.current.uniforms['uWaterState']!.value =
+      fboReference.current.read.texture;
   });
 
   return (
@@ -279,11 +281,11 @@ function WaterPlane({
 export function WaterBackground(): JSX.Element {
   const [mousePos, setMousePos] = useState(new THREE.Vector2(0.5, 0.5));
   const [mouseVelocity, setMouseVelocity] = useState(0);
-  const [clicks, setClicks] = useState<
-    Array<{ pos: THREE.Vector2; time: number }>
-  >([]);
+  const [clicks, setClicks] = useState<{ pos: THREE.Vector2; time: number }[]>(
+    [],
+  );
 
-  const prevMousePos = useRef(new THREE.Vector2(0.5, 0.5));
+  const previousMousePos = useRef(new THREE.Vector2(0.5, 0.5));
   const lastMoveTime = useRef(Date.now());
 
   useEffect(() => {
@@ -293,23 +295,28 @@ export function WaterBackground(): JSX.Element {
       const deltaTime = (now - lastMoveTime.current) / 1000;
 
       // Calculate velocity
-      const distance = currentPos.distanceTo(prevMousePos.current);
+      const distance = currentPos.distanceTo(previousMousePos.current);
       const velocity = deltaTime > 0 ? distance / deltaTime : 0;
 
       setMousePos(currentPos);
       setMouseVelocity(Math.min(velocity / 1000, 1)); // Normalize velocity
 
-      prevMousePos.current.copy(currentPos);
+      previousMousePos.current.copy(currentPos);
       lastMoveTime.current = now;
     };
 
     const handleClick = (e: MouseEvent) => {
       const clickPos = new THREE.Vector2(e.clientX, e.clientY);
-      setClicks((prev) => [...prev, { pos: clickPos, time: Date.now() }]);
+      setClicks((previous) => [
+        ...previous,
+        { pos: clickPos, time: Date.now() },
+      ]);
 
       // Clean up old clicks after 3 seconds
       setTimeout(() => {
-        setClicks((prev) => prev.filter((c) => Date.now() - c.time < 3000));
+        setClicks((previous) =>
+          previous.filter((c) => Date.now() - c.time < 3000),
+        );
       }, 3000);
     };
 
@@ -318,12 +325,12 @@ export function WaterBackground(): JSX.Element {
       setMouseVelocity((v) => Math.max(0, v * 0.9));
     }, 50);
 
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('click', handleClick);
+    globalThis.addEventListener('mousemove', handleMouseMove);
+    globalThis.addEventListener('click', handleClick);
 
     return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('click', handleClick);
+      globalThis.removeEventListener('mousemove', handleMouseMove);
+      globalThis.removeEventListener('click', handleClick);
       clearInterval(velocityDecay);
     };
   }, []);

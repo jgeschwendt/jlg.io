@@ -1,9 +1,8 @@
 'use client';
 
-import type { JSX, MouseEvent, ReactNode } from 'react';
+import { type JSX, type MouseEvent, type ReactNode, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useCallback } from 'react';
 
 export function Modal({
   children,
@@ -16,8 +15,8 @@ export function Modal({
     router.back();
   }, [router]);
 
-  const handleContentClick = useCallback((e: MouseEvent<HTMLElement>) => {
-    e.stopPropagation();
+  const handleContentClick = useCallback((event: MouseEvent<HTMLElement>) => {
+    event.stopPropagation();
   }, []);
 
   return (

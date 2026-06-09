@@ -7,10 +7,10 @@ export default function Page(): JSX.Element {
     <main className="mx-auto bg-white text-black lg:my-16 lg:min-h-[11in] lg:max-w-[8in] print:my-0 print:h-[11in] print:w-[8.5in]">
       <div className="p-8">
         <header className="mb-8 border-b-2 border-black pb-4">
-          <h1 className="mb-2 text-3xl font-bold">Joshua L Geschwendt</h1>
+          <h1 className="mb-2 text-3xl font-bold">{'Joshua L Geschwendt'}</h1>
           <div className="flex flex-wrap gap-4 text-sm">
             {contacts.map(([href, display]) => (
-              <a key={href} href={href} className="hover:underline">
+              <a className="hover:underline" href={href} key={href}>
                 {display}
               </a>
             ))}
@@ -18,23 +18,23 @@ export default function Page(): JSX.Element {
         </header>
 
         <section className="mb-8">
-          <h2 className="mb-4 text-xl font-bold">Experience</h2>
+          <h2 className="mb-4 text-xl font-bold">{'Experience'}</h2>
           {experience.map(
             ([company, title, [start, end], description, technologies]) => (
-              <div key={company} className="mb-6">
+              <div className="mb-6" key={company}>
                 <div className="mb-1 flex items-baseline justify-between">
                   <h3 className="font-bold">{company}</h3>
                   <span className="text-sm text-gray-600">
-                    {start} — {end}
+                    {start}
+                    {' — '}
+                    {end}
                   </span>
                 </div>
                 <div className="mb-2 text-sm italic">{title}</div>
-                {description && (
-                  <div className="mb-2 text-sm">{description}</div>
-                )}
+                <div className="mb-2 text-sm">{description}</div>
                 <div className="flex flex-wrap gap-2 text-xs">
                   {technologies.map((tech) => (
-                    <span key={tech} className="rounded bg-gray-200 px-2 py-1">
+                    <span className="rounded bg-gray-200 px-2 py-1" key={tech}>
                       {tech}
                     </span>
                   ))}
@@ -45,7 +45,7 @@ export default function Page(): JSX.Element {
         </section>
 
         <section>
-          <h2 className="mb-4 text-xl font-bold">Education</h2>
+          <h2 className="mb-4 text-xl font-bold">{'Education'}</h2>
           {education.map(
             ([degree, specialization, institution, college, location]) => (
               <div key={degree}>
