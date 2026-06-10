@@ -5,33 +5,25 @@ import { GeistSans } from 'geist/font/sans';
 import { GeistMono } from 'geist/font/mono';
 import type { Metadata } from 'next';
 import { headers } from 'next/headers';
-import type { JSX, PropsWithChildren, ReactNode } from 'react';
+import type { JSX, PropsWithChildren } from 'react';
 
 export const generateMetadata = async (): Promise<Metadata> => {
   const readonlyHeaders = await headers();
   return {
     metadataBase: new URL(
-      [
-        readonlyHeaders.get('x-forwarded-proto'),
-        readonlyHeaders.get('x-forwarded-host'),
-      ].join('://'),
+      [readonlyHeaders.get('x-forwarded-proto'), readonlyHeaders.get('x-forwarded-host')].join(
+        '://',
+      ),
     ),
   };
 };
 
-export default function RootLayout({
-  children,
-  modal,
-}: PropsWithChildren<{ readonly modal: ReactNode }>): JSX.Element {
+export default function RootLayout({ children }: PropsWithChildren): JSX.Element {
   return (
-    <html
-      className={`${GeistSans.variable} ${GeistMono.variable}`}
-      lang="en-US"
-    >
+    <html className={`${GeistSans.variable} ${GeistMono.variable}`} lang="en-US">
       {/* <body className="bg-[oklch(.1_0_0)]" /> */}
       <body className="bg-[#030303] font-extralight text-white">
         {children}
-        {modal}
         <Analytics />
         <SpeedInsights />
       </body>

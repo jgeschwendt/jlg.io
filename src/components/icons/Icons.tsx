@@ -1,9 +1,5 @@
 import type { JSX } from 'react';
-import {
-  type IconDefinition,
-  faGithub,
-  faLinkedinIn,
-} from '@fortawesome/free-brands-svg-icons';
+import { type IconDefinition, faGithub, faLinkedinIn } from '@fortawesome/free-brands-svg-icons';
 import { faAt, faFile } from '@fortawesome/free-solid-svg-icons';
 
 function FaIcon({

@@ -7,23 +7,28 @@ on:
       - main
   workflow_dispatch:
 
+# Never cancel an in-flight production deploy; PR runs supersede freely.
 concurrency:
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
   group: ci-${{ github.event.pull_request.number || github.ref }}
 
 jobs:
-  main:
+  check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@v2
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: package.json
-
+      - uses: jdx/mise-action@v2
       - run: bun install --frozen-lockfile
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - run: bunx prettier --check .
+      - run: bunx oxfmt --check
       - run: bun run lint
-      - run: bun run build
+
+  # `vercel build` runs the full Next build (with type checking), so a separate
+  # `bun run build` in check would build everything twice per run.
+  deploy:
+    needs: check
+    secrets: inherit
+    uses: ./.github/workflows/deploy.yaml
+    with:
+      environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'preview' }}

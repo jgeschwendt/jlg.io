@@ -14,31 +14,21 @@ export const contentSecurityPolicy = (
   const policy = [
     "default-src 'none';",
     "base-uri 'self';",
-    `connect-src ${
-      preview ? "'self' https://vercel.live wss://ws-us3.pusher.com" : "'self'"
-    };`,
+    `connect-src ${preview ? "'self' https://vercel.live wss://ws-us3.pusher.com" : "'self'"};`,
 
-    `font-src ${
-      preview
-        ? "'self' https://assets.vercel.com https://vercel.live"
-        : "'self'"
-    };`,
+    `font-src ${preview ? "'self' https://assets.vercel.com https://vercel.live" : "'self'"};`,
     "form-action 'self';",
     `frame-src ${preview ? 'https://vercel.live' : "'none'"};`,
     `img-src ${
-      preview
-        ? "'self' https://vercel.com https://vercel.live blob: data:"
-        : "'self' blob: data:"
+      preview ? "'self' https://vercel.com https://vercel.live blob: data:" : "'self' blob: data:"
     };`,
     `script-src ${
       production
-        ? `'self' 'nonce-${nonce}' ${preview ? 'https://vercel.live' : 'strict-dynamic'}`
+        ? `'self' 'nonce-${nonce}' ${preview ? 'https://vercel.live' : "'strict-dynamic'"}`
         : `'self' 'nonce-${nonce}' 'strict-dynamic' 'unsafe-eval'`
     };`,
     `style-src ${
-      preview
-        ? "'self' https://vercel.live 'unsafe-inline'"
-        : "'self' 'unsafe-inline'"
+      preview ? "'self' https://vercel.live 'unsafe-inline'" : "'self' 'unsafe-inline'"
     };`,
 
     'upgrade-insecure-requests;',

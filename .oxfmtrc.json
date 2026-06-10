@@ -1,0 +1,7 @@
+{
+  "ignorePatterns": [".vscode/**"],
+  "singleQuote": true,
+  "sortTailwindcss": {
+    "stylesheet": "./src/app/global.css"
+  }
+}

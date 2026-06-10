@@ -4,6 +4,9 @@
 .secrets
 src/app/secrets/
 
+src/**/*.js
+src/**/*.jsx
+
 # dependencies
 node_modules
 
@@ -14,3 +17,6 @@ node_modules
 # outputs
 *.tsbuildinfo
 next-env.d.ts
+
+# tools
+.vscode

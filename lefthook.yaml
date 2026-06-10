@@ -1,7 +1,7 @@
 pre-commit:
   parallel: true
   commands:
-    prettier:
-      glob: '*.{css,js,json,md,mdx,ts,tsx}'
-      run: npx prettier --write {staged_files}
+    oxfmt:
+      glob: '*.{cjs,js,json,jsx,mjs,ts,tsx}'
+      run: bunx oxfmt {staged_files}
       stage_fixed: true
