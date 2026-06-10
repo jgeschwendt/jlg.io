@@ -17,6 +17,15 @@ const config = defineConfig(
     },
   },
   {
+    files: ['scripts/**/*.ts'],
+    rules: {
+      '@typescript-eslint/no-magic-numbers': 'off',
+      'import/no-nodejs-modules': 'off',
+      'no-await-in-loop': 'off',
+      'no-console': 'off',
+    },
+  },
+  {
     files: ['**/*.ts', '**/*.tsx'],
     languageOptions: {
       parserOptions: {

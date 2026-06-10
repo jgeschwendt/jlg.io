@@ -22,7 +22,7 @@ export default function RootLayout({ children }: PropsWithChildren): JSX.Element
   return (
     <html className={`${GeistSans.variable} ${GeistMono.variable}`} lang="en-US">
       {/* <body className="bg-[oklch(.1_0_0)]" /> */}
-      <body className="bg-[#030303] font-extralight text-white">
+      <body className="bg-[#030303] font-extralight text-white print:bg-white">
         {children}
         <Analytics />
         <SpeedInsights />
