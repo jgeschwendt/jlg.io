@@ -1,59 +1,42 @@
 {
   "name": "jlg.io",
-  "version": "0.0.0",
-  "description": "web profile application",
-  "author": "joshua@geschwendt.com",
+  "version": "0.1.0",
+  "description": "web profile app",
   "license": "UNLICENSED",
+  "author": "joshua@geschwendt.com",
   "repository": "git@github.com:jgeschwendt/jlg.io.git",
-  "engines": {
-    "node": "22.x"
-  },
   "type": "module",
-  "trustedDependencies": [
-    "@tailwindcss/oxide",
-    "@vercel/speed-insights",
-    "esbuild",
-    "lefthook",
-    "sharp"
-  ],
-  "prettier": {
-    "plugins": [
-      "prettier-plugin-tailwindcss"
-    ],
-    "singleQuote": true,
-    "tailwindStylesheet": "./src/app/global.css"
-  },
-  "volta": {
-    "node": "22.21.0"
+  "scripts": {
+    "build": "bun --bun next build",
+    "cspell": "bunx cspell '**/*.{md,mjs,ts,tsx}'",
+    "dev": "bun --bun next dev",
+    "favicon": "bunx svg-to-ico public/jg.svg src/app/favicon.ico",
+    "lint": "eslint .",
+    "start": "bun --bun next start",
+    "update": "bunx npm-check-updates -u && bun install"
   },
   "dependencies": {
     "@fortawesome/free-brands-svg-icons": "7.2.0",
     "@fortawesome/free-solid-svg-icons": "7.2.0",
-    "@react-three/drei": "^10.7.7",
-    "@react-three/fiber": "^9.6.1",
     "@vercel/analytics": "2.0.1",
     "@vercel/speed-insights": "2.0.0",
     "geist": "1.7.2",
     "http-status-codes": "2.3.0",
     "motion": "12.40.0",
-    "next": "16.2.7",
+    "next": "16.2.9",
     "react": "19.2.7",
     "react-dom": "19.2.7",
-    "serialize-error": "13.0.1",
-    "sharp": "0.34.5",
-    "three": "^0.184.0"
+    "sharp": "0.34.5"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "3.3.5",
     "@eslint/js": "9.38.0",
     "@jlg/eslint": "npm:@jgeschwendt/eslint@0.0.0-canary.0",
     "@jlg/tsconfig": "npm:@jgeschwendt/tsconfig@0.0.0-canary.0",
-    "@next/eslint-plugin-next": "16.2.7",
+    "@next/eslint-plugin-next": "16.2.9",
     "@tailwindcss/postcss": "4.3.0",
     "@types/node": "25.9.2",
     "@types/react": "19.2.17",
     "@types/react-dom": "19.2.3",
-    "@types/three": "^0.184.1",
     "eslint": "9.38.0",
     "eslint-config-prettier": "10.1.8",
     "eslint-plugin-import": "2.32.0",
@@ -61,21 +44,22 @@
     "eslint-plugin-unicorn": "65.0.1",
     "globals": "17.6.0",
     "lefthook": "^2.1.9",
+    "oxfmt": "0.54.0",
     "postcss": "8.5.15",
-    "prettier": "3.8.4",
-    "prettier-plugin-tailwindcss": "0.8.0",
     "tailwindcss": "4.3.0",
     "typescript": "6.0.3",
     "typescript-eslint": "8.61.0",
-    "vercel": "54.10.2"
+    "vercel": "54.10.3"
   },
-  "scripts": {
-    "build": "next build",
-    "cspell": "bunx cspell **/*.{md,mjs,ts,tsx}",
-    "dev": "next dev --turbopack",
-    "favicon": "bunx svg-to-ico public/jg.svg src/app/favicon.ico",
-    "lint": "eslint .",
-    "ncu": "bunx npm-check-updates -u && bun install",
-    "start": "next start"
-  }
+  "engines": {
+    "node": "24.x"
+  },
+  "trustedDependencies": [
+    "@tailwindcss/oxide",
+    "@vercel/speed-insights",
+    "esbuild",
+    "lefthook",
+    "oxfmt",
+    "sharp"
+  ]
 }

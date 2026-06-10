@@ -1,4 +1,4 @@
-import middleware, { contentSecurityPolicy } from '@/server/proxy';
+import proxy, { contentSecurityPolicy } from '@/server/proxy';
 
 export const config = {
   matcher: [
@@ -7,9 +7,9 @@ export const config = {
         { key: 'next-router-prefetch', type: 'header' },
         { key: 'purpose', type: 'header', value: 'prefetch' },
       ],
-      source: '/((?!api|_next/static|_next/image|favicon.ico).*)',
+      source: '/((?!_next/image|_next/static|favicon.ico).*)',
     },
   ],
 };
 
-export default middleware([contentSecurityPolicy]);
+export default proxy([contentSecurityPolicy]);

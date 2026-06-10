@@ -5,7 +5,16 @@ const config = defineConfig(
   {},
   next.configs['core-web-vitals'],
   {
-    ignores: ['.next', 'next-env.d.ts', 'src/components/icons/Icons.tsx'],
+    ignores: ['.next', 'next-env.d.ts'],
+  },
+  {
+    files: ['src/components/icons/Icons.tsx'],
+    rules: {
+      '@typescript-eslint/no-magic-numbers': 'off',
+      'import/group-exports': 'off',
+      'react/jsx-props-no-spreading': 'off',
+      'react/no-multi-comp': 'off',
+    },
   },
   {
     files: ['**/*.ts', '**/*.tsx'],
@@ -60,27 +69,6 @@ const config = defineConfig(
     files: ['src/proxy.ts', '**/server/proxy/index.ts', '**/default.tsx'],
     rules: {
       'import/no-default-export': 'off',
-    },
-  },
-  {
-    // react-three-fiber intrinsics + GLSL shader code don't fit the base rules
-    files: ['src/components/WaterBackground.tsx'],
-    rules: {
-      '@typescript-eslint/explicit-function-return-type': 'off',
-      '@typescript-eslint/no-magic-numbers': 'off',
-      '@typescript-eslint/no-non-null-assertion': 'off',
-      '@typescript-eslint/no-unsafe-call': 'off',
-      '@typescript-eslint/no-unsafe-member-access': 'off',
-      'func-style': 'off',
-      'id-length': 'off',
-      'import/no-namespace': 'off',
-      'no-inline-comments': 'off',
-      'react/forbid-component-props': 'off',
-      'react/no-multi-comp': 'off',
-      'react/no-unknown-property': 'off',
-      'sort-keys': 'off',
-      'unicorn/no-null': 'off',
-      'unicorn/prevent-abbreviations': 'off',
     },
   },
   {

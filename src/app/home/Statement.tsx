@@ -10,7 +10,7 @@ function getYearsOfExperience(): number {
 function statement(): string {
   return [
     `I’m a seasoned web engineer with ${getYearsOfExperience()} years of professional experience located in West Michigan.`,
-    `I specialize in Node.js services and React applications.`,
+    `I specialize in AI augmented software.`,
   ].join(' ');
 }
 
@@ -26,21 +26,20 @@ function replace(value: string, replacement: JSX.Element) {
 }
 
 function Statement(): JSX.Element[] {
+  const years = String(getYearsOfExperience());
+
   return interleave(
     pipe(
       replace(
-        'Node.js',
-        <Link
-          className="font-medium text-[#339933]"
-          href="https://nodejs.org/en/"
-        >
-          {'Node.js'}
+        years,
+        <Link className="font-bold" href="/">
+          {years}
         </Link>,
       ),
       replace(
-        'React',
-        <Link className="font-medium text-[#149eca]" href="https://react.dev/">
-          {'React'}
+        'AI',
+        <Link className="font-bold" href="/">
+          {'AI'}
         </Link>,
       ),
     )(statement().split(' ')),

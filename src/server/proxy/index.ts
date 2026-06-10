@@ -1,7 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server';
-import { serializeError } from 'serialize-error';
 import { ReasonPhrases, StatusCodes } from 'http-status-codes';
-import { logger } from '@/logger';
+import { log } from '@/logger';
 
 const createMiddleware =
   (
@@ -14,9 +13,7 @@ const createMiddleware =
     const modifiedResponse = new NextResponse();
 
     try {
-      const tasks = middleware.map(async (handler) =>
-        handler(request, modifiedResponse),
-      );
+      const tasks = middleware.map(async (handler) => handler(request, modifiedResponse));
 
       await Promise.all(tasks);
     } catch (error) {
@@ -24,7 +21,7 @@ const createMiddleware =
         return error;
       }
 
-      logger.error(serializeError(error), import.meta.url);
+      log.error(ReasonPhrases.INTERNAL_SERVER_ERROR, { cause: error });
 
       return new NextResponse(ReasonPhrases.INTERNAL_SERVER_ERROR, {
         status: StatusCodes.INTERNAL_SERVER_ERROR,

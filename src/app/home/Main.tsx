@@ -2,7 +2,7 @@
 
 import { m } from 'motion/react';
 import Link from 'next/link';
-import type { JSX } from 'react';
+import { type JSX, useEffect } from 'react';
 import { Statement } from './Statement';
 import { At, File, GitHub, LinkedIn } from '@/components/icons';
 
@@ -15,13 +15,20 @@ const links = [
   [{ svg: LinkedIn }, 'LinkedIn', 'https://www.linkedin.com/in/jgeschwendt'],
 ] as const;
 
+// Module scope so the entrance plays once per session, not again on every return navigation.
+let hasPlayed = false;
+
 export function Main(): JSX.Element {
+  useEffect(() => {
+    hasPlayed = true;
+  }, []);
+
   return (
-    <main className="pointer-events-none absolute inset-0 flex items-center justify-center px-4">
+    <main className="pointer-events-none flex min-h-dvh items-center justify-center px-4 py-16">
       <m.div
         animate={SHOW}
         className="pointer-events-auto flex flex-col items-center"
-        initial={HIDE}
+        initial={hasPlayed ? SHOW : HIDE}
         variants={{
           [HIDE]: { opacity: 0 },
           [SHOW]: {
