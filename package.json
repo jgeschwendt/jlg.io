@@ -12,6 +12,7 @@
     "dev": "bun --bun next dev",
     "favicon": "bunx svg-to-ico public/jg.svg src/app/favicon.ico",
     "lint": "eslint .",
+    "resume:pdf": "bun run build && bun scripts/resume-pdf.ts",
     "start": "bun --bun next start",
     "update": "bunx npm-check-updates -u && bun install"
   },
@@ -45,6 +46,7 @@
     "globals": "17.6.0",
     "lefthook": "^2.1.9",
     "oxfmt": "0.54.0",
+    "playwright": "^1.60.0",
     "postcss": "8.5.15",
     "tailwindcss": "4.3.0",
     "typescript": "6.0.3",

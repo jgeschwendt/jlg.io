@@ -19,4 +19,5 @@ node_modules
 next-env.d.ts
 
 # tools
+.DS_Store
 .vscode
