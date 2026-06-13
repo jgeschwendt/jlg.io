@@ -4,7 +4,7 @@ import { type JSX, ViewTransition } from 'react';
 import { Close } from './Close';
 import { Sheet } from './Sheet';
 
-export const metadata: Metadata = { title: 'Resume' };
+export const metadata: Metadata = { title: 'Joshua L Geschwendt—Résumé' };
 
 export default function Page(): JSX.Element {
   return (
