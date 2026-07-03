@@ -13,6 +13,7 @@ node_modules
 # caches
 .next
 .vercel
+crates/background/target
 
 # outputs
 *.tsbuildinfo

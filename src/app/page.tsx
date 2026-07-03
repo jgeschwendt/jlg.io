@@ -3,7 +3,7 @@ import { headers } from 'next/headers';
 import { connection } from 'next/server';
 import type { JSX } from 'react';
 import type { Metadata } from 'next';
-import { Main, statement } from './home';
+import { Background, Main, statement } from './home';
 
 export const generateMetadata = async (): Promise<Metadata> => {
   // Defer to request time: statement() derives the years figure from the clock,
@@ -23,6 +23,7 @@ export default async function Page(): Promise<JSX.Element> {
   return (
     <MotionConfig nonce={nonce ?? undefined} reducedMotion="user">
       <LazyMotion features={domAnimation} strict>
+        <Background />
         <Main />
       </LazyMotion>
     </MotionConfig>

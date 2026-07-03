@@ -22,7 +22,8 @@ export const contentSecurityPolicy = (
     `img-src ${
       preview ? "'self' https://vercel.com https://vercel.live blob: data:" : "'self' blob: data:"
     };`,
-    `script-src ${
+    // wasm-unsafe-eval: WebAssembly.instantiate() for the Bevy background wasm module.
+    `script-src 'wasm-unsafe-eval' ${
       production
         ? `'self' 'nonce-${nonce}' ${preview ? 'https://vercel.live' : "'strict-dynamic'"}`
         : `'self' 'nonce-${nonce}' 'strict-dynamic' 'unsafe-eval'`
