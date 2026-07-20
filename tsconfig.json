@@ -8,6 +8,8 @@
     "paths": {
       "@/*": ["./src/*"]
     },
+    // oxfmt.config.ts imports the base config with `with { type: "json" }`.
+    "resolveJsonModule": true,
     "plugins": [{ "name": "next" }]
   },
   "include": ["next-env.d.ts", ".next/types/**/*.ts", "**/*.ts", "**/*.tsx"],

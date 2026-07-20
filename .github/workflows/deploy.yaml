@@ -15,9 +15,7 @@ jobs:
       - uses: jdx/mise-action@v2
       - run: bun install --frozen-lockfile
         env:
-          # NODE_AUTH_TOKEN secret: PAT with read:packages — the workflow
-          # GITHUB_TOKEN cannot read packages linked to jgeschwendt/jlg.
-          NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN || secrets.GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Link Vercel project
         run: bunx vercel link --project=${{ vars.VERCEL_PROJECT_ID }} --scope=${{ vars.VERCEL_ORG_ID }} --token=${{ secrets.VERCEL_TOKEN }} --yes
