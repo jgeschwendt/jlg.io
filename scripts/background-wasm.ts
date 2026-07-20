@@ -3,9 +3,9 @@ import { readFileSync } from 'node:fs';
 
 // Keep the CLI in lockstep with the wasm-bindgen crate version cargo resolved.
 const lock = readFileSync('crates/background/Cargo.lock', 'utf8');
-const version = /name = "wasm-bindgen"\nversion = "(?<version>[^"]+)"/u.exec(lock)?.groups?.[
-  'version'
-];
+const version = /name = "wasm-bindgen"\nversion = "(?<version>[^"]+)"/u.exec(
+  lock,
+)?.groups?.['version'];
 
 if (version === undefined) {
   throw new Error('wasm-bindgen missing from crates/background/Cargo.lock');
@@ -29,7 +29,13 @@ const probe = spawnSync('wasm-bindgen', ['--version'], { encoding: 'utf8' });
 const installed = probe.error === undefined ? probe.stdout : '';
 
 if (!installed.includes(version)) {
-  run('cargo', ['install', 'wasm-bindgen-cli', '--locked', '--version', version]);
+  run('cargo', [
+    'install',
+    'wasm-bindgen-cli',
+    '--locked',
+    '--version',
+    version,
+  ]);
 }
 
 run('cargo', [

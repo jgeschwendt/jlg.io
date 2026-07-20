@@ -1,5 +1,6 @@
 import Link from 'next/link';
-import { Fragment, type JSX } from 'react';
+import { Fragment } from 'react';
+import type { JSX } from 'react';
 import { interleave, pipe } from '@/fns';
 
 function getYearsOfExperience(): number {

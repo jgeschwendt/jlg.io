@@ -20,9 +20,13 @@ const waitForServer = async (): Promise<void> => {
   throw new Error(`Server did not respond at ${URL}`);
 };
 
-const server = spawn('bun', ['--bun', 'next', 'start', '--port', String(PORT)], {
-  stdio: 'ignore',
-});
+const server = spawn(
+  'bun',
+  ['--bun', 'next', 'start', '--port', String(PORT)],
+  {
+    stdio: 'ignore',
+  },
+);
 
 try {
   await waitForServer();
@@ -30,7 +34,11 @@ try {
   const page = await browser.newPage();
   await page.goto(URL, { waitUntil: 'networkidle' });
   await page.evaluate(async () => document.fonts.ready);
-  await page.pdf({ format: 'Letter', path: 'public/resume.pdf', printBackground: true });
+  await page.pdf({
+    format: 'Letter',
+    path: 'public/resume.pdf',
+    printBackground: true,
+  });
   await browser.close();
   console.log('Wrote public/resume.pdf');
 } finally {

@@ -1,10 +1,13 @@
 'use client';
 
-import { type JSX, useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
+import type { JSX } from 'react';
 
 // Module scope: the Bevy app boots once per session and owns this canvas for its
 // lifetime — remounts re-adopt the node instead of spawning a second app.
-const state: { canvas?: HTMLCanvasElement; loaded: boolean } = { loaded: false };
+const state: { canvas?: HTMLCanvasElement; loaded: boolean } = {
+  loaded: false,
+};
 
 export function Background(): JSX.Element {
   const container = useRef<HTMLDivElement>(null);
@@ -38,8 +41,9 @@ export function Background(): JSX.Element {
         )
           // The glue's shape is fixed by wasm-bindgen --target web: a default init export.
           .then(
-            async (module: { default: () => Promise<unknown> }): Promise<unknown> =>
-              module.default(),
+            async (module: {
+              default: () => Promise<unknown>;
+            }): Promise<unknown> => module.default(),
           )
           .catch((): void => {
             state.loaded = false;
@@ -52,5 +56,11 @@ export function Background(): JSX.Element {
     };
   }, []);
 
-  return <div aria-hidden className="pointer-events-none fixed inset-0 -z-10" ref={container} />;
+  return (
+    <div
+      aria-hidden
+      className="pointer-events-none fixed inset-0 -z-10"
+      ref={container}
+    />
+  );
 }

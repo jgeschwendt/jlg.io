@@ -2,7 +2,8 @@
 
 import { m } from 'motion/react';
 import Link from 'next/link';
-import { type JSX, useEffect } from 'react';
+import { useEffect } from 'react';
+import type { JSX } from 'react';
 import { Statement } from './Statement';
 import { At, File, GitHub, LinkedIn } from '@/components/icons';
 

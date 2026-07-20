@@ -1,4 +1,5 @@
-import { type NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { ReasonPhrases, StatusCodes } from 'http-status-codes';
 import { log } from '@/logger';
 
@@ -13,7 +14,9 @@ const createMiddleware =
     const modifiedResponse = new NextResponse();
 
     try {
-      const tasks = middleware.map(async (handler) => handler(request, modifiedResponse));
+      const tasks = middleware.map(async (handler) =>
+        handler(request, modifiedResponse),
+      );
 
       await Promise.all(tasks);
     } catch (error) {

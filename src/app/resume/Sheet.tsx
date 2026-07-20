@@ -28,30 +28,37 @@ export function Sheet(): JSX.Element {
             {'Experience'}
           </h2>
           <ol className="flex flex-col-reverse">
-            {experience.map(([company, title, [start, end], highlights, technologies]) => (
-              <li className="not-first:mb-8 min-[8.5in]:not-first:mb-7" key={company}>
-                <div className="mb-2 flex flex-col gap-1 min-[8.5in]:flex-row min-[8.5in]:items-baseline min-[8.5in]:justify-between min-[8.5in]:gap-4">
-                  <h3 className="text-[0.8125rem] font-medium text-black/87">
-                    {company}
-                    <span className="text-[0.75rem] font-light text-black/66">
-                      {`\u2002·\u2002${title}`}
+            {experience.map(
+              ([company, title, [start, end], highlights, technologies]) => (
+                <li
+                  className="not-first:mb-8 min-[8.5in]:not-first:mb-7"
+                  key={company}
+                >
+                  <div className="mb-2 flex flex-col gap-1 min-[8.5in]:flex-row min-[8.5in]:items-baseline min-[8.5in]:justify-between min-[8.5in]:gap-4">
+                    <h3 className="text-[0.8125rem] font-medium text-black/87">
+                      {company}
+                      <span className="text-[0.75rem] font-light text-black/66">
+                        {`\u2002·\u2002${title}`}
+                      </span>
+                    </h3>
+                    <span className="text-[0.75rem] whitespace-nowrap text-black/55">
+                      {`${start} – ${end}`}
                     </span>
-                  </h3>
-                  <span className="text-[0.75rem] whitespace-nowrap text-black/55">
-                    {`${start} – ${end}`}
-                  </span>
-                </div>
-                <ul className="mb-2 list-disc space-y-1.5 pl-4 text-[0.75rem] leading-snug marker:text-black/35">
-                  {highlights.map((highlight) => (
-                    <li key={highlight}>{highlight}</li>
-                  ))}
-                </ul>
-                <div className="text-[0.75rem]">
-                  <span className="font-normal text-black/87">{'Stack:'}</span>
-                  {`\u2002${technologies.join('\u2002·\u2002')}`}
-                </div>
-              </li>
-            ))}
+                  </div>
+                  <ul className="mb-2 list-disc space-y-1.5 pl-4 text-[0.75rem] leading-snug marker:text-black/35">
+                    {highlights.map((highlight) => (
+                      <li key={highlight}>{highlight}</li>
+                    ))}
+                  </ul>
+                  <div className="text-[0.75rem]">
+                    <span className="font-normal text-black/87">
+                      {'Stack:'}
+                    </span>
+                    {`\u2002${technologies.join('\u2002·\u2002')}`}
+                  </div>
+                </li>
+              ),
+            )}
           </ol>
         </section>
 
@@ -61,16 +68,20 @@ export function Sheet(): JSX.Element {
               {'Education'}
             </h2>
             <div className="space-y-2 text-[0.75rem] leading-snug">
-              {education.map(([degree, specialization, institution, college, location]) => (
-                <div key={degree}>
-                  <div>
-                    <span className="font-normal text-black/87">{degree}</span>
-                    <i>{`\u2002·\u2002${specialization}`}</i>
+              {education.map(
+                ([degree, specialization, institution, college, location]) => (
+                  <div key={degree}>
+                    <div>
+                      <span className="font-normal text-black/87">
+                        {degree}
+                      </span>
+                      <i>{`\u2002·\u2002${specialization}`}</i>
+                    </div>
+                    <div>{`${institution}, ${college}`}</div>
+                    <div>{location}</div>
                   </div>
-                  <div>{`${institution}, ${college}`}</div>
-                  <div>{location}</div>
-                </div>
-              ))}
+                ),
+              )}
             </div>
           </div>
           <div>

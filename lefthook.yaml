@@ -5,3 +5,6 @@ pre-commit:
       glob: '*.{cjs,js,json,jsx,mjs,ts,tsx}'
       run: bunx oxfmt {staged_files}
       stage_fixed: true
+    oxlint:
+      glob: '*.{cjs,js,jsx,mjs,ts,tsx}'
+      run: bunx oxlint --report-unused-disable-directives {staged_files}

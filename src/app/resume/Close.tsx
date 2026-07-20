@@ -2,7 +2,8 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { type JSX, useEffect } from 'react';
+import { useEffect } from 'react';
+import type { JSX } from 'react';
 
 export function Close(): JSX.Element {
   const router = useRouter();
