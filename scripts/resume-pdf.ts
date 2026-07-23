@@ -20,13 +20,9 @@ const waitForServer = async (): Promise<void> => {
   throw new Error(`Server did not respond at ${URL}`);
 };
 
-const server = spawn(
-  'bun',
-  ['--bun', 'next', 'start', '--port', String(PORT)],
-  {
-    stdio: 'ignore',
-  },
-);
+const server = spawn('bun', ['--bun', 'next', 'start', '--port', String(PORT)], {
+  stdio: 'ignore',
+});
 
 try {
   await waitForServer();

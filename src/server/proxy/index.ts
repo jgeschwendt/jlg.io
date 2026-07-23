@@ -14,9 +14,7 @@ const createMiddleware =
     const modifiedResponse = new NextResponse();
 
     try {
-      const tasks = middleware.map(async (handler) =>
-        handler(request, modifiedResponse),
-      );
+      const tasks = middleware.map(async (handler) => handler(request, modifiedResponse));
 
       await Promise.all(tasks);
     } catch (error) {

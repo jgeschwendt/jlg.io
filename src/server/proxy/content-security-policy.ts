@@ -20,9 +20,7 @@ export const contentSecurityPolicy = (
     "form-action 'self';",
     `frame-src ${preview ? 'https://vercel.live' : "'none'"};`,
     `img-src ${
-      preview
-        ? "'self' https://vercel.com https://vercel.live blob: data:"
-        : "'self' blob: data:"
+      preview ? "'self' https://vercel.com https://vercel.live blob: data:" : "'self' blob: data:"
     };`,
     // wasm-unsafe-eval: WebAssembly.instantiate() for the Bevy background wasm module.
     `script-src 'wasm-unsafe-eval' ${
@@ -31,9 +29,7 @@ export const contentSecurityPolicy = (
         : `'self' 'nonce-${nonce}' 'strict-dynamic' 'unsafe-eval'`
     };`,
     `style-src ${
-      preview
-        ? "'self' https://vercel.live 'unsafe-inline'"
-        : "'self' 'unsafe-inline'"
+      preview ? "'self' https://vercel.live 'unsafe-inline'" : "'self' 'unsafe-inline'"
     };`,
 
     'upgrade-insecure-requests;',

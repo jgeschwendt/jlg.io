@@ -41,9 +41,8 @@ export function Background(): JSX.Element {
         )
           // The glue's shape is fixed by wasm-bindgen --target web: a default init export.
           .then(
-            async (module: {
-              default: () => Promise<unknown>;
-            }): Promise<unknown> => module.default(),
+            async (module: { default: () => Promise<unknown> }): Promise<unknown> =>
+              module.default(),
           )
           .catch((): void => {
             state.loaded = false;
@@ -56,11 +55,5 @@ export function Background(): JSX.Element {
     };
   }, []);
 
-  return (
-    <div
-      aria-hidden
-      className="pointer-events-none fixed inset-0 -z-10"
-      ref={container}
-    />
-  );
+  return <div aria-hidden className="pointer-events-none fixed inset-0 -z-10" ref={container} />;
 }

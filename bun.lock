@@ -18,15 +18,14 @@
         "sharp": "0.35.3",
       },
       "devDependencies": {
-        "@jlg/oxfmt": "npm:@jgeschwendt/oxfmt@0.1.0",
-        "@jlg/oxlint": "npm:@jgeschwendt/oxlint@0.1.0",
+        "@jlg/oxfmt": "npm:@jgeschwendt/oxfmt@0.2.0",
+        "@jlg/oxlint": "npm:@jgeschwendt/oxlint@0.2.0",
         "@jlg/tsconfig": "npm:@jgeschwendt/tsconfig@0.1.0",
         "@tailwindcss/postcss": "4.3.3",
         "@types/node": "26.1.1",
         "@types/react": "19.2.17",
         "@types/react-dom": "19.2.3",
         "@typescript/native-preview": "7.0.0-dev.20260707.2",
-        "jsonc-parser": "3.3.1",
         "lefthook": "^2.1.10",
         "oxfmt": "^0.59.0",
         "oxlint": "^1.74.0",
@@ -188,9 +187,9 @@
 
     "@isaacs/fs-minipass": ["@isaacs/fs-minipass@4.0.1", "", { "dependencies": { "minipass": "^7.0.4" } }, "sha512-wgm9Ehl2jpeqP3zw/7mo3kRHFp5MEDhqAdwy1fTGkHAwnkGOVsgpvQhL8B5n1qlb01jV3n/bI0ZfZp5lWA1k4w=="],
 
-    "@jlg/oxfmt": ["@jgeschwendt/oxfmt@0.1.0", "https://npm.pkg.github.com/download/@jgeschwendt/oxfmt/0.1.0/357ba3623cd51cdcc86db1729b145278a9b8923d", { "peerDependencies": { "oxfmt": "^0.59.0" } }, "sha512-rVU1PS+Tv8JUckZ/JoE9dlCnsad/ppsFQcjHOv65o3mifU3XjfSCe4SzOUnztnqO8KZeQotb/QcnHZe2eFdutg=="],
+    "@jlg/oxfmt": ["@jgeschwendt/oxfmt@0.2.0", "https://npm.pkg.github.com/download/@jgeschwendt/oxfmt/0.2.0/71dba22690197c281a417e544225fe4c4a5f2244", { "peerDependencies": { "oxfmt": "^0.59.0" } }, "sha512-N2PNXFGckZPi39aJpyldOrSXP/KtgnIzJtrxQQxm+ExBid1Qmz6Y9WW0m7W75DVP5wLq4MwFeOt7zb+ZPI2ZVg=="],
 
-    "@jlg/oxlint": ["@jgeschwendt/oxlint@0.1.0", "https://npm.pkg.github.com/download/@jgeschwendt/oxlint/0.1.0/bc56b4a713fc56e2cc19a3ee4a3d8d68b9c3d77b", { "peerDependencies": { "oxlint": "^1.74.0" } }, "sha512-eiyFQlY8SukHWFkODKtlSxdjrtTOTG2DixvPdubccbpCLWcDh00S/ICgXFoBzvE3VOL9tOVOyC2Lxz4vv6b+rw=="],
+    "@jlg/oxlint": ["@jgeschwendt/oxlint@0.2.0", "https://npm.pkg.github.com/download/@jgeschwendt/oxlint/0.2.0/6e6ba367b473ae5ada593eb5c21344f03dd07cbb", { "dependencies": { "jsonc-parser": "^3.3.1" }, "peerDependencies": { "oxlint": "^1.74.0" } }, "sha512-BdHg/5bTfz1s2bp0HD2a92+sjHu1Qd5zQS1L73mHyoVUj060VigpjeQhrA5eHDh2IaJgIgFFstnUDiVC/dthoQ=="],
 
     "@jlg/tsconfig": ["@jgeschwendt/tsconfig@0.1.0", "https://npm.pkg.github.com/download/@jgeschwendt/tsconfig/0.1.0/c359512910a64124ebbe8c53d4bfaa0e569bed84", { "peerDependencies": { "typescript": "^7.0.0" } }, "sha512-ynkTSFJ95X5d+tS7OG40es6fCcyDbmuuMD+5WVjBlgL04oPcDTEIh92yTnuHZrDGvEaFOKbAfqQaHUYrR9h5OQ=="],
 

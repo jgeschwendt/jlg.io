@@ -1,43 +1,20 @@
-import { readFileSync } from 'node:fs';
-import { createRequire } from 'node:module';
-import { parse } from 'jsonc-parser';
-import { defineConfig } from 'oxlint';
-
-// A TS/JS oxlint config's `extends` takes config OBJECTS, not path strings the
-// way a JSON config does (verified 2026-07-20, oxlint 1.74 — its js_config loader
-// rejects string entries). The shared base ships as JSONC (comments), which
-// neither a `with { type: 'json' }` import nor node's ESM loader can read, so it
-// is parsed here with jsonc-parser. require.resolve honors the package's `.`
-// export (-> oxlintrc.jsonc). NOTE: oxlint evaluates this file under Node
-// (>=22.18), not bun — see mise.toml, which pins node for exactly this.
-const require = createRequire(import.meta.url);
-const base = parse(readFileSync(require.resolve('@jlg/oxlint'), 'utf8'));
+import { defineConfig } from '@jlg/oxlint';
 
 export default defineConfig({
-  extends: [base],
   ignorePatterns: [
     '**/*.d.ts',
     '.next',
     'next-env.d.ts',
-    // The oxlint/oxfmt TS configs default-export a config object and (oxlint's)
-    // bridge the JSONC base via node:fs + jsonc-parser, so they trip app-oriented
-    // base rules (no-default-export, no-nodejs-modules, no-unsafe-assignment on
-    // the `any` from parse, no-rest-spread-properties). They are tooling config,
-    // not app code — excluded from lint, exactly as the former JSON configs were.
+    // The oxlint/oxfmt TS configs default-export a config object (oxfmt's spreads
+    // the imported base), so they trip app-oriented base rules (no-default-export,
+    // no-anonymous-default-export, no-rest-spread-properties). They are tooling
+    // config, not app code — excluded from lint, as the former JSON configs were.
     'oxfmt.config.ts',
     'oxlint.config.ts',
     'public/background',
   ],
   options: { typeAware: true },
-  plugins: [
-    'eslint',
-    'import',
-    'nextjs',
-    'oxc',
-    'react',
-    'typescript',
-    'unicorn',
-  ],
+  plugins: ['eslint', 'import', 'nextjs', 'oxc', 'react', 'typescript', 'unicorn'],
   rules: {
     // func-style: the @jlg/eslint stack tuned func-style per Next file type
     // (declaration vs expression); the @jlg/oxlint base does NOT port that
@@ -100,10 +77,7 @@ export default defineConfig({
     {
       files: ['**/*.ts', '**/*.tsx'],
       rules: {
-        'import/no-unassigned-import': [
-          'warn',
-          { allow: ['@/app/global.css'] },
-        ],
+        'import/no-unassigned-import': ['warn', { allow: ['@/app/global.css'] }],
       },
     },
     {
