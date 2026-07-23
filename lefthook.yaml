@@ -7,4 +7,7 @@ pre-commit:
       stage_fixed: true
     oxlint:
       glob: '*.{cjs,js,jsx,mjs,ts,tsx}'
-      run: bunx oxlint --report-unused-disable-directives {staged_files}
+      # --no-error-on-unmatched-pattern: when every staged file is oxlint-ignored
+      # (e.g. a commit touching only oxfmt.config.ts / oxlint.config.ts), oxlint
+      # would otherwise exit 1 ("No files found to lint") and abort the commit.
+      run: bunx oxlint --report-unused-disable-directives --no-error-on-unmatched-pattern {staged_files}

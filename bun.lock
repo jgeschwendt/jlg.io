@@ -18,7 +18,7 @@
         "sharp": "0.35.3",
       },
       "devDependencies": {
-        "@jlg/oxfmt": "npm:@jgeschwendt/oxfmt@0.2.0",
+        "@jlg/oxfmt": "npm:@jgeschwendt/oxfmt@0.3.0",
         "@jlg/oxlint": "npm:@jgeschwendt/oxlint@0.2.0",
         "@jlg/tsconfig": "npm:@jgeschwendt/tsconfig@0.1.0",
         "@tailwindcss/postcss": "4.3.3",
@@ -187,7 +187,7 @@
 
     "@isaacs/fs-minipass": ["@isaacs/fs-minipass@4.0.1", "", { "dependencies": { "minipass": "^7.0.4" } }, "sha512-wgm9Ehl2jpeqP3zw/7mo3kRHFp5MEDhqAdwy1fTGkHAwnkGOVsgpvQhL8B5n1qlb01jV3n/bI0ZfZp5lWA1k4w=="],
 
-    "@jlg/oxfmt": ["@jgeschwendt/oxfmt@0.2.0", "https://npm.pkg.github.com/download/@jgeschwendt/oxfmt/0.2.0/71dba22690197c281a417e544225fe4c4a5f2244", { "peerDependencies": { "oxfmt": "^0.59.0" } }, "sha512-N2PNXFGckZPi39aJpyldOrSXP/KtgnIzJtrxQQxm+ExBid1Qmz6Y9WW0m7W75DVP5wLq4MwFeOt7zb+ZPI2ZVg=="],
+    "@jlg/oxfmt": ["@jgeschwendt/oxfmt@0.3.0", "https://npm.pkg.github.com/download/@jgeschwendt/oxfmt/0.3.0/a7eb02dca8befccc33bf762c247c1b3e3cb2915e", { "peerDependencies": { "oxfmt": "^0.59.0" } }, "sha512-Lc/hbimxvYt2peclNnAlJJVZXO4e3IrKrsssgDkVJ+8LlYfl4ubbNFBcYsqtZAbxKJVmDMeS7Yeq8M/0BzVFzw=="],
 
     "@jlg/oxlint": ["@jgeschwendt/oxlint@0.2.0", "https://npm.pkg.github.com/download/@jgeschwendt/oxlint/0.2.0/6e6ba367b473ae5ada593eb5c21344f03dd07cbb", { "dependencies": { "jsonc-parser": "^3.3.1" }, "peerDependencies": { "oxlint": "^1.74.0" } }, "sha512-BdHg/5bTfz1s2bp0HD2a92+sjHu1Qd5zQS1L73mHyoVUj060VigpjeQhrA5eHDh2IaJgIgFFstnUDiVC/dthoQ=="],
 
