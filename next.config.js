@@ -7,6 +7,7 @@ const config = {
     useCache: true,
     viewTransition: true,
   },
+  // stele:landmark ts7-build
   typescript: {
     // TypeScript 7.0 is the native `typescript-go` port: its `typescript` package
     // has no `lib/typescript.js` and no classic compiler API (`createProgram` et

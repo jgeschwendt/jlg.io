@@ -7,6 +7,7 @@ export const contentSecurityPolicy = (
   request: NextRequest,
   response: NextResponse,
 ): NextResponse => {
+  // stele:landmark csp-dynamic
   const nonce = Buffer.from(crypto.randomUUID()).toString('base64');
   const preview = process.env['VERCEL_ENV'] === 'preview';
   const production = process.env.NODE_ENV !== 'development';

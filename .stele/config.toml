@@ -1,0 +1,14 @@
+# stele check/emit-time settings (not an input to `build`/the lock — SPEC §3.4).
+#
+# Exhaustiveness (§4.3) requires every top-level directory to fall in some
+# non-root node's territory. This graph is deliberately shallow — root (system)
+# + src (container) — because the remaining top-level dirs carry no local
+# knowledge a root claim doesn't already route to:
+#   .github  → CI; the TS7-BUILD and LEFTHOOK hazards already cover it
+#   crates   → Rust/Bevy background source; the WASM-OUTPUT hazard covers its pipeline
+#   public   → static + generated (public/background is wasm-bindgen output)
+#   scripts  → build tooling; the WASM-OUTPUT claim anchors into background-wasm.ts
+# Excluding a dir here drops only its exhaustiveness requirement; the anchor scan
+# still sees it, so lm:wasm-output in scripts/ keeps resolving.
+[exhaustiveness]
+exclude = ["node_modules", "_build", "deps", "target", ".github", "crates", "public", "scripts"]
