@@ -8,3 +8,11 @@ rust = "latest"
 
 [env]
 _.file = ".env"
+
+[tasks.dev]
+description = "Boot the dev server through visor (http://localhost:3000)"
+run = "visor -- bun --bun next dev"
+
+[tasks."dev:raw"]
+description = "Dev server without visor (bisect path)"
+run = "bun --bun next dev"
