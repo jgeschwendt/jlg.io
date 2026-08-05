@@ -3,7 +3,11 @@ pre-commit:
   commands:
     oxfmt:
       glob: '*.{cjs,js,json,jsx,mjs,ts,tsx}'
-      run: bunx oxfmt {staged_files}
+      # --no-error-on-unmatched-pattern: same footgun as oxlint below (see
+      # lm:lefthook-unmatched) — when every staged file is oxfmt-ignored (e.g.
+      # public/background wasm-bindgen output), oxfmt 0.62+ exits 2 ("Expected at
+      # least one target file") and aborts the commit.
+      run: bunx oxfmt --no-error-on-unmatched-pattern {staged_files}
       stage_fixed: true
     oxlint:
       glob: '*.{cjs,js,jsx,mjs,ts,tsx}'
