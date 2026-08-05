@@ -10,7 +10,7 @@ function getYearsOfExperience(): number {
 
 function statement(): string {
   return [
-    `I’m a seasoned web engineer with ${getYearsOfExperience()} years of professional experience located in West Michigan.`,
+    `I’m a seasoned software engineer with ${getYearsOfExperience()} years of professional experience located in West Michigan.`,
     `I specialize in AI augmented software.`,
   ].join(' ');
 }
