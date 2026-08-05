@@ -72,7 +72,7 @@ const experience: readonly Experience[] = [
     [
       'Rebuilt Rocket Mortgage’s servicing platform from Angular to Next.js in six months, compressing a multi-year scope with AI-assisted development, and unified Rocket and Mr. Cooper clients on a single platform.',
       'Dreamed up, built, and shipped remote development environments: collaborative spaces that embed AI harnesses in the live application, letting any team make changes together from a URL with no setup.',
-      'Mentor team members on AI-assisted workflows and present at biweekly AI syncs for 200+ participants.',
+      'Mentor team members and guide the organization’s transition to AI-forward engineering.',
     ],
     ['Elixir', 'Next.js', 'Node.js', 'Rust', 'TypeScript'],
   ],
