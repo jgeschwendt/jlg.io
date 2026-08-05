@@ -23,6 +23,7 @@ export default async function Page(): Promise<JSX.Element> {
   return (
     <MotionConfig nonce={nonce ?? undefined} reducedMotion="user">
       <LazyMotion features={domAnimation} strict>
+        {/* <Background /> parked: the fluid sim is incomplete — remount when it ships. */}
         <Main />
       </LazyMotion>
     </MotionConfig>

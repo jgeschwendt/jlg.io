@@ -1,0 +1,44 @@
+[package]
+authors = ["joshua@geschwendt.com"]
+edition = "2024"
+license = "UNLICENSED"
+name = "background"
+publish = false
+version = "0.1.0"
+
+[[bin]]
+name = "background"
+path = "src/main.rs"
+
+[dependencies]
+bevy = { version = "0.19.0", default-features = false, features = [
+  "async_executor",
+  "bevy_asset",
+  "bevy_core_pipeline",
+  "bevy_log",
+  "bevy_render",
+  "bevy_sprite_render",
+  "bevy_winit",
+  "std",
+  "webgl2",
+] }
+
+# wasm-bindgen is pulled in transitively by bevy on wasm32; pinned here so the
+# wasm-bindgen CLI version in scripts/build-background.ts stays in lockstep.
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wasm-bindgen = "0.2"
+# The canvas never receives pointer events, so pointer state comes from DOM
+# listeners on the window rather than winit.
+web-sys = { version = "0.3", features = [
+  "AddEventListenerOptions",
+  "EventTarget",
+  "MouseEvent",
+  "Window",
+] }
+
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = "z"
+panic = "abort"
+strip = true

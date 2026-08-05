@@ -17,15 +17,26 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # stele freshness walks git blame over the anchored code — needs full history.
+          fetch-depth: 0
       - uses: jdx/mise-action@v2
       - run: bun install --frozen-lockfile
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - run: bunx oxfmt --check
       - run: bun run lint
+      - run: bunx tsc --noEmit
 
-  # `vercel build` runs the full Next build (with type checking), so a separate
-  # `bun run build` in check would build everything twice per run.
+      # stele: assert the agent-doc graph is fresh (anchors resolve, claims not
+      # staled by drift) and the committed AGENTS.md / index files match the lock.
+      # Pinned to the binary the lock was built with; CI never runs `stele build`
+      # (that would launder staleness). liveness resolves the nodes' `bun`/`bunx`
+      # commands against the PATH mise-action set up above.
+      - run: curl -fsSL https://raw.githubusercontent.com/jgeschwendt/stele/main/scripts/install.sh | bash -s v0.2.0
+      - run: ~/.local/bin/stele check
+      - run: ~/.local/bin/stele emit --check
+
   deploy:
     needs: check
     secrets: inherit

@@ -13,6 +13,7 @@ node_modules
 # caches
 .next
 .vercel
+crates/background/target
 
 # outputs
 *.tsbuildinfo
@@ -21,3 +22,5 @@ next-env.d.ts
 # tools
 .DS_Store
 .vscode
+# visor (dev proxy) data dir
+.visor/

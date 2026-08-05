@@ -1,5 +1,6 @@
 import Link from 'next/link';
-import { Fragment, type JSX } from 'react';
+import { Fragment } from 'react';
+import type { JSX } from 'react';
 import { interleave, pipe } from '@/fns';
 
 function getYearsOfExperience(): number {
@@ -9,7 +10,7 @@ function getYearsOfExperience(): number {
 
 function statement(): string {
   return [
-    `I’m a seasoned web engineer with ${getYearsOfExperience()} years of professional experience located in West Michigan.`,
+    `I’m a seasoned software engineer with ${getYearsOfExperience()} years of professional experience located in West Michigan.`,
     `I specialize in AI augmented software.`,
   ].join(' ');
 }

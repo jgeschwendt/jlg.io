@@ -30,7 +30,11 @@ try {
   const page = await browser.newPage();
   await page.goto(URL, { waitUntil: 'networkidle' });
   await page.evaluate(async () => document.fonts.ready);
-  await page.pdf({ format: 'Letter', path: 'public/resume.pdf', printBackground: true });
+  await page.pdf({
+    format: 'Letter',
+    path: 'public/resume.pdf',
+    printBackground: true,
+  });
   await browser.close();
   console.log('Wrote public/resume.pdf');
 } finally {

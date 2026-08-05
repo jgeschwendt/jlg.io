@@ -1,8 +1,9 @@
 'use client';
 
-import { m } from 'motion/react';
+import { m, stagger } from 'motion/react';
 import Link from 'next/link';
-import { type JSX, useEffect } from 'react';
+import { useEffect } from 'react';
+import type { JSX } from 'react';
 import { Statement } from './Statement';
 import { At, File, GitHub, LinkedIn } from '@/components/icons';
 
@@ -33,7 +34,7 @@ export function Main(): JSX.Element {
           [HIDE]: { opacity: 0 },
           [SHOW]: {
             opacity: 1,
-            transition: { staggerChildren: 2 },
+            transition: { delayChildren: stagger(2) },
           },
         }}
       >
@@ -70,7 +71,7 @@ export function Main(): JSX.Element {
           className="flex flex-col items-center"
           variants={{
             [HIDE]: {},
-            [SHOW]: { transition: { staggerChildren: 0.25 } },
+            [SHOW]: { transition: { delayChildren: stagger(0.25) } },
           }}
         >
           <h1 className="sr-only">{'Joshua L Geschwendt'}</h1>
@@ -97,7 +98,7 @@ export function Main(): JSX.Element {
               [HIDE]: { opacity: 0 },
               [SHOW]: {
                 opacity: 1,
-                transition: { staggerChildren: 0.1 },
+                transition: { delayChildren: stagger(0.1) },
               },
             }}
           >

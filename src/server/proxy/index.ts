@@ -1,4 +1,5 @@
-import { type NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { ReasonPhrases, StatusCodes } from 'http-status-codes';
 import { log } from '@/logger';
 
@@ -12,6 +13,7 @@ const createMiddleware =
   async (request: Readonly<NextRequest>): Promise<Response> => {
     const modifiedResponse = new NextResponse();
 
+    // stele:landmark proxy-short-circuit
     try {
       const tasks = middleware.map(async (handler) => handler(request, modifiedResponse));
 
