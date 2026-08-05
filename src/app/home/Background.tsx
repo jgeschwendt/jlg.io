@@ -40,9 +40,8 @@ export function Background(): JSX.Element {
           specifier
         )
           // The glue's shape is fixed by wasm-bindgen --target web: a default init export.
-          .then(
-            async (module: { default: () => Promise<unknown> }): Promise<unknown> =>
-              module.default(),
+          .then(async (module: { default: () => Promise<unknown> }): Promise<unknown> =>
+            module.default(),
           )
           .catch((): void => {
             state.loaded = false;

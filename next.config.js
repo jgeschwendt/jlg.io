@@ -2,10 +2,13 @@
 const config = {
   // Not cacheComponents: its build-time static shell can't carry the per-request
   // CSP nonce, so routes here must stay fully dynamic. useCache still enables
-  // the `use cache` directive for caching parts within dynamic renders.
+  // the `use cache` directive for caching parts within dynamic renders. Next
+  // 16.3 deprecates it in favor of top-level cacheComponents — same CSP
+  // constraint applies, so stay on useCache until it's removed outright.
+  // (viewTransition graduated in 16.3: React's ViewTransition export is
+  // unconditional; the experimental key no longer exists.)
   experimental: {
     useCache: true,
-    viewTransition: true,
   },
   // stele:landmark ts7-build
   typescript: {
