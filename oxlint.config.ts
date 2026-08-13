@@ -29,6 +29,12 @@ export default defineConfig({
     // Off here; re-enabled for .tsx in the override below. (2026-07-20)
     'id-length': 'off',
     'max-statements': 'off',
+    // one-var: implemented in oxlint 1.78, landing at error via the base's
+    // style category with the upstream default ("always" — combine
+    // declarations). The authored @jlg/eslint stack set ["error", "never"]
+    // (the base's README lists it under DROPPED, pre-1.78); pin the original
+    // option here until the base ports it. (2026-08-12)
+    'one-var': ['error', 'never'],
     // no-duplicate-imports (core) treats a value import and a separate
     // type-only import from the same module as a duplicate, which conflicts
     // with the base's `import/consistent-type-specifier-style` (prefers a
