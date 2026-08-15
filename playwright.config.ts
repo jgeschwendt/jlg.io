@@ -44,12 +44,14 @@ export default defineConfig({
   // `<html id="__next_error__">`, 0 client coverage files)
   use: { baseURL: BASE_URL, bypassCSP: true, trace: 'off' },
   webServer: {
-    // `bun --bun` matches the repo's own `dev`/`start` scripts: Next runs on
-    // bun's runtime, which is also what makes the `bunfig.toml` preload reach
-    // the render workers.
-    command: PROD
-      ? `bun --bun next start --port ${String(PORT)}`
-      : `bun --bun next dev --port ${String(PORT)}`,
+    // Plain `next`, not the repo's `bun --bun next` convention: the coverage
+    // flow follows the reference and lets the bin's shebang pick the runtime —
+    // bun locally (node shim / bunfig preload), real node on CI (NODE_OPTIONS
+    // preload). Forcing bun's runtime with instrumented modules loaded
+    // segfaults at process exit on the Linux runner (SIGILL, bun 1.3.14).
+    // (observed 2026-08-16 · coverage run 31955271334: build completes, route
+    // table prints, then "panic: Segmentation fault" in the exit path)
+    command: PROD ? `next start --port ${String(PORT)}` : `next dev --port ${String(PORT)}`,
     // Arms the SWC instrumentation (dev) and opens `/api/coverage` (both).
     env: { COVERAGE: '1' },
     // Never reuse: a server left running in the other mode would silently

@@ -10,7 +10,7 @@
     "background:build": "bun scripts/background-wasm.ts",
     "build": "bun --bun next build",
     "coverage": "rm -rf .nyc_output coverage && bun run coverage:build && COVERAGE=1 COVERAGE_MODE=prod bun run test:e2e && bun run coverage:report",
-    "coverage:build": "COVERAGE=1 NODE_OPTIONS=\"--require ./scripts/coverage-exit.cjs\" bun --bun next build",
+    "coverage:build": "COVERAGE=1 NODE_OPTIONS=\"--require ./scripts/coverage-exit.cjs\" next build",
     "coverage:dev": "rm -rf .nyc_output coverage && COVERAGE=1 COVERAGE_MODE=dev bun run test:e2e && bun run coverage:report",
     "coverage:report": "bun scripts/coverage-report.ts",
     "cspell": "bunx cspell '**/*.{md,mjs,ts,tsx}'",
