@@ -104,6 +104,21 @@ export default defineConfig({
       },
     },
     {
+      // The coverage endpoint is instrumentation plumbing in app clothing: it
+      // reads `globalThis.__coverage__` (the instrumenter's untyped dangling-
+      // underscore global, asserted into shape) and must body `null` — JSON has
+      // no undefined, and the e2e fixture distinguishes "no counters" from an
+      // empty map by it. Invisible to lint until 2026-08-16: a bare `coverage`
+      // in .gitignore matched the route's own directory, and oxlint honors
+      // .gitignore. (2026-08-16)
+      files: ['src/app/api/coverage/route.ts'],
+      rules: {
+        'no-underscore-dangle': 'off',
+        'typescript/no-unsafe-type-assertion': 'off',
+        'unicorn/no-null': 'off',
+      },
+    },
+    {
       // e2e/** is Playwright's own idiom, not app code: `async ({ page }) =>`
       // fixtures everywhere, timeouts and counts as literals, sequential awaits
       // that are the point of a test, node builtins for writing `.nyc_output`,

@@ -15,11 +15,13 @@ node_modules
 .vercel
 crates/background/target
 
-# coverage (raw Istanbul dumps, merged reports, Playwright run output)
-.nyc_output
-coverage
-playwright-report
-test-results
+# coverage (raw Istanbul dumps, merged reports, Playwright run output) —
+# root-anchored: a bare `coverage` also matches src/app/api/coverage/, which is
+# how the route handler silently never got committed the first time.
+/.nyc_output/
+/coverage/
+/playwright-report/
+/test-results/
 
 # outputs
 *.tsbuildinfo
