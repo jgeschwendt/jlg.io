@@ -78,6 +78,55 @@ export default defineConfig({
         'no-await-in-loop': 'off',
         'no-console': 'off',
         'no-magic-numbers': 'off',
+        // JSON.parse returns `any`; naming the shape it is being read back into
+        // is an assertion either way, and the repo has no schema validator to
+        // make it a narrowing instead. (2026-08-15 · scripts/coverage-report.ts
+        // reading `.nyc_output/*.json` as istanbul's CoverageMapData)
+        'typescript/no-unsafe-type-assertion': 'off',
+      },
+    },
+    {
+      // scripts/coverage-exit.cjs is a runtime preload (`preload` in bunfig.toml),
+      // loaded before any hook that could handle TypeScript or ESM exists — hence
+      // CommonJS and `require`. It reads and writes `globalThis.__coverage__`, the
+      // untyped global the SWC instrumenter emits, which is what the dangling
+      // underscores and the type-aware `any` complaints are about. (2026-08-15)
+      files: ['scripts/*.cjs'],
+      rules: {
+        'import/no-commonjs': 'off',
+        'import/no-nodejs-modules': 'off',
+        'import/unambiguous': 'off',
+        'no-underscore-dangle': 'off',
+        'typescript/no-require-imports': 'off',
+        'typescript/no-unsafe-argument': 'off',
+        'typescript/no-unsafe-assignment': 'off',
+        'typescript/strict-boolean-expressions': 'off',
+      },
+    },
+    {
+      // e2e/** is Playwright's own idiom, not app code: `async ({ page }) =>`
+      // fixtures everywhere, timeouts and counts as literals, sequential awaits
+      // that are the point of a test, node builtins for writing `.nyc_output`,
+      // and `window.__coverage__` / `globalThis.__coverage__` — the instrumenter's
+      // untyped globals, which the specs exist to read. `e2e/helpers.ts` and
+      // `e2e/fixtures.ts` also export as they go, because a *.spec.ts may not
+      // carry a single type annotation (bun's loader fails it opaquely) and every
+      // typed helper has to live next to the doc comment explaining it.
+      // (2026-08-15)
+      files: ['e2e/**/*.ts'],
+      rules: {
+        'import/exports-last': 'off',
+        'import/group-exports': 'off',
+        'import/no-nodejs-modules': 'off',
+        'no-await-in-loop': 'off',
+        'no-console': 'off',
+        'no-magic-numbers': 'off',
+        'no-underscore-dangle': 'off',
+        'oxc/no-async-await': 'off',
+        'typescript/explicit-function-return-type': 'off',
+        'unicorn/no-useless-undefined': 'off',
+        'unicorn/prefer-export-from': 'off',
+        'unicorn/prefer-global-this': 'off',
       },
     },
     {
@@ -110,7 +159,13 @@ export default defineConfig({
       },
     },
     {
-      files: ['src/proxy.ts', '**/server/proxy/index.ts', '**/default.tsx'],
+      files: [
+        'src/proxy.ts',
+        '**/server/proxy/index.ts',
+        '**/default.tsx',
+        // Playwright resolves its config through the default export.
+        'playwright.config.ts',
+      ],
       rules: {
         'import/no-default-export': 'off',
       },

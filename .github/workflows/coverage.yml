@@ -1,0 +1,106 @@
+name: coverage
+
+# The production coverage flow, whole: an instrumented `next build` (whose
+# static-generation workers dump their counters through the `bunfig.toml`
+# preload), the Playwright suite against `next start`, and a merged report that
+# fails the job if statements or lines fall under 90. The HTML report is then
+# published to Pages, so the number in the badge and the report behind it come
+# from the same run.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  cancel-in-progress: true
+  group: coverage-${{ github.ref }}
+
+env:
+  NEXT_TELEMETRY_DISABLED: '1'
+
+permissions:
+  contents: read
+
+jobs:
+  coverage:
+    permissions:
+      contents: read
+      id-token: write
+      pages: write
+    runs-on: ubuntu-latest
+    # The build half alone is ~15s locally and the suite ~5s; the ceiling is for
+    # a cold runner with no caches, not for the steady state.
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+
+      # mise.toml pins bun and node (oxlint's TS config needs node >=22.18);
+      # this is the repo's single toolchain entry point — see ci.yaml.
+      - uses: jdx/mise-action@v2
+
+      - name: Cache bun install cache
+        uses: actions/cache@v6
+        with:
+          key: bun-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+          path: ~/.bun/install/cache
+          restore-keys: bun-${{ runner.os }}-
+
+      # NODE_AUTH_TOKEN: the @jlg/* devDependencies are npm aliases onto GitHub
+      # Packages, which 401s even anonymous reads (see .npmrc).
+      - run: bun install --frozen-lockfile
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Keyed on the lockfile: the browser build Playwright wants is a function
+      # of the Playwright version, and nothing else in here changes it.
+      - name: Cache Playwright browsers
+        uses: actions/cache@v6
+        with:
+          key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+          path: ~/.cache/ms-playwright
+
+      # `--with-deps` every time even on a cache hit: it is the system libraries
+      # chromium links against, which live outside the cached browser directory.
+      - run: bunx playwright install --with-deps chromium
+
+      # The real type gate — `next build` skips in-build checking under TS7.
+      - run: bunx tsc --noEmit
+
+      # Self-failing: `scripts/coverage-report.ts` exits non-zero below the
+      # thresholds, and appends the coverage table to the job summary.
+      - run: bun run coverage
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          if-no-files-found: ignore
+          name: coverage-report
+          path: coverage/
+          retention-days: 30
+
+      # `enablement: true`: Pages is not turned on for this repository yet, so
+      # the action provisions it on the first run instead of failing.
+      - uses: actions/configure-pages@v6
+        with:
+          enablement: true
+
+      # The Istanbul HTML report's root is `coverage/index.html`, so the site
+      # root serves the report with no wrapper page.
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: coverage
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    if: github.ref == 'refs/heads/main'
+    needs: coverage
+    permissions:
+      id-token: write
+      pages: write
+    runs-on: ubuntu-latest
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5
