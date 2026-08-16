@@ -1,0 +1,9 @@
+# `scripts/coverage-exit.cjs` flushes build-time Istanbul counters. It has to be
+# loaded by every process a `next build` spawns, and this is the only hook that
+# reaches them: `node` on this toolchain is bun's node shim, which ignores
+# `NODE_OPTIONS=--require`, while bun's own `preload` is inherited by every
+# child process started from this directory.
+#
+# The module is inert unless COVERAGE=1, so `bun run dev`, `bun run build` and
+# plain `bun x` pay one require of a 60-line file and nothing else.
+preload = ["./scripts/coverage-exit.cjs"]
