@@ -27,6 +27,12 @@ jobs:
     permissions:
       contents: read
       id-token: write
+      # The workflow-level `permissions:` block replaces the default token grant
+      # wholesale, and `bun install` pulls the @jlg/* aliases from GitHub
+      # Packages with GITHUB_TOKEN as NODE_AUTH_TOKEN — without packages: read
+      # the install 403s. ci.yaml never hits this only because it declares no
+      # permissions at all. (observed 2026-08-16 · first run of this workflow)
+      packages: read
       pages: write
     runs-on: ubuntu-latest
     # The build half alone is ~15s locally and the suite ~5s; the ceiling is for
