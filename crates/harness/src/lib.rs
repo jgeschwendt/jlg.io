@@ -7,6 +7,7 @@
 //! inside a single session.
 
 pub mod cdp;
+pub mod server;
 
 use serde::Deserialize;
 use serde_json::{Value, json};
@@ -77,6 +78,12 @@ impl Session {
         Ok(session)
     }
 
+    /// One step back through the session history. A client-side route pop, not
+    /// a reload, when the router owns the entry — callers assert which.
+    pub fn back(&self) -> Result<(), Error> {
+        self.send("back", json!({})).map(|_| ())
+    }
+
     /// The browser-level CDP endpoint, which is what `Target.*` and a flat
     /// per-target attach need — a page-level endpoint cannot reach either.
     pub fn cdp_url(&self) -> Result<String, Error> {
@@ -103,6 +110,14 @@ impl Session {
     /// `window.__coverage__` accumulated since the last one.
     pub fn navigate(&self, url: &str) -> Result<(), Error> {
         self.send("navigate", json!({ "url": url })).map(|_| ())
+    }
+
+    /// `Page.printToPDF` on the current page, written by the daemon to `path`.
+    /// The action's defaults are already the interesting options: CDP's default
+    /// paper size is Letter (8.5×11in) and the daemon turns `printBackground`
+    /// on unless told otherwise.
+    pub fn pdf(&self, path: &str) -> Result<(), Error> {
+        self.send("pdf", json!({ "path": path })).map(|_| ())
     }
 
     /// Retries transient socket faults, then re-bootstraps once if the daemon

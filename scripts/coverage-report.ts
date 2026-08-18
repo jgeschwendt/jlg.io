@@ -81,8 +81,8 @@ console.log(`HTML report: ${path.join(REPORT_DIR, 'index.html')}`);
 // the gate while normal per-run drift does not. Branches and functions are
 // reported but not gated — branch coverage here is dominated by the CSP
 // builder's preview/production ternaries, arms no local run can enter.
-// (measured 2026-08-15 · `bun run coverage` 92.00 stmts / 91.48 lines,
-// `bun run coverage:dev` 91.91 / 91.39, 12 tests)
+// (measured 2026-08-18 · `bun run coverage` 92.00 stmts / 91.48 lines,
+// `bun run coverage:dev` 91.83 / 91.30, harness runner)
 const THRESHOLDS = { lines: 90, statements: 90 } as const;
 
 const totals = map.getCoverageSummary();

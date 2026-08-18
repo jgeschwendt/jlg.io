@@ -2,10 +2,10 @@ name: coverage
 
 # The production coverage flow, whole: an instrumented `next build` (whose
 # static-generation workers dump their counters through the `bunfig.toml`
-# preload), the Playwright suite against `next start`, and a merged report that
-# fails the job if statements or lines fall under 90. The HTML report is then
-# published to Pages, so the number in the badge and the report behind it come
-# from the same run.
+# preload), the harness e2e suite (crates/harness) against `next start`, and a
+# merged report that fails the job if statements or lines fall under 90. The
+# HTML report is then published to Pages, so the number in the badge and the
+# report behind it come from the same run.
 
 on:
   push:
@@ -58,17 +58,30 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # Keyed on the lockfile: the browser build Playwright wants is a function
-      # of the Playwright version, and nothing else in here changes it.
-      - name: Cache Playwright browsers
+      - name: Cache cargo
         uses: actions/cache@v6
         with:
-          key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
-          path: ~/.cache/ms-playwright
+          key: cargo-${{ runner.os }}-${{ hashFiles('crates/harness/Cargo.lock') }}
+          path: |
+            ~/.cargo/registry
+            crates/harness/target
+          restore-keys: cargo-${{ runner.os }}-
 
-      # `--with-deps` every time even on a cache hit: it is the system libraries
-      # chromium links against, which live outside the cached browser directory.
-      - run: bunx playwright install --with-deps chromium
+      # Pinned: the harness speaks the daemon's socket protocol directly, so a
+      # silent CLI upgrade is a protocol change. Bump deliberately, with a local
+      # `bun run coverage:dev` against the new version first.
+      - run: npm install -g agent-browser@0.34.0
+
+      # Keyed on the CLI version, which decides the Chromium build it fetches.
+      - name: Cache agent-browser Chromium
+        uses: actions/cache@v6
+        with:
+          key: agent-browser-${{ runner.os }}-0.34.0
+          path: ~/.agent-browser/browsers
+
+      # `--with-deps` every time even on a cache hit: system libraries live
+      # outside the cached browser directory.
+      - run: agent-browser install --with-deps
 
       # The real type gate — `next build` skips in-build checking under TS7.
       - run: bunx tsc --noEmit

@@ -37,10 +37,10 @@ jobs:
       - run: ~/.local/bin/stele check
       - run: ~/.local/bin/stele emit --check
 
-  # The Rust coverage harness (crates/harness): an instrumented dev server
-  # driven through agent-browser's daemon, gated by the same ≥90 thresholds as
-  # the Playwright flow in coverage.yml. Dev mode on purpose — prod coverage
-  # stays coverage.yml's job; this asserts the harness itself keeps working.
+  # The e2e suite (crates/harness): an instrumented dev server driven through
+  # agent-browser's daemon, every route asserted, gated by the same ≥90
+  # thresholds as the prod flow. Dev mode on purpose — the production build's
+  # coverage is coverage.yml's job; this one runs per PR.
   harness:
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -98,7 +98,7 @@ jobs:
 
       # Self-failing: the runner panics on any behavioral assertion, and
       # `scripts/coverage-report.ts` exits non-zero below the thresholds.
-      - run: bun run coverage:harness
+      - run: bun run coverage:dev
 
       - uses: actions/upload-artifact@v7
         if: failure()

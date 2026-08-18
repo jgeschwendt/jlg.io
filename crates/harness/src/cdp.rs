@@ -4,9 +4,10 @@
 //! — an obfuscated `new Function` — and the production `script-src` carries no
 //! `'unsafe-eval'`, so under enforcement an instrumented bundle throws an
 //! `EvalError` before hydration and `window.__coverage__` is never created.
-//! Playwright's own coverage run solves this with `bypassCSP: true`; this is
-//! the same override reached through raw CDP, which keeps the app's real policy
-//! on the wire instead of weakening what the server sends.
+//! Disabling enforcement in the browser keeps the app's real policy on the
+//! wire instead of weakening what the server sends — and the coverage runner
+//! asserts that wire policy (nonce and all) itself, which is the check browser
+//! enforcement would otherwise have been.
 //!
 //! `src/server/proxy/content-security-policy.ts` does grant `'unsafe-eval'`
 //! when `NODE_ENV` is development, so this only bites in `--mode prod`. It is
