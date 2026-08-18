@@ -156,7 +156,7 @@ fn home(session: &Session, base: &str) {
     // Three return legs: history back first — `Main` keeps `hasPlayed` at
     // module scope, so the entrance must not replay and the content has to be
     // there either way — then the close control.
-    wait_hydrated(session);
+    wait_hydrated(session, "a[aria-label=\"Resume\"]");
     click_until(session, "a[aria-label=\"Resume\"]", "/resume");
     back_until(session, "/");
     assert_eq!(
@@ -325,24 +325,33 @@ fn server_coverage(session: &Session, output: &Path) -> (String, usize) {
     write_map(output, "server-harness", &probe.body, false)
 }
 
-/// Blocks until the client runtime has attached. An anchor clicked before
-/// hydration follows its own `href` — a full page load that lands on the right
-/// URL while silently discarding every counter since the last harvest, which is
-/// exactly what the settle() sentinel exists to catch. Waiting here turns that
-/// sentinel from a race into a pure assertion. `window.next.router` is the app
-/// router's public marker and appears only once hydration has run.
-/// (observed 2026-08-18 · a cold Turbopack compile made the first click race
-/// hydration and the sentinel fired on a genuine full-load arrival)
-fn wait_hydrated(session: &Session) {
+/// Blocks until `selector`'s element is itself hydrated. An anchor clicked
+/// before hydration follows its own `href` — a full page load that lands on the
+/// right URL while silently discarding every counter since the last harvest,
+/// which is exactly what the settle() sentinel exists to catch. Waiting here
+/// turns that sentinel from a race into a pure assertion.
+///
+/// The marker is the `__reactFiber$…` key React stamps on a DOM node when it
+/// hydrates that node — not `window.next.router`, which the runtime installs
+/// BEFORE the tree hydrates: on a slow cold-compile machine the gap between the
+/// two is wide enough for a click to fall through to native navigation.
+/// (observed 2026-08-18 · run 32166774728: the router marker passed, the click
+/// full-loaded anyway on the CI runner; never seen locally)
+fn wait_hydrated(session: &Session, selector: &str) {
+    let script = format!(
+        "(() => {{ const el = document.querySelector('{selector}'); return Boolean(el && \
+         Object.keys(el).some((k) => k.startsWith('__reactFiber'))); }})()"
+    );
     let deadline = Instant::now() + SPA_TIMEOUT;
     loop {
-        let hydrated = session
-            .eval("Boolean(window.next && window.next.router)")
-            .expect("probe hydration");
+        let hydrated = session.eval(&script).expect("probe hydration");
         if hydrated == Value::Bool(true) {
             return;
         }
-        assert!(Instant::now() < deadline, "client runtime never attached");
+        assert!(
+            Instant::now() < deadline,
+            "{selector} never hydrated — no React fiber attached"
+        );
         std::thread::sleep(Duration::from_millis(250));
     }
 }
