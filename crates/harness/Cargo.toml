@@ -6,10 +6,6 @@ name = "harness"
 publish = false
 version = "0.1.0"
 
-[[bin]]
-name = "resume-pdf"
-path = "src/bin/resume-pdf.rs"
-
 [dependencies]
 serde = { version = "1.0.229", features = ["derive"] }
 serde_json = "1.0.151"

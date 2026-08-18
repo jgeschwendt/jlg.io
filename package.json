@@ -9,9 +9,9 @@
   "scripts": {
     "background:build": "bun scripts/background-wasm.ts",
     "build": "next build",
-    "coverage": "rm -rf .nyc_output coverage && bun run coverage:build && cargo run --manifest-path e2e/Cargo.toml -- --mode prod && bun run coverage:report",
+    "coverage": "rm -rf .nyc_output coverage && bun run coverage:build && cargo run --manifest-path e2e/Cargo.toml --bin e2e -- --mode prod && bun run coverage:report",
     "coverage:build": "COVERAGE=1 NODE_OPTIONS=\"--require ./scripts/coverage-exit.cjs\" next build",
-    "coverage:dev": "rm -rf .nyc_output coverage && cargo run --manifest-path e2e/Cargo.toml && bun run coverage:report",
+    "coverage:dev": "rm -rf .nyc_output coverage && cargo run --manifest-path e2e/Cargo.toml --bin e2e && bun run coverage:report",
     "coverage:report": "bun scripts/coverage-report.ts",
     "cspell": "bunx cspell '**/*.{md,mjs,ts,tsx}'",
     "dev": "bun --bun next dev",
@@ -19,7 +19,7 @@
     "fmt": "oxfmt",
     "fmt:check": "oxfmt --check",
     "lint": "oxlint --report-unused-disable-directives",
-    "resume:pdf": "bun run build && cargo run --manifest-path crates/harness/Cargo.toml --bin resume-pdf",
+    "resume:pdf": "bun run build && cargo run --manifest-path e2e/Cargo.toml --bin resume-pdf",
     "start": "bun --bun next start",
     "update": "bunx npm-check-updates -u && bun install"
   },

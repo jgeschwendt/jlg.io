@@ -6,10 +6,16 @@ name = "e2e"
 publish = false
 version = "0.1.0"
 
-# Flat on purpose — the suite is one file beside its manifest, not a src/ tree.
+# Flat on purpose — one file per binary beside the manifest, not a src/ tree.
 [[bin]]
 name = "e2e"
 path = "main.rs"
+
+# Site tooling, not a test — it lives here because it is jlg.io-specific, and
+# crates/harness stays fully generic for its eventual extraction.
+[[bin]]
+name = "resume-pdf"
+path = "resume-pdf.rs"
 
 [dependencies]
 # The driver machinery — agent-browser socket client, CSP bypass, server
