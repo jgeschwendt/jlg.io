@@ -1,0 +1,18 @@
+[package]
+authors = ["joshua@geschwendt.com"]
+edition = "2024"
+license = "UNLICENSED"
+name = "harness"
+publish = false
+version = "0.1.0"
+
+[[bin]]
+name = "coverage"
+path = "src/bin/coverage.rs"
+
+[dependencies]
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.151"
+# The CSP bypass needs one long-lived CDP WebSocket and nothing else from the
+# network, so a synchronous client keeps the whole harness off an async runtime.
+tungstenite = "0.30.0"

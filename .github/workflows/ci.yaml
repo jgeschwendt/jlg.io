@@ -37,6 +37,74 @@ jobs:
       - run: ~/.local/bin/stele check
       - run: ~/.local/bin/stele emit --check
 
+  # The Rust coverage harness (crates/harness): an instrumented dev server
+  # driven through agent-browser's daemon, gated by the same ≥90 thresholds as
+  # the Playwright flow in coverage.yml. Dev mode on purpose — prod coverage
+  # stays coverage.yml's job; this asserts the harness itself keeps working.
+  harness:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      # mise.toml pins rust alongside bun and node, so this one action also
+      # provides the cargo toolchain the harness builds with.
+      - uses: jdx/mise-action@v2
+
+      - name: Cache bun install cache
+        uses: actions/cache@v6
+        with:
+          key: bun-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+          path: ~/.bun/install/cache
+          restore-keys: bun-${{ runner.os }}-
+
+      - run: bun install --frozen-lockfile
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Cache cargo
+        uses: actions/cache@v6
+        with:
+          key: cargo-${{ runner.os }}-${{ hashFiles('crates/harness/Cargo.lock') }}
+          path: |
+            ~/.cargo/registry
+            crates/harness/target
+          restore-keys: cargo-${{ runner.os }}-
+
+      # Pinned: the harness speaks the daemon's socket protocol directly, so a
+      # silent CLI upgrade is a protocol change. Bump deliberately, with a local
+      # `bun run coverage:harness` against the new version first.
+      - run: npm install -g agent-browser@0.34.0
+
+      # Keyed on the CLI version, which decides the Chromium build it fetches.
+      - name: Cache agent-browser Chromium
+        uses: actions/cache@v6
+        with:
+          key: agent-browser-${{ runner.os }}-0.34.0
+          path: ~/.agent-browser/browsers
+
+      # `--with-deps` every time even on a cache hit: system libraries live
+      # outside the cached browser directory (same shape as coverage.yml's
+      # Playwright install).
+      - run: agent-browser install --with-deps
+
+      - run: cargo fmt --check --manifest-path crates/harness/Cargo.toml
+      - run: cargo clippy --all-targets --manifest-path crates/harness/Cargo.toml -- -D warnings
+
+      # Self-failing: the runner panics on any behavioral assertion, and
+      # `scripts/coverage-report.ts` exits non-zero below the thresholds.
+      - run: bun run coverage:harness
+
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          if-no-files-found: ignore
+          name: harness-coverage
+          path: |
+            .nyc_output/
+            coverage/
+          retention-days: 7
+
   deploy:
     needs: check
     secrets: inherit
