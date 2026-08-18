@@ -1,29 +1,21 @@
-//! A Rust-driven Istanbul coverage run: boots an instrumented Next server,
-//! drives a real browser through the app with `agent-browser`, and drops raw
-//! coverage maps into `.nyc_output` for `scripts/coverage-report.ts` to merge
-//! and gate. It is the Playwright suite's route surface reached a different
-//! way, not a replacement for it — the specs remain the readable statement of
-//! what the app must do.
-//!
-//! Coverage stays a byproduct of asserted behavior. Every navigation here is
-//! followed by checks that fail loudly, because a run that merely *loads* each
-//! route would produce an identical-looking report while proving nothing.
+//! The e2e suite and the coverage run, one binary: boots an instrumented Next
+//! server, drives a real browser through the app with `agent-browser`, asserts
+//! what the app must do, and drops raw Istanbul maps into `.nyc_output` for
+//! `scripts/coverage-report.ts` to merge and gate. The route functions below
+//! are the readable statement of the app's behavior — coverage is their
+//! byproduct, because a run that merely *loads* each route would produce an
+//! identical-looking report while proving nothing.
 
+use harness::server::{HOST, Server, repo_root};
 use harness::{Session, cdp::Bypass};
 use serde_json::Value;
-use std::io::{Read, Write};
-use std::net::TcpStream;
-use std::os::unix::process::CommandExt;
-use std::path::{Path, PathBuf};
-use std::process::{Child, Command, Stdio};
+use std::path::Path;
 use std::time::{Duration, Instant};
 
-const HOST: &str = "localhost";
-// Not 3100: that port belongs to the Playwright config, and a stray server from
-// either runner answering the other's requests would produce a report of the
-// wrong build.
+// Not resume-pdf's 4311, and not a port anything else on the machine runs on:
+// a stray server from another runner answering this one's requests would
+// produce a report of the wrong build.
 const PORT: u16 = 3200;
-const READY_TIMEOUT: Duration = Duration::from_secs(300);
 const SESSION: &str = "jlg-coverage";
 // Hydration is a race, not an event we can wait on: next/link's handler is
 // attached before the router can act, so a click can land in the gap and do
@@ -40,7 +32,19 @@ fn main() {
     std::fs::create_dir_all(&output).expect("create .nyc_output");
 
     println!("[harness] {mode} server on {base}");
-    let server = Server::start(&mode, &root);
+    // Plain `next`, not the repo's `bun --bun next` convention: forcing bun's
+    // runtime with instrumented modules loaded segfaults at process exit on
+    // Linux (SIGILL, bun 1.3.14) — the bin's shebang picks node instead.
+    // (observed 2026-08-16 · coverage run 31955271334)
+    let command = if mode == "prod" { "start" } else { "dev" };
+    let server = Server::start(
+        "./node_modules/.bin/next",
+        &[command, "--port", &PORT.to_string()],
+        // Arms the SWC instrumentation (dev) and opens `/api/coverage`.
+        &[("COVERAGE", "1")],
+        &root,
+        PORT,
+    );
     server.wait_ready();
 
     let session = Session::ensure(SESSION).expect("agent-browser session");
@@ -55,19 +59,17 @@ fn main() {
     resume(&session, &base);
     written.push(harvest(&session, &output, "resume"));
 
-    robots(&session, &base);
+    // Response-layer checks, fetched from the same-origin page the Escape
+    // handler just returned to. These never touch `window.__coverage__`, so
+    // their order against the harvests is free.
+    robots(&session);
+    content_security_policy(&session, "/");
+    content_security_policy(&session, "/resume");
 
     not_found(&session, &base);
     written.push(harvest(&session, &output, "not-found"));
 
-    // Read the server's map from inside the page, while the browser is still on
-    // a same-origin document: `evaluate` awaits promises, so the fetch resolves
-    // before the reply comes back, and the run needs no HTTP client of its own.
-    let server_map = session
-        .eval("fetch('/api/coverage', { cache: 'no-store' }).then((r) => r.text())")
-        .expect("GET /api/coverage");
-    let server_map = server_map.as_str().expect("coverage response is text");
-    written.push(write_map(&output, "server-harness", server_map, false));
+    written.push(server_coverage(&session, &output));
 
     // Explicit, before the guards run: closing the session tears the daemon
     // down, and the bypass socket has nothing left to hold open once it does.
@@ -86,9 +88,9 @@ fn main() {
     println!("[harness] {:.1}s", started.elapsed().as_secs_f64());
 }
 
-/// `/` — the statement, the four icon links, and the client-side round trip to
-/// `/resume` and back. That round trip is the only part of the run that cannot
-/// happen without hydration, so it is what proves the client bundle actually
+/// `/` — the statement, the four icon links, and the client-side trips to
+/// `/resume` and back. Those trips are the only part of the run that cannot
+/// happen without hydration, so they are what proves the client bundle actually
 /// executed rather than merely downloaded.
 fn home(session: &Session, base: &str) {
     session.navigate(&format!("{base}/")).expect("navigate /");
@@ -128,6 +130,21 @@ fn home(session: &Session, base: &str) {
         );
     }
 
+    // `Statement` splits the sentence on spaces and swaps two words for links —
+    // the years figure and "AI".
+    let inline = strings(
+        session,
+        "Array.from(document.querySelectorAll('main p a'), (a) => a.textContent)",
+    );
+    assert_eq!(inline.len(), 2, "expected two inline statement links");
+    assert_eq!(inline[1], "AI", "second inline link is not AI: {inline:?}");
+
+    // The monogram is the only <svg> `main` renders directly.
+    assert!(
+        count(session, "main svg path") > 0,
+        "no monogram <svg> path in main"
+    );
+
     // `generateMetadata` derives the description from the same `statement()`
     // the body renders, per request — a build-time snapshot would drift.
     let description = attribute(session, "meta[name=\"description\"]", "content");
@@ -136,6 +153,17 @@ fn home(session: &Session, base: &str) {
         "unexpected description metadata: {description:?}"
     );
 
+    // Three return legs: history back first — `Main` keeps `hasPlayed` at
+    // module scope, so the entrance must not replay and the content has to be
+    // there either way — then the close control.
+    wait_hydrated(session);
+    click_until(session, "a[aria-label=\"Resume\"]", "/resume");
+    back_until(session, "/");
+    assert_eq!(
+        text(session, "h1"),
+        "Joshua L Geschwendt",
+        "h1 gone after history back"
+    );
     click_until(session, "a[aria-label=\"Resume\"]", "/resume");
     click_until(session, "a[aria-label=\"Close résumé\"]", "/");
 }
@@ -152,6 +180,11 @@ fn resume(session: &Session, base: &str) {
         "Joshua L Geschwendt—Résumé",
         "unexpected title on /resume"
     );
+    assert_eq!(
+        text(session, "h1"),
+        "Joshua L Geschwendt",
+        "unexpected h1 on /resume"
+    );
 
     let headings = strings(
         session,
@@ -164,11 +197,31 @@ fn resume(session: &Session, base: &str) {
         );
     }
 
-    // One <h3> per role, so this also asserts the whole experience array
-    // rendered rather than just its first entry.
+    // The oldest entry is the one the `flex-col-reverse` ordering puts last, so
+    // asserting it covers the whole array having rendered.
+    let entries = strings(
+        session,
+        "Array.from(document.querySelectorAll('h3'), (h) => h.textContent)",
+    );
+    assert!(
+        entries.iter().any(|h| h.contains("Springthrough")),
+        "no Springthrough <h3> on /resume: {entries:?}"
+    );
+
+    // One <h3> per role in the experience <ol>, each with its own "Stack:"
+    // line — counting all three shapes asserts the array rendered whole.
     let roles = count(session, "ol > li");
     assert!(roles > 1, "expected more than one role, found {roles}");
     assert_eq!(count(session, "h3"), roles, "one <h3> per role");
+    let stacks = session
+        .eval(
+            "Array.from(document.querySelectorAll('main *')).filter((el) => \
+             el.children.length === 0 && el.textContent.trim() === 'Stack:').length",
+        )
+        .expect("count Stack: labels")
+        .as_u64()
+        .expect("count is a number");
+    assert_eq!(stacks, roles, "one Stack: line per role");
     assert_eq!(
         count(session, "footer a[href^=\"mailto:\"]"),
         1,
@@ -182,24 +235,71 @@ fn resume(session: &Session, base: &str) {
 }
 
 /// `/robots.txt` is generated by `src/app/robots.ts`, a route with no client
-/// bundle at all — nothing to harvest here, only the server's map moves.
-fn robots(session: &Session, base: &str) {
-    session
-        .navigate(&format!("{base}/robots.txt"))
-        .expect("navigate /robots.txt");
-
-    let body = text(session, "body");
+/// bundle at all — read over fetch from an app page, which also exposes the
+/// status and content type a navigation would swallow.
+fn robots(session: &Session) {
+    let probe = fetch_probe(session, "/robots.txt");
+    assert_eq!(probe.status, 200, "robots.txt status");
+    assert!(
+        probe.content_type.contains("text/plain"),
+        "robots.txt content-type: {:?}",
+        probe.content_type
+    );
     for line in ["Allow: /$", "Disallow: /", "User-Agent: *"] {
         assert!(
-            body.contains(line),
-            "robots.txt is missing {line:?}: {body:?}"
+            probe.body.contains(line),
+            "robots.txt is missing {line:?}: {:?}",
+            probe.body
         );
     }
 }
 
+/// The per-request CSP minted in `src/server/proxy/content-security-policy.ts`.
+/// Only the invariants are asserted — dev's script-src legitimately adds
+/// `'unsafe-eval'` — and the nonce on the wire has to be the one Next stamped
+/// onto the markup it rendered in the same response. That mismatch is exactly
+/// what browser enforcement would have caught, and this run disables
+/// enforcement (see `cdp.rs`), so the assertion is the replacement.
+fn content_security_policy(session: &Session, path: &str) {
+    let probe = fetch_probe(session, path);
+    assert_eq!(probe.status, 200, "{path} status");
+
+    for directive in [
+        "base-uri 'self'",
+        "default-src 'none'",
+        "form-action 'self'",
+        "frame-src 'none'",
+        "upgrade-insecure-requests",
+    ] {
+        assert!(
+            probe.csp.contains(directive),
+            "{path} CSP is missing {directive:?}: {:?}",
+            probe.csp
+        );
+    }
+
+    let nonce = nonce_of(&probe.csp, path);
+    assert!(
+        probe.body.contains(&format!("nonce=\"{nonce}\"")),
+        "{path}: the CSP nonce is not on the rendered <script> tags"
+    );
+
+    // Minted per request, so two loads of the same route must not share one.
+    let again = fetch_probe(session, path);
+    assert_ne!(
+        nonce_of(&again.csp, path),
+        nonce,
+        "{path}: nonce repeated across requests"
+    );
+}
+
 /// The 404 path, which renders Next's own not-found page rather than anything
-/// in `src/app`.
+/// in `src/app`. The status comes from a fetch, the rendered body from a real
+/// navigation — the fetch alone would not exercise the client render.
 fn not_found(session: &Session, base: &str) {
+    let probe = fetch_probe(session, "/no-such-page");
+    assert_eq!(probe.status, 404, "unknown path status");
+
     session
         .navigate(&format!("{base}/no-such-page"))
         .expect("navigate /no-such-page");
@@ -209,6 +309,42 @@ fn not_found(session: &Session, base: &str) {
         body.contains("could not be found"),
         "unexpected 404 body: {body:?}"
     );
+}
+
+/// The server's cumulative map, read while the browser is still on a
+/// same-origin document: `evaluate` awaits promises, so the fetch resolves
+/// before the reply comes back and the run needs no HTTP client of its own.
+fn server_coverage(session: &Session, output: &Path) -> (String, usize) {
+    let probe = fetch_probe(session, "/api/coverage");
+    assert_eq!(probe.status, 200, "/api/coverage status");
+    assert!(
+        probe.cache_control.contains("no-store"),
+        "/api/coverage cache-control: {:?}",
+        probe.cache_control
+    );
+    write_map(output, "server-harness", &probe.body, false)
+}
+
+/// Blocks until the client runtime has attached. An anchor clicked before
+/// hydration follows its own `href` — a full page load that lands on the right
+/// URL while silently discarding every counter since the last harvest, which is
+/// exactly what the settle() sentinel exists to catch. Waiting here turns that
+/// sentinel from a race into a pure assertion. `window.next.router` is the app
+/// router's public marker and appears only once hydration has run.
+/// (observed 2026-08-18 · a cold Turbopack compile made the first click race
+/// hydration and the sentinel fired on a genuine full-load arrival)
+fn wait_hydrated(session: &Session) {
+    let deadline = Instant::now() + SPA_TIMEOUT;
+    loop {
+        let hydrated = session
+            .eval("Boolean(window.next && window.next.router)")
+            .expect("probe hydration");
+        if hydrated == Value::Bool(true) {
+            return;
+        }
+        assert!(Instant::now() < deadline, "client runtime never attached");
+        std::thread::sleep(Duration::from_millis(250));
+    }
 }
 
 /// Clicks `selector` until the location settles on `path`. `HTMLElement.click`
@@ -221,6 +357,35 @@ fn click_until(session: &Session, selector: &str, path: &str) {
          if (el) el.click(); return location.pathname; }})()"
     );
     settle(session, &script, path, selector);
+}
+
+/// One history pop, then the same sentinel check as a click: a back that
+/// reloads the document would discard the heap — and the counters — exactly
+/// like an unhydrated anchor would.
+fn back_until(session: &Session, path: &str) {
+    session
+        .eval("window.__harness = true")
+        .expect("mark the document");
+    session.back().expect("history back");
+
+    let deadline = Instant::now() + SPA_TIMEOUT;
+    loop {
+        let at = session.eval("location.pathname").expect("read location");
+        if at.as_str() == Some(path) {
+            break;
+        }
+        assert!(
+            Instant::now() < deadline,
+            "history back never reached {path} (still at {at})"
+        );
+        std::thread::sleep(Duration::from_millis(250));
+    }
+
+    assert_eq!(
+        session.eval("window.__harness === true").expect("sentinel"),
+        Value::Bool(true),
+        "history back reached {path} by a full page load, not the router"
+    );
 }
 
 fn press_escape_until(session: &Session, path: &str) {
@@ -293,6 +458,60 @@ fn write_map(output: &Path, name: &str, raw: &str, tolerate_empty: bool) -> (Str
     (name.to_string(), files)
 }
 
+struct FetchProbe {
+    body: String,
+    cache_control: String,
+    content_type: String,
+    csp: String,
+    status: u16,
+}
+
+/// One same-origin fetch, reported whole. `evaluate` awaits the promise and
+/// returns by value, so the status, the headers the suite asserts, and the body
+/// come back in a single round trip — and a same-origin `Response` hides
+/// nothing but `Set-Cookie`.
+fn fetch_probe(session: &Session, path: &str) -> FetchProbe {
+    let script = format!(
+        "fetch('{path}', {{ cache: 'no-store' }}).then(async (r) => JSON.stringify({{ \
+           body: await r.text(), \
+           cacheControl: r.headers.get('cache-control') ?? '', \
+           contentType: r.headers.get('content-type') ?? '', \
+           csp: r.headers.get('content-security-policy') ?? '', \
+           status: r.status }}))"
+    );
+    let raw = session.eval(&script).expect("fetch probe");
+    let raw = raw.as_str().expect("probe reply is a JSON string");
+    let value: Value = serde_json::from_str(raw).unwrap_or_else(|e| panic!("{path} probe: {e}"));
+
+    FetchProbe {
+        body: value["body"].as_str().unwrap_or_default().to_string(),
+        cache_control: value["cacheControl"]
+            .as_str()
+            .unwrap_or_default()
+            .to_string(),
+        content_type: value["contentType"]
+            .as_str()
+            .unwrap_or_default()
+            .to_string(),
+        csp: value["csp"].as_str().unwrap_or_default().to_string(),
+        status: u16::try_from(value["status"].as_u64().unwrap_or(0)).unwrap_or(0),
+    }
+}
+
+/// The `'nonce-…'` value out of a policy's script-src. Base64ish by
+/// construction, so everything up to the closing quote is the nonce.
+fn nonce_of(csp: &str, path: &str) -> String {
+    let start = csp
+        .find("'nonce-")
+        .unwrap_or_else(|| panic!("{path}: no nonce in CSP: {csp:?}"))
+        + "'nonce-".len();
+    let rest = &csp[start..];
+    let end = rest
+        .find('\'')
+        .unwrap_or_else(|| panic!("{path}: unterminated nonce in CSP: {csp:?}"));
+    rest[..end].to_string()
+}
+
 fn attribute(session: &Session, selector: &str, name: &str) -> String {
     let script = format!("document.querySelector('{selector}')?.getAttribute('{name}') ?? null");
     session
@@ -354,96 +573,4 @@ fn mode() -> String {
         "mode must be dev or prod, got {mode:?}"
     );
     mode
-}
-
-/// The crate lives at `crates/harness`, so the repo root is two levels up. This
-/// is resolved at compile time rather than from the working directory because
-/// `cargo run --manifest-path` leaves the caller's cwd untouched.
-fn repo_root() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
-        .ancestors()
-        .nth(2)
-        .expect("crates/harness is two levels below the repo root")
-        .to_path_buf()
-}
-
-/// The instrumented Next server, owned so that a failed assertion takes it down
-/// with it: every check in this binary panics, and a panic unwinds through
-/// `main`'s locals.
-struct Server {
-    child: Child,
-}
-
-impl Server {
-    /// Plain `next`, not the repo's `bun --bun next` convention — the coverage
-    /// flow lets the bin's shebang pick the runtime, because forcing bun's
-    /// runtime with instrumented modules loaded segfaults at process exit
-    /// (see the note in `playwright.config.ts`).
-    fn start(mode: &str, root: &Path) -> Self {
-        let port = PORT.to_string();
-        let command = if mode == "prod" { "start" } else { "dev" };
-        let child = Command::new("./node_modules/.bin/next")
-            .args([command, "--port", &port])
-            .current_dir(root)
-            // Arms the SWC instrumentation (dev) and opens `/api/coverage`.
-            .env("COVERAGE", "1")
-            // Its own process group: `next` starts helper processes, and
-            // killing only the process we spawned would leave the port held.
-            .process_group(0)
-            .stdout(Stdio::null())
-            .stderr(Stdio::inherit())
-            .spawn()
-            .expect("spawn next — run this from a repo with node_modules installed");
-
-        Server { child }
-    }
-
-    /// Turbopack compiles routes lazily, so a cold dev server can take minutes
-    /// before the first response. Poll rather than sleep on a guess.
-    fn wait_ready(&self) {
-        let deadline = Instant::now() + READY_TIMEOUT;
-        while Instant::now() < deadline {
-            if get_status("/") == Some(200) {
-                return;
-            }
-            std::thread::sleep(Duration::from_millis(500));
-        }
-        panic!("next never answered on {HOST}:{PORT} within {READY_TIMEOUT:?}");
-    }
-}
-
-impl Drop for Server {
-    fn drop(&mut self) {
-        // Signal the group, not the process: `process_group(0)` made the
-        // child's pid its own group id, so a negative pid reaches its helpers
-        // too. `kill(1)` avoids a libc dependency for one signal.
-        let group = format!("-{}", self.child.id());
-        let _ = Command::new("kill")
-            .args(["-TERM", &group])
-            .stderr(Stdio::null())
-            .status();
-        let _ = self.child.kill();
-        let _ = self.child.wait();
-    }
-}
-
-/// A hand-rolled readiness probe. One request, one status line, no HTTP client
-/// in the dependency set — everything else this binary needs from the network
-/// it gets through the browser.
-fn get_status(path: &str) -> Option<u16> {
-    let mut stream = TcpStream::connect((HOST, PORT)).ok()?;
-    stream
-        .set_read_timeout(Some(Duration::from_secs(30)))
-        .ok()?;
-    stream
-        .write_all(
-            format!("GET {path} HTTP/1.1\r\nHost: {HOST}:{PORT}\r\nConnection: close\r\n\r\n")
-                .as_bytes(),
-        )
-        .ok()?;
-
-    let mut response = Vec::new();
-    stream.read_to_end(&mut response).ok()?;
-    let head = String::from_utf8_lossy(&response);
-    head.split_whitespace().nth(1)?.parse().ok()
 }

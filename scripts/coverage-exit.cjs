@@ -27,8 +27,8 @@ if (process.env.COVERAGE === '1' && !globalThis.__coverageExitHookInstalled) {
   const flush = () => {
     const coverage = globalThis.__coverage__;
 
-    // Most processes in a build (the coordinator, Turbopack's transform pools,
-    // Playwright's own workers) never load an instrumented module.
+    // Most processes in a build (the coordinator, Turbopack's transform pools)
+    // never load an instrumented module.
     if (!coverage || Object.keys(coverage).length === 0) {
       return;
     }

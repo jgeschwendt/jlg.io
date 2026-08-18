@@ -100,6 +100,14 @@ export default defineConfig({
         'typescript/no-require-imports': 'off',
         'typescript/no-unsafe-argument': 'off',
         'typescript/no-unsafe-assignment': 'off',
+        // The remaining unsafe-* pair fires only when the file is linted BY
+        // ITSELF (lefthook passes staged files explicitly): outside tsconfig's
+        // include, a lone .cjs gets no project types and every `require` result
+        // is error-typed. The whole-repo `bun run lint` never trips these.
+        // (observed 2026-08-18 · a comment edit staged the file and the
+        // pre-commit hook failed on 22 unsafe-call/member-access errors)
+        'typescript/no-unsafe-call': 'off',
+        'typescript/no-unsafe-member-access': 'off',
         'typescript/strict-boolean-expressions': 'off',
       },
     },
@@ -107,7 +115,7 @@ export default defineConfig({
       // The coverage endpoint is instrumentation plumbing in app clothing: it
       // reads `globalThis.__coverage__` (the instrumenter's untyped dangling-
       // underscore global, asserted into shape) and must body `null` — JSON has
-      // no undefined, and the e2e fixture distinguishes "no counters" from an
+      // no undefined, and the harness distinguishes "no counters" from an
       // empty map by it. Invisible to lint until 2026-08-16: a bare `coverage`
       // in .gitignore matched the route's own directory, and oxlint honors
       // .gitignore. (2026-08-16)
@@ -116,32 +124,6 @@ export default defineConfig({
         'no-underscore-dangle': 'off',
         'typescript/no-unsafe-type-assertion': 'off',
         'unicorn/no-null': 'off',
-      },
-    },
-    {
-      // e2e/** is Playwright's own idiom, not app code: `async ({ page }) =>`
-      // fixtures everywhere, timeouts and counts as literals, sequential awaits
-      // that are the point of a test, node builtins for writing `.nyc_output`,
-      // and `window.__coverage__` / `globalThis.__coverage__` — the instrumenter's
-      // untyped globals, which the specs exist to read. `e2e/helpers.ts` and
-      // `e2e/fixtures.ts` also export as they go, because a *.spec.ts may not
-      // carry a single type annotation (bun's loader fails it opaquely) and every
-      // typed helper has to live next to the doc comment explaining it.
-      // (2026-08-15)
-      files: ['e2e/**/*.ts'],
-      rules: {
-        'import/exports-last': 'off',
-        'import/group-exports': 'off',
-        'import/no-nodejs-modules': 'off',
-        'no-await-in-loop': 'off',
-        'no-console': 'off',
-        'no-magic-numbers': 'off',
-        'no-underscore-dangle': 'off',
-        'oxc/no-async-await': 'off',
-        'typescript/explicit-function-return-type': 'off',
-        'unicorn/no-useless-undefined': 'off',
-        'unicorn/prefer-export-from': 'off',
-        'unicorn/prefer-global-this': 'off',
       },
     },
     {
@@ -174,13 +156,7 @@ export default defineConfig({
       },
     },
     {
-      files: [
-        'src/proxy.ts',
-        '**/server/proxy/index.ts',
-        '**/default.tsx',
-        // Playwright resolves its config through the default export.
-        'playwright.config.ts',
-      ],
+      files: ['src/proxy.ts', '**/server/proxy/index.ts', '**/default.tsx'],
       rules: {
         'import/no-default-export': 'off',
       },

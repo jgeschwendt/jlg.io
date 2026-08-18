@@ -3,8 +3,8 @@ import { connection } from 'next/server';
 import { ReasonPhrases, StatusCodes } from 'http-status-codes';
 
 // The SWC coverage plugin instruments server modules too. Their counters land on
-// the server process global, so the only way to read them from Playwright is to
-// ask the server itself. This works the same under `next dev` and `next start`.
+// the server process global, so the only way to read them from the harness is
+// to ask the server itself. This works the same under `next dev` and `next start`.
 //
 // `connection()` (rather than `export const dynamic = "force-dynamic"`) is what
 // forces this handler to run per request instead of being prerendered at build
