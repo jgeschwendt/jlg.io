@@ -174,6 +174,20 @@ pub fn goto(session: &Session, url: &str) {
         }
 
         dump(session, &format!("error shell on {url}, attempt {attempt}"));
+        // The shell streams with a committed status, so the failure detail
+        // lives in a fresh fetch: status, whether the CSP header made it, and
+        // the error digest Next embeds in the flight payload.
+        let probe = fetch_probe(session, "/");
+        let digest = probe
+            .body
+            .find("digest")
+            .map(|i| &probe.body[i..(i + 200).min(probe.body.len())])
+            .unwrap_or("no digest in body");
+        println!(
+            "[harness] refetch /: status {}, csp {} chars, digest: {digest}",
+            probe.status,
+            probe.csp.len()
+        );
         std::thread::sleep(Duration::from_millis(500));
     }
 
