@@ -8,7 +8,7 @@
 //! in `harness::kit`; only this app's assertions live here.
 
 use harness::kit::{
-    attribute, back_until, click_until, count, dump, fetch_probe, harvest, mode, nonce_of,
+    attribute, back_until, click_until, count, dump, fetch_probe, goto, harvest, mode, nonce_of,
     press_escape_until, server_coverage, strings, text, wait_hydrated,
 };
 use harness::server::{HOST, Server, repo_root};
@@ -95,7 +95,7 @@ fn main() {
 /// interactions live in `home_trips`, which runs after the response-layer
 /// probes have warmed `/resume`.
 fn home(session: &Session, base: &str) {
-    session.navigate(&format!("{base}/")).expect("navigate /");
+    goto(session, &format!("{base}/"));
 
     let title = session.title().expect("title");
     if title != "Joshua L Geschwendt—Software Engineer" {
@@ -183,9 +183,7 @@ fn home_trips(session: &Session, base: &str) {
 /// `/resume` reached by a hard navigation, which is a different render path
 /// from the client-side one `home_trips` already exercised.
 fn resume(session: &Session, base: &str) {
-    session
-        .navigate(&format!("{base}/resume"))
-        .expect("navigate /resume");
+    goto(session, &format!("{base}/resume"));
 
     assert_eq!(
         session.title().expect("title"),
@@ -312,9 +310,7 @@ fn not_found(session: &Session, base: &str) {
     let probe = fetch_probe(session, "/no-such-page");
     assert_eq!(probe.status, 404, "unknown path status");
 
-    session
-        .navigate(&format!("{base}/no-such-page"))
-        .expect("navigate /no-such-page");
+    goto(session, &format!("{base}/no-such-page"));
 
     let body = text(session, "body");
     assert!(

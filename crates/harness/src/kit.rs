@@ -133,6 +133,34 @@ pub fn fetch_probe(session: &Session, path: &str) -> FetchProbe {
     }
 }
 
+/// A hard navigation that does not trust the daemon's own load wait: against a
+/// server that answers instantly, the load event can fire before the daemon's
+/// listener is armed, and `navigate` then returns mid-document-swap — reads
+/// that follow see an empty title on a half-committed document. Poll until the
+/// browser is demonstrably on `url` with a complete document.
+/// (observed 2026-08-18 · coverage runs 32166774538/32168358020: prod `next
+/// start` on CI, title "" 230ms after navigate; dev never trips it because the
+/// first compile makes every load slow, and the next dispatch of the identical
+/// code passed — a race, not a break)
+pub fn goto(session: &Session, url: &str) {
+    session.navigate(url).expect("navigate");
+
+    let deadline = Instant::now() + SPA_TIMEOUT;
+    loop {
+        let state = session
+            .eval("JSON.stringify({ href: location.href, ready: document.readyState })")
+            .expect("probe navigation");
+        let state = state.as_str().unwrap_or_default();
+        if state.contains(&format!("\"href\":\"{url}\""))
+            && state.contains("\"ready\":\"complete\"")
+        {
+            return;
+        }
+        assert!(Instant::now() < deadline, "never settled on {url}: {state}");
+        std::thread::sleep(Duration::from_millis(100));
+    }
+}
+
 /// Reads `window.__coverage__` and files it under `.nyc_output`. Every hard
 /// navigation discards the map, so this has to run before the next one — client
 /// coverage is not cumulative across page loads the way the server's is.
