@@ -84,7 +84,7 @@ jobs:
       # outside the cached browser directory.
       - run: agent-browser install --with-deps
 
-      # The real type gate — `next build` skips in-build checking under TS7.
+      # Fast standalone signal; `next build` also type-checks since 16.3 + TS7 stable.
       - run: bunx tsc --noEmit
 
       # Self-failing: `scripts/coverage-report.ts` exits non-zero below the
