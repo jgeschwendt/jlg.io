@@ -1,0 +1,13 @@
+[package]
+authors = ["joshua@geschwendt.com"]
+edition = "2024"
+license = "UNLICENSED"
+name = "e2e"
+publish = false
+version = "0.1.0"
+
+[dependencies]
+# The driver machinery — agent-browser socket client, CSP bypass, server
+# ownership — lives with the other Rust in crates/; this crate is the suite.
+harness = { path = "../crates/harness" }
+serde_json = "1.0.151"

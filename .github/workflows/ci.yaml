@@ -37,7 +37,7 @@ jobs:
       - run: ~/.local/bin/stele check
       - run: ~/.local/bin/stele emit --check
 
-  # The e2e suite (crates/harness): an instrumented dev server driven through
+  # The e2e suite (e2e/, driven by crates/harness): an instrumented dev server run through
   # agent-browser's daemon, every route asserted, gated by the same ≥90
   # thresholds as the prod flow. Dev mode on purpose — the production build's
   # coverage is coverage.yml's job; this one runs per PR.
@@ -65,10 +65,11 @@ jobs:
       - name: Cache cargo
         uses: actions/cache@v6
         with:
-          key: cargo-${{ runner.os }}-${{ hashFiles('crates/harness/Cargo.lock') }}
+          key: cargo-${{ runner.os }}-${{ hashFiles('crates/harness/Cargo.lock', 'e2e/Cargo.lock') }}
           path: |
             ~/.cargo/registry
             crates/harness/target
+            e2e/target
           restore-keys: cargo-${{ runner.os }}-
 
       # Pinned: the harness speaks the daemon's socket protocol directly, so a
@@ -94,7 +95,9 @@ jobs:
       - run: rustup component add clippy rustfmt
 
       - run: cargo fmt --check --manifest-path crates/harness/Cargo.toml
+      - run: cargo fmt --check --manifest-path e2e/Cargo.toml
       - run: cargo clippy --all-targets --manifest-path crates/harness/Cargo.toml -- -D warnings
+      - run: cargo clippy --all-targets --manifest-path e2e/Cargo.toml -- -D warnings
 
       # Self-failing: the runner panics on any behavioral assertion, and
       # `scripts/coverage-report.ts` exits non-zero below the thresholds.
