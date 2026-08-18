@@ -133,32 +133,51 @@ pub fn fetch_probe(session: &Session, path: &str) -> FetchProbe {
     }
 }
 
-/// A hard navigation that does not trust the daemon's own load wait: against a
-/// server that answers instantly, the load event can fire before the daemon's
-/// listener is armed, and `navigate` then returns mid-document-swap — reads
-/// that follow see an empty title on a half-committed document. Poll until the
-/// browser is demonstrably on `url` with a complete document.
-/// (observed 2026-08-18 · coverage runs 32166774538/32168358020: prod `next
-/// start` on CI, title "" 230ms after navigate; dev never trips it because the
-/// first compile makes every load slow, and the next dispatch of the identical
-/// code passed — a race, not a break)
+/// A hard navigation that trusts nothing: not the daemon's load wait (against
+/// an instant server the load event can fire before the daemon's listener is
+/// armed, returning mid-document-swap), and not the first response either — a
+/// freshly started instrumented `next start` can serve Next's
+/// `<html id="__next_error__">` shell for a dynamic route in its opening
+/// seconds, silently (no stderr), intermittently, healed by the next request.
+/// Settle on `url` with a complete document, then retry through the warm-up
+/// window if the error shell answered, printing the evidence each time; a
+/// persistent failure still exhausts the attempts.
+/// (observed 2026-08-18 · coverage runs 32166774538/32168358020 and PR #570's
+/// first harness run: title "" on /, dump showed the shell with readyState
+/// complete, while dispatch run 32174183592 of identical code passed)
 pub fn goto(session: &Session, url: &str) {
-    session.navigate(url).expect("navigate");
+    const ATTEMPTS: u32 = 5;
 
-    let deadline = Instant::now() + SPA_TIMEOUT;
-    loop {
-        let state = session
-            .eval("JSON.stringify({ href: location.href, ready: document.readyState })")
-            .expect("probe navigation");
-        let state = state.as_str().unwrap_or_default();
-        if state.contains(&format!("\"href\":\"{url}\""))
-            && state.contains("\"ready\":\"complete\"")
-        {
+    for attempt in 1..=ATTEMPTS {
+        session.navigate(url).expect("navigate");
+
+        let deadline = Instant::now() + SPA_TIMEOUT;
+        loop {
+            let state = session
+                .eval("JSON.stringify({ href: location.href, ready: document.readyState })")
+                .expect("probe navigation");
+            let state = state.as_str().unwrap_or_default();
+            if state.contains(&format!("\"href\":\"{url}\""))
+                && state.contains("\"ready\":\"complete\"")
+            {
+                break;
+            }
+            assert!(Instant::now() < deadline, "never settled on {url}: {state}");
+            std::thread::sleep(Duration::from_millis(100));
+        }
+
+        let shell = session
+            .eval("document.documentElement.id === '__next_error__'")
+            .expect("probe error shell");
+        if shell != Value::Bool(true) {
             return;
         }
-        assert!(Instant::now() < deadline, "never settled on {url}: {state}");
-        std::thread::sleep(Duration::from_millis(100));
+
+        dump(session, &format!("error shell on {url}, attempt {attempt}"));
+        std::thread::sleep(Duration::from_millis(500));
     }
+
+    panic!("{url} served the __next_error__ shell across {ATTEMPTS} attempts");
 }
 
 /// Reads `window.__coverage__` and files it under `.nyc_output`. Every hard
