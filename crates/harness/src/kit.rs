@@ -177,17 +177,17 @@ pub fn goto(session: &Session, url: &str) {
         // The shell streams with a committed status, so the failure detail
         // lives in a fresh fetch: status, whether the CSP header made it, and
         // the error digest Next embeds in the flight payload.
-        let probe = fetch_probe(session, "/");
-        let digest = probe
-            .body
-            .find("digest")
-            .map(|i| &probe.body[i..(i + 200).min(probe.body.len())])
-            .unwrap_or("no digest in body");
-        println!(
-            "[harness] refetch /: status {}, csp {} chars, digest: {digest}",
-            probe.status,
-            probe.csp.len()
-        );
+        for path in ["/", "/resume"] {
+            let probe = fetch_probe(session, path);
+            let shell = probe.body.contains("__next_error__");
+            let head = probe.body.chars().take(200).collect::<String>();
+            println!(
+                "[harness] refetch {path}: status {}, csp {} chars, {} bytes, shell {shell}, head: {head:?}",
+                probe.status,
+                probe.csp.len(),
+                probe.body.len()
+            );
+        }
         std::thread::sleep(Duration::from_millis(500));
     }
 
