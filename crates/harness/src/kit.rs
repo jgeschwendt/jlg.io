@@ -87,6 +87,20 @@ pub fn count(session: &Session, selector: &str) -> u64 {
         .expect("count is a number")
 }
 
+/// What the browser is actually looking at, for a failing assertion's autopsy:
+/// URL, ready state, title, and the head of the live DOM. Diagnostics only —
+/// nothing here is an assertion.
+pub fn dump(session: &Session, context: &str) {
+    let state = session
+        .eval(
+            "JSON.stringify({ href: location.href, readyState: document.readyState, \
+             title: document.title, html: document.documentElement.outerHTML.slice(0, 600) })",
+        )
+        .map(|v| v.as_str().unwrap_or_default().to_string())
+        .unwrap_or_else(|e| format!("dump eval failed: {e}"));
+    println!("[harness] dump ({context}): {state}");
+}
+
 /// One same-origin fetch, reported whole. `evaluate` awaits the promise and
 /// returns by value, so the status, the headers a suite asserts, and the body
 /// come back in a single round trip — and a same-origin `Response` hides
@@ -117,6 +131,75 @@ pub fn fetch_probe(session: &Session, path: &str) -> FetchProbe {
         csp: value["csp"].as_str().unwrap_or_default().to_string(),
         status: u16::try_from(value["status"].as_u64().unwrap_or(0)).unwrap_or(0),
     }
+}
+
+/// A hard navigation that trusts nothing: not the daemon's load wait (against
+/// an instant server the load event can fire before the daemon's listener is
+/// armed, returning mid-document-swap), and not the first response either — a
+/// freshly started instrumented `next start` can serve Next's
+/// `<html id="__next_error__">` shell for a dynamic route in its opening
+/// seconds, silently (no stderr), intermittently, healed by the next request.
+/// Settle on `url` with a complete document, then retry through the warm-up
+/// window if the error shell answered, printing the evidence each time; a
+/// persistent failure still exhausts the attempts.
+/// (observed 2026-08-18 · coverage runs 32166774538/32168358020 and PR #570's
+/// first harness run: title "" on /, dump showed the shell with readyState
+/// complete, while dispatch run 32174183592 of identical code passed)
+pub fn goto(session: &Session, url: &str) {
+    const ATTEMPTS: u32 = 5;
+
+    for attempt in 1..=ATTEMPTS {
+        session.navigate(url).expect("navigate");
+
+        let deadline = Instant::now() + SPA_TIMEOUT;
+        loop {
+            let state = session
+                .eval("JSON.stringify({ href: location.href, ready: document.readyState })")
+                .expect("probe navigation");
+            let state = state.as_str().unwrap_or_default();
+            if state.contains(&format!("\"href\":\"{url}\""))
+                && state.contains("\"ready\":\"complete\"")
+            {
+                break;
+            }
+            assert!(Instant::now() < deadline, "never settled on {url}: {state}");
+            std::thread::sleep(Duration::from_millis(100));
+        }
+
+        let shell = session
+            .eval("document.documentElement.id === '__next_error__'")
+            .expect("probe error shell");
+        if shell != Value::Bool(true) {
+            return;
+        }
+
+        dump(session, &format!("error shell on {url}, attempt {attempt}"));
+        // The shell streams with a committed status, so the failure detail
+        // lives in a fresh fetch: status, whether the CSP header made it, and
+        // the error digest Next embeds in the flight payload.
+        for path in ["/", "/resume"] {
+            let probe = fetch_probe(session, path);
+            let shell = probe.body.contains("__next_error__");
+            let head = probe.body.chars().take(200).collect::<String>();
+            println!(
+                "[harness] refetch {path}: status {}, csp {} chars, {} bytes, shell {shell}, head: {head:?}",
+                probe.status,
+                probe.csp.len(),
+                probe.body.len()
+            );
+            // The whole document into .nyc_output, which the CI job uploads as
+            // an artifact on failure — the flight payload at the tail is where
+            // an error digest would live.
+            let name = format!(
+                ".nyc_output/debug-shell{}-attempt{attempt}.html",
+                path.replace('/', "-")
+            );
+            let _ = std::fs::write(&name, &probe.body);
+        }
+        std::thread::sleep(Duration::from_millis(500));
+    }
+
+    panic!("{url} served the __next_error__ shell across {ATTEMPTS} attempts");
 }
 
 /// Reads `window.__coverage__` and files it under `.nyc_output`. Every hard

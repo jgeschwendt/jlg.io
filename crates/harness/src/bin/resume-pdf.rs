@@ -27,9 +27,7 @@ fn main() {
     server.wait_ready();
 
     let session = Session::ensure(SESSION).expect("agent-browser session");
-    session
-        .navigate(&format!("http://{HOST}:{PORT}/resume"))
-        .expect("navigate /resume");
+    harness::kit::goto(&session, &format!("http://{HOST}:{PORT}/resume"));
 
     // The PDF embeds whatever glyphs are loaded at print time; an unresolved
     // webfont silently falls back in the output.
