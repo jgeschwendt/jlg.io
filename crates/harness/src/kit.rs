@@ -135,16 +135,14 @@ pub fn fetch_probe(session: &Session, path: &str) -> FetchProbe {
 
 /// A hard navigation that trusts nothing: not the daemon's load wait (against
 /// an instant server the load event can fire before the daemon's listener is
-/// armed, returning mid-document-swap), and not the first response either — a
-/// freshly started instrumented `next start` can serve Next's
-/// `<html id="__next_error__">` shell for a dynamic route in its opening
-/// seconds, silently (no stderr), intermittently, healed by the next request.
-/// Settle on `url` with a complete document, then retry through the warm-up
-/// window if the error shell answered, printing the evidence each time; a
-/// persistent failure still exhausts the attempts.
-/// (observed 2026-08-18 · coverage runs 32166774538/32168358020 and PR #570's
-/// first harness run: title "" on /, dump showed the shell with readyState
-/// complete, while dispatch run 32174183592 of identical code passed)
+/// armed, returning mid-document-swap), and not the rendered document either —
+/// settle on `url` with a complete document, then retry with the evidence
+/// printed if Next's `<html id="__next_error__">` shell answered; a persistent
+/// failure still exhausts the attempts. The one shell outbreak investigated so
+/// far was a harness bug (the CSP bypass armed on the wrong page target — see
+/// `cdp.rs`), so a recurrence showing up here deserves suspicion of the
+/// tooling before the app. (reconciled 2026-08-18 · PR #570: healthy fetch
+/// bodies alongside shell navigations ruled the server out)
 pub fn goto(session: &Session, url: &str) {
     const ATTEMPTS: u32 = 5;
 
@@ -174,28 +172,23 @@ pub fn goto(session: &Session, url: &str) {
         }
 
         dump(session, &format!("error shell on {url}, attempt {attempt}"));
-        // The shell streams with a committed status, so the failure detail
-        // lives in a fresh fetch: status, whether the CSP header made it, and
-        // the error digest Next embeds in the flight payload.
-        for path in ["/", "/resume"] {
-            let probe = fetch_probe(session, path);
-            let shell = probe.body.contains("__next_error__");
-            let head = probe.body.chars().take(200).collect::<String>();
-            println!(
-                "[harness] refetch {path}: status {}, csp {} chars, {} bytes, shell {shell}, head: {head:?}",
-                probe.status,
-                probe.csp.len(),
-                probe.body.len()
-            );
-            // The whole document into .nyc_output, which the CI job uploads as
-            // an artifact on failure — the flight payload at the tail is where
-            // an error digest would live.
-            let name = format!(
-                ".nyc_output/debug-shell{}-attempt{attempt}.html",
-                path.replace('/', "-")
-            );
-            let _ = std::fs::write(&name, &probe.body);
-        }
+        // The navigated document and a fresh fetch of the same URL can tell
+        // different stories (PR #570: fetch healthy, navigation crashed), so
+        // report both sides and keep the whole body in .nyc_output, which the
+        // CI job uploads as an artifact on failure.
+        let probe = fetch_probe(session, url);
+        let refetch_shell = probe.body.contains("__next_error__");
+        let head = probe.body.chars().take(200).collect::<String>();
+        println!(
+            "[harness] refetch {url}: status {}, csp {} chars, {} bytes, shell {refetch_shell}, head: {head:?}",
+            probe.status,
+            probe.csp.len(),
+            probe.body.len()
+        );
+        let _ = std::fs::write(
+            format!(".nyc_output/debug-shell-attempt{attempt}.html"),
+            &probe.body,
+        );
         std::thread::sleep(Duration::from_millis(500));
     }
 
