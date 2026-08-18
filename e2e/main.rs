@@ -39,8 +39,16 @@ fn main() {
     let server = Server::start(
         "./node_modules/.bin/next",
         &[command, "--port", &PORT.to_string()],
-        // Arms the SWC instrumentation (dev) and opens `/api/coverage`.
-        &[("COVERAGE", "1")],
+        // Arms the SWC instrumentation (dev) and opens `/api/coverage`. The
+        // preload surfaces async errors a streamed render would swallow (real
+        // node only; bun's node shim ignores NODE_OPTIONS).
+        &[
+            ("COVERAGE", "1"),
+            (
+                "NODE_OPTIONS",
+                "--require ./scripts/harness-server-debug.cjs",
+            ),
+        ],
         &root,
         PORT,
     );

@@ -46,7 +46,10 @@ impl Server {
             // Its own process group: `next` starts helper processes, and
             // killing only the process we spawned would leave the port held.
             .process_group(0)
-            .stdout(Stdio::null())
+            // Both streams into the run's log: Next splits its output across
+            // them, and a swallowed stdout is where a silent failure hides.
+            // (since 2026-08-18 · the __next_error__ hunt found stdout nulled)
+            .stdout(Stdio::inherit())
             .stderr(Stdio::inherit());
         for (key, value) in envs {
             command.env(key, value);

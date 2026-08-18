@@ -53,35 +53,50 @@ impl Bypass {
                 .map_err(|e| format!("set read timeout: {e}"))?;
         }
 
+        // EVERY page target, not the first: which target the daemon actually
+        // drives is not knowable from here, and a headless browser can open
+        // with more than one page in nondeterministic order. Arming the wrong
+        // one leaves enforcement live, the instrumented bundle dies on its
+        // `new Function`, and React 19's hydration crash swaps the document
+        // for the `__next_error__` shell — while a plain fetch of the same URL
+        // is perfectly healthy, because nothing executes.
+        // (observed 2026-08-18 · the ci prod-gate hunt: runs failed or passed
+        // by coin flip until the shell autopsy showed healthy fetch bodies)
         let targets = bypass.command("Target.getTargets", json!({}), None)?;
-        let target = targets["targetInfos"]
+        let target_ids: Vec<String> = targets["targetInfos"]
             .as_array()
             .ok_or("Target.getTargets returned no targetInfos")?
             .iter()
-            .find(|info| info["type"] == "page")
-            .ok_or("no page target attached to the browser")?;
-        let target_id = target["targetId"]
-            .as_str()
-            .ok_or("page target has no targetId")?
-            .to_string();
+            .filter(|info| info["type"] == "page")
+            .filter_map(|info| info["targetId"].as_str().map(str::to_string))
+            .collect();
+        if target_ids.is_empty() {
+            return Err("no page target attached to the browser".to_string());
+        }
 
-        let attached = bypass.command(
-            "Target.attachToTarget",
-            json!({ "flatten": true, "targetId": target_id }),
-            None,
-        )?;
-        let session = attached["sessionId"]
-            .as_str()
-            .ok_or("attachToTarget returned no sessionId")?
-            .to_string();
+        for target_id in &target_ids {
+            let attached = bypass.command(
+                "Target.attachToTarget",
+                json!({ "flatten": true, "targetId": target_id }),
+                None,
+            )?;
+            let session = attached["sessionId"]
+                .as_str()
+                .ok_or("attachToTarget returned no sessionId")?
+                .to_string();
 
-        // `Page.setBypassCSP` is only honoured on a domain-enabled page.
-        bypass.command("Page.enable", json!({}), Some(&session))?;
-        bypass.command(
-            "Page.setBypassCSP",
-            json!({ "enabled": true }),
-            Some(&session),
-        )?;
+            // `Page.setBypassCSP` is only honoured on a domain-enabled page.
+            bypass.command("Page.enable", json!({}), Some(&session))?;
+            bypass.command(
+                "Page.setBypassCSP",
+                json!({ "enabled": true }),
+                Some(&session),
+            )?;
+        }
+        println!(
+            "[harness] CSP bypass armed on {} page target(s)",
+            target_ids.len()
+        );
 
         Ok(bypass)
     }

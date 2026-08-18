@@ -187,6 +187,14 @@ pub fn goto(session: &Session, url: &str) {
                 probe.csp.len(),
                 probe.body.len()
             );
+            // The whole document into .nyc_output, which the CI job uploads as
+            // an artifact on failure — the flight payload at the tail is where
+            // an error digest would live.
+            let name = format!(
+                ".nyc_output/debug-shell{}-attempt{attempt}.html",
+                path.replace('/', "-")
+            );
+            let _ = std::fs::write(&name, &probe.body);
         }
         std::thread::sleep(Duration::from_millis(500));
     }
