@@ -87,6 +87,20 @@ pub fn count(session: &Session, selector: &str) -> u64 {
         .expect("count is a number")
 }
 
+/// What the browser is actually looking at, for a failing assertion's autopsy:
+/// URL, ready state, title, and the head of the live DOM. Diagnostics only —
+/// nothing here is an assertion.
+pub fn dump(session: &Session, context: &str) {
+    let state = session
+        .eval(
+            "JSON.stringify({ href: location.href, readyState: document.readyState, \
+             title: document.title, html: document.documentElement.outerHTML.slice(0, 600) })",
+        )
+        .map(|v| v.as_str().unwrap_or_default().to_string())
+        .unwrap_or_else(|e| format!("dump eval failed: {e}"));
+    println!("[harness] dump ({context}): {state}");
+}
+
 /// One same-origin fetch, reported whole. `evaluate` awaits the promise and
 /// returns by value, so the status, the headers a suite asserts, and the body
 /// come back in a single round trip — and a same-origin `Response` hides

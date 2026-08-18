@@ -8,7 +8,7 @@
 //! in `harness::kit`; only this app's assertions live here.
 
 use harness::kit::{
-    attribute, back_until, click_until, count, fetch_probe, harvest, mode, nonce_of,
+    attribute, back_until, click_until, count, dump, fetch_probe, harvest, mode, nonce_of,
     press_escape_until, server_coverage, strings, text, wait_hydrated,
 };
 use harness::server::{HOST, Server, repo_root};
@@ -98,10 +98,10 @@ fn home(session: &Session, base: &str) {
     session.navigate(&format!("{base}/")).expect("navigate /");
 
     let title = session.title().expect("title");
-    assert_eq!(
-        title, "Joshua L Geschwendt—Software Engineer",
-        "unexpected title on /"
-    );
+    if title != "Joshua L Geschwendt—Software Engineer" {
+        dump(session, "title mismatch on /");
+        panic!("unexpected title on /: {title:?}");
+    }
 
     assert_eq!(
         text(session, "h1"),
