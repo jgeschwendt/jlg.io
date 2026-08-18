@@ -7,6 +7,7 @@
 //! inside a single session.
 
 pub mod cdp;
+pub mod kit;
 pub mod server;
 
 use serde::Deserialize;
