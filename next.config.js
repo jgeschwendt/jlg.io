@@ -28,17 +28,11 @@ const coverageSwcPlugins = [
 
 /** @type {import('next').NextConfig} */
 const config = {
-  // Not cacheComponents: its build-time static shell can't carry the per-request
-  // CSP nonce, so routes here must stay fully dynamic. useCache still enables
-  // the `use cache` directive for caching parts within dynamic renders. Next
-  // 16.3 deprecates it in favor of top-level cacheComponents — same CSP
-  // constraint applies, so stay on useCache until it's removed outright.
-  // (viewTransition graduated in 16.3: React's ViewTransition export is
-  // unconditional; the experimental key no longer exists.)
-  experimental: {
-    useCache: true,
-    ...(coverage ? { swcPlugins: coverageSwcPlugins } : {}),
-  },
+  // No cache flags at all: nothing here uses the `use cache` directive, and
+  // cacheComponents stays off because its build-time static shell can't carry
+  // the per-request CSP nonce — routes must stay fully dynamic (see
+  // src/AGENTS.md · CSP DYNAMIC).
+  experimental: coverage ? { swcPlugins: coverageSwcPlugins } : {},
 };
 
 export default config;
