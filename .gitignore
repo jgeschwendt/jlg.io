@@ -15,6 +15,7 @@ node_modules
 .vercel
 crates/background/target
 crates/harness/target
+e2e/target
 
 # coverage (raw Istanbul dumps, merged reports) — root-anchored: a bare
 # `coverage` also matches src/app/api/coverage/, which is how the route handler

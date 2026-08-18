@@ -7,10 +7,6 @@ publish = false
 version = "0.1.0"
 
 [[bin]]
-name = "coverage"
-path = "src/bin/coverage.rs"
-
-[[bin]]
 name = "resume-pdf"
 path = "src/bin/resume-pdf.rs"
 
