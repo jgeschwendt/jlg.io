@@ -6,6 +6,11 @@ name = "e2e"
 publish = false
 version = "0.1.0"
 
+# Flat on purpose — the suite is one file beside its manifest, not a src/ tree.
+[[bin]]
+name = "e2e"
+path = "main.rs"
+
 [dependencies]
 # The driver machinery — agent-browser socket client, CSP bypass, server
 # ownership — lives with the other Rust in crates/; this crate is the suite.
