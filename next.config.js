@@ -7,6 +7,14 @@ const coverage = process.env.COVERAGE === '1';
 // Istanbul instrumentation, applied by SWC so it survives Turbopack. Both the
 // client bundles (`window.__coverage__`) and the server modules
 // (`globalThis.__coverage__`) are instrumented.
+//
+// `swc-plugin-coverage-instrument` is held at 0.0.32 in package.json — hold it
+// there until a release builds against a `swc_core` the shipped Next accepts.
+// 0.0.33 is compiled against `swc_core` 30.0.0, which the plugin runner in
+// next 16.3.3 (30.0.1) refuses: every instrumented module dies with "failed to
+// deserialize `swc_ecma_ast::module::Program` … Mismatch { name: "u32" }".
+// (verified 2026-08-27 · run 33091919829; 0.0.32 instruments cleanly on the
+// same Next)
 /** @type {[string, Record<string, unknown>][]} */
 const coverageSwcPlugins = [
   [

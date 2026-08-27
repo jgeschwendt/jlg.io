@@ -1042,7 +1042,7 @@
 
     "supports-color": ["supports-color@7.2.0", "", { "dependencies": { "has-flag": "^4.0.0" } }, "sha512-qpCAvRl9stuOHveKsn7HncJRvv501qIacKzQlO/+Lwxc9+0q2wLyv4Dfvt80/DPn2pqOBsJdDiogXGR9+OvwRw=="],
 
-    "swc-plugin-coverage-instrument": ["swc-plugin-coverage-instrument@0.0.33", "", {}, "sha512-zM17DgG3jURPNOrEHye0MtrkrsZ9BtCMf3W5osQTHAtlNolfDUtZl7740wdx7XhUSL322qdph//DgHzZe62wHg=="],
+    "swc-plugin-coverage-instrument": ["swc-plugin-coverage-instrument@0.0.32", "", {}, "sha512-KsO1xNQdcVb331Rm98Op6uYf36/CYdF1kILQxOddmtCNlRLISpCUqHcnogu+QgELZvG48oie+w0fzS8uktjcEA=="],
 
     "tailwindcss": ["tailwindcss@4.3.3", "", {}, "sha512-gOhV3P7ufE62QDGg1zVaTgCR+EtPv92k2nIhVcVKcLmxT1sUBsQGhnZj175j+MqRt4zLF7ic+sCYjfhxMxj7YQ=="],
 
