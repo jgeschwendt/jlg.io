@@ -193,10 +193,10 @@ impl Session {
     }
 }
 
-/// `agent-browser` ships with the Node toolchain mise pins, so it is on PATH
-/// for anything launched through `mise x` or a `package.json` script.
-/// `AGENT_BROWSER_BIN` is the escape hatch for running the binary from
-/// somewhere else.
+/// `agent-browser` is a bun global install (`bun add -g`), on PATH via
+/// `~/.bun/bin` — its node-shebang bin resolves to bun through the `node`
+/// symlink both machines and CI carry. `AGENT_BROWSER_BIN` is the escape
+/// hatch for running the binary from somewhere else.
 fn binary() -> String {
     std::env::var("AGENT_BROWSER_BIN").unwrap_or_else(|_| "agent-browser".to_string())
 }

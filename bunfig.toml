@@ -1,9 +1,9 @@
-# `scripts/coverage-exit.cjs` flushes build-time Istanbul counters. It has to be
-# loaded by every process a `next build` spawns, and this is the only hook that
-# reaches them: `node` on this toolchain is bun's node shim, which ignores
-# `NODE_OPTIONS=--require`, while bun's own `preload` is inherited by every
-# child process started from this directory.
+# Env-guarded harness preloads. bun ignores `NODE_OPTIONS=--require`, and its
+# `preload` is inherited by every child process started from this directory —
+# the only hook that reaches the workers a `next build` spawns.
 #
-# The module is inert unless COVERAGE=1, so `bun run dev`, `bun run build` and
-# plain `bun x` pay one require of a 60-line file and nothing else.
-preload = ["./scripts/coverage-exit.cjs"]
+# `coverage-exit.cjs` (armed by COVERAGE=1) flushes build-time Istanbul
+# counters; `harness-server-debug.cjs` (armed by HARNESS_SERVER_DEBUG=1)
+# surfaces errors the e2e server would swallow. Both are inert unarmed, so
+# `bun run dev`, `bun run build` and plain `bun x` pay two cheap requires.
+preload = ["./scripts/coverage-exit.cjs", "./scripts/harness-server-debug.cjs"]

@@ -13,18 +13,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: jdx/mise-action@v2
+
+      # bun-only toolchain: shadow the runner's node so the vercel CLI and any
+      # `node` its builders spawn resolve to bun.
+      - run: mkdir -p ~/.local/bin && ln -sf "$(command -v bun)" ~/.local/bin/node && echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
       - run: bun install --frozen-lockfile
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Link Vercel project
-        run: bunx vercel link --project=${{ vars.VERCEL_PROJECT_ID }} --scope=${{ vars.VERCEL_ORG_ID }} --token=${{ secrets.VERCEL_TOKEN }} --yes
+        run: bunx --bun vercel link --project=${{ vars.VERCEL_PROJECT_ID }} --scope=${{ vars.VERCEL_ORG_ID }} --token=${{ secrets.VERCEL_TOKEN }} --yes
 
       - name: Pull Vercel environment
-        run: bunx vercel pull --yes --environment=${{ inputs.environment }} --token=${{ secrets.VERCEL_TOKEN }}
+        run: bunx --bun vercel pull --yes --environment=${{ inputs.environment }} --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Build
-        run: bunx vercel build ${{ inputs.environment == 'production' && '--prod' || '' }} --token=${{ secrets.VERCEL_TOKEN }}
+        run: bunx --bun vercel build ${{ inputs.environment == 'production' && '--prod' || '' }} --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Deploy
-        run: bunx vercel deploy --prebuilt ${{ inputs.environment == 'production' && '--prod' || '' }} --token=${{ secrets.VERCEL_TOKEN }}
+        run: bunx --bun vercel deploy --prebuilt ${{ inputs.environment == 'production' && '--prod' || '' }} --token=${{ secrets.VERCEL_TOKEN }}

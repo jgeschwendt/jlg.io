@@ -21,12 +21,17 @@ jobs:
           # stele freshness walks git blame over the anchored code — needs full history.
           fetch-depth: 0
       - uses: jdx/mise-action@v2
+
+      # bun-only toolchain: shadow the runner's node so any node-shebang bin or
+      # hardcoded `node` spawn resolves to bun (the same symlink dev machines carry).
+      - run: mkdir -p ~/.local/bin && ln -sf "$(command -v bun)" ~/.local/bin/node && echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
       - run: bun install --frozen-lockfile
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - run: bunx oxfmt --check
+      - run: bun run fmt:check
       - run: bun run lint
-      - run: bunx tsc --noEmit
+      - run: bunx --bun tsc --noEmit
 
       # stele: assert the agent-doc graph is fresh (anchors resolve, claims not
       # staled by drift) and the committed AGENTS.md / index files match the lock.
@@ -49,9 +54,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # mise.toml pins rust alongside bun and node, so this one action also
+      # mise.toml pins rust alongside bun, so this one action also
       # provides the cargo toolchain the harness builds with.
       - uses: jdx/mise-action@v2
+
+      # bun-only toolchain: shadow the runner's node so any node-shebang bin or
+      # hardcoded `node` spawn (agent-browser's CLI) resolves to bun.
+      - run: mkdir -p ~/.local/bin && ln -sf "$(command -v bun)" ~/.local/bin/node && echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
       - name: Cache bun install cache
         uses: actions/cache@v6
@@ -77,7 +86,7 @@ jobs:
       # Pinned: the harness speaks the daemon's socket protocol directly, so a
       # silent CLI upgrade is a protocol change. Bump deliberately, with a local
       # `bun run coverage` against the new version first.
-      - run: npm install -g agent-browser@0.34.0
+      - run: bun add -g agent-browser@0.34.0 && echo "$HOME/.bun/bin" >> "$GITHUB_PATH"
 
       # Keyed on the CLI version, which decides the Chromium build it fetches.
       - name: Cache agent-browser Chromium

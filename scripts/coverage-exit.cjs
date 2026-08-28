@@ -10,8 +10,8 @@
 // before each one leaves.
 //
 // Plain CommonJS on purpose: this is a runtime preload (`preload` in
-// `bunfig.toml`, or node's `NODE_OPTIONS=--require`), loaded before any hook
-// that could handle TypeScript or ESM exists.
+// `bunfig.toml`), loaded before any hook that could handle TypeScript or ESM
+// exists.
 
 const fs = require('node:fs');
 const path = require('node:path');
