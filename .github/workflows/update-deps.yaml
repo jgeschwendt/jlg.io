@@ -7,12 +7,14 @@ name: update-deps
 # a family — copy per repo, or lift into a reusable workflow at the second
 # adopter.
 #
-# Every mutating step runs on a grove-code installation token, not
-# GITHUB_TOKEN: events created by GITHUB_TOKEN trigger no workflows, so a
-# GITHUB_TOKEN-opened PR would sit with its required checks forever unstarted,
-# and a GITHUB_TOKEN-armed auto-merge would land on main without triggering
-# the production deploy. Needs the GROVE_CODE_APP_PRIVATE_KEY secret (the
-# app's private key; app id is public).
+# The bump is deterministic shell; claude-code-action ships it (commit, push,
+# PR, auto-merge) on the Claude GitHub App's credentials. That identity is the
+# point, not a convenience: events created by GITHUB_TOKEN trigger no
+# workflows, so a GITHUB_TOKEN-opened PR would sit with its required checks
+# forever unstarted, and a GITHUB_TOKEN-armed auto-merge would land on main
+# without triggering the production deploy. A real app's token has neither
+# problem. Needs the Claude GitHub App (github.com/apps/claude) installed on
+# the repo and the CLAUDE_CODE_OAUTH_TOKEN secret (`claude setup-token`).
 
 on:
   schedule:
@@ -24,25 +26,22 @@ concurrency:
   group: update-deps
 
 permissions:
-  contents: read
+  actions: read
+  contents: write
+  id-token: write
   packages: read
+  pull-requests: write
 
 jobs:
   ship:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
-      - id: app
-        uses: actions/create-github-app-token@v2
-        with:
-          app-id: 3448825 # grove-code
-          private-key: ${{ secrets.GROVE_CODE_APP_PRIVATE_KEY }}
-
       # One open update-deps PR at a time — yesterday's red PR is being
       # repaired, not superseded.
       - id: guard
         env:
-          GH_TOKEN: ${{ steps.app.outputs.token }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           if [ -n "$(gh pr list -R "$GITHUB_REPOSITORY" --head update-deps --state open --json number --jq '.[].number')" ]; then
             echo "open update-deps PR still pending — not stacking a second"
@@ -51,14 +50,12 @@ jobs:
 
       - if: steps.guard.outputs.skip != 'true'
         uses: actions/checkout@v4
-        with:
-          token: ${{ steps.app.outputs.token }}
 
       - if: steps.guard.outputs.skip != 'true'
         uses: jdx/mise-action@v2
 
       - if: steps.guard.outputs.skip != 'true'
-        name: bump
+        id: bump
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -83,23 +80,31 @@ jobs:
             fi
           done
 
-      - if: steps.guard.outputs.skip != 'true'
-        name: ship
-        env:
-          GH_TOKEN: ${{ steps.app.outputs.token }}
-        run: |
           if git diff --quiet; then
             echo "already at latest — nothing to ship"
-            exit 0
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
-          git config user.name 'grove-code[bot]'
-          git config user.email 'grove-code[bot]@users.noreply.github.com'
-          git checkout -b update-deps
-          # --no-verify: lefthook's hooks are not installed here, and the PR's
-          # required checks cover everything the hooks would.
-          git commit --no-verify -am 'task(//): deps — daily bun update --latest'
-          git push -f origin update-deps
-          gh pr create --head update-deps \
-            --title 'task(//): deps — daily bun update --latest' \
-            --body 'Automated daily refresh: `bun update --latest` off main. Auto-merges on green; a red run is repaired on this branch by the `github-failures` routine.'
-          gh pr merge update-deps --auto --squash
+
+      # Runs only when the bump changed something — quiet days spend nothing.
+      - if: steps.bump.outputs.changed == 'true'
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_args: --model sonnet --allowedTools "Bash(git:*),Bash(gh:*)"
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: |
+            The working tree carries today's dependency bump (`bun update
+            --latest` with holds restored) — already run. Change no files;
+            your job is only to ship what is here:
+
+            1. `git checkout -b update-deps`
+            2. `git commit --no-verify -am "task(//): deps — daily bun update --latest"`
+               (--no-verify: hooks are not installed in this runner; the PR's
+               required checks cover everything they would)
+            3. `git push -f origin update-deps`
+            4. `gh pr create --head update-deps --title "task(//): deps — daily bun update --latest"`
+               with a short body: the notable version bumps read from the
+               package.json diff, plus the line "Auto-merges on green; a red
+               run is repaired on this branch by the `github-failures`
+               routine."
+            5. `gh pr merge update-deps --auto --squash`
