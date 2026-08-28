@@ -31,24 +31,18 @@ fn main() {
     std::fs::create_dir_all(&output).expect("create .nyc_output");
 
     println!("[harness] {mode} server on {base}");
-    // Plain `next`, not the repo's `bun --bun next` convention: forcing bun's
-    // runtime with instrumented modules loaded segfaults at process exit on
-    // Linux (SIGILL, bun 1.3.14) — the bin's shebang picks node instead.
-    // (observed 2026-08-16 · coverage run 31955271334)
+    // `bun --bun next`, the repo convention. bun 1.3.14 segfaulted at process
+    // exit with instrumented modules loaded on Linux (SIGILL, coverage run
+    // 31955271334), which pinned this spawn to node via the bin's shebang; the
+    // 1.4.0 pin cleared it and the toolchain is bun-only again.
     let command = if mode == "prod" { "start" } else { "dev" };
     let server = Server::start(
-        "./node_modules/.bin/next",
-        &[command, "--port", &PORT.to_string()],
-        // Arms the SWC instrumentation (dev) and opens `/api/coverage`. The
-        // preload surfaces async errors a streamed render would swallow (real
-        // node only; bun's node shim ignores NODE_OPTIONS).
-        &[
-            ("COVERAGE", "1"),
-            (
-                "NODE_OPTIONS",
-                "--require ./scripts/harness-server-debug.cjs",
-            ),
-        ],
+        "bun",
+        &["--bun", "next", command, "--port", &PORT.to_string()],
+        // COVERAGE arms the SWC instrumentation (dev) and opens
+        // `/api/coverage`; HARNESS_SERVER_DEBUG arms the bunfig-preloaded
+        // debug hook that surfaces async errors a streamed render swallows.
+        &[("COVERAGE", "1"), ("HARNESS_SERVER_DEBUG", "1")],
         &root,
         PORT,
     );

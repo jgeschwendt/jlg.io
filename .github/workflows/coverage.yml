@@ -41,9 +41,13 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      # mise.toml pins bun and node (oxlint's TS config needs node >=22.18);
-      # this is the repo's single toolchain entry point — see ci.yaml.
+      # mise.toml pins bun (and rust); this is the repo's single toolchain
+      # entry point — see ci.yaml.
       - uses: jdx/mise-action@v2
+
+      # bun-only toolchain: shadow the runner's node so any node-shebang bin or
+      # hardcoded `node` spawn (agent-browser's CLI) resolves to bun.
+      - run: mkdir -p ~/.local/bin && ln -sf "$(command -v bun)" ~/.local/bin/node && echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
       - name: Cache bun install cache
         uses: actions/cache@v6
@@ -71,7 +75,7 @@ jobs:
       # Pinned: the harness speaks the daemon's socket protocol directly, so a
       # silent CLI upgrade is a protocol change. Bump deliberately, with a local
       # `bun run coverage:dev` against the new version first.
-      - run: npm install -g agent-browser@0.34.0
+      - run: bun add -g agent-browser@0.34.0 && echo "$HOME/.bun/bin" >> "$GITHUB_PATH"
 
       # Keyed on the CLI version, which decides the Chromium build it fetches.
       - name: Cache agent-browser Chromium
@@ -85,7 +89,7 @@ jobs:
       - run: agent-browser install --with-deps
 
       # Fast standalone signal; `next build` also type-checks since 16.3 + TS7 stable.
-      - run: bunx tsc --noEmit
+      - run: bunx --bun tsc --noEmit
 
       # Self-failing: `scripts/coverage-report.ts` exits non-zero below the
       # thresholds, and appends the coverage table to the job summary.

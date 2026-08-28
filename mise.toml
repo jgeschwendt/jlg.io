@@ -1,9 +1,12 @@
 [tools]
-bun = "1.3.14"
-# node: oxlint evaluates the TypeScript `oxlint.config.ts` under Node (>=22.18),
-# not bun — mise-action installs this in CI so `bun run lint` can load the config.
+# bun is the ONLY JS runtime — no node, locally or in CI. Repo-owned
+# invocations force it explicitly (`bun --bun` / `bunx --bun`); third-party
+# node-shebang bins (agent-browser, vercel) resolve to bun through the `node`
+# symlink dev machines and every CI job carry. bun 1.3.14's exit-path segfault
+# once forced node into the instrumented build (runs 31955271334, 31956326050);
+# the 1.4.0 pin cleared it — hold the pin at >=1.4.0.
 # stele:landmark config-runtime
-node = "24"
+bun = "1.4.0"
 rust = "latest"
 
 [env]

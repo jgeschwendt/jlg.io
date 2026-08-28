@@ -7,7 +7,7 @@ glob = "*.{cjs,js,json,jsx,mjs,ts,tsx}"
 # lm:lefthook-unmatched) — when every staged file is oxfmt-ignored (e.g.
 # public/background wasm-bindgen output), oxfmt 0.62+ exits 2 ("Expected at
 # least one target file") and aborts the commit.
-run = "bunx oxfmt --no-error-on-unmatched-pattern {staged_files}"
+run = "bunx --bun oxfmt --no-error-on-unmatched-pattern {staged_files}"
 stage_fixed = true
 
 [pre-commit.commands.oxlint]
@@ -16,4 +16,4 @@ glob = "*.{cjs,js,jsx,mjs,ts,tsx}"
 # (e.g. a commit touching only oxfmt.config.ts / oxlint.config.ts), oxlint
 # would otherwise exit 1 ("No files found to lint") and abort the commit.
 # stele:landmark lefthook-unmatched
-run = "bunx oxlint --report-unused-disable-directives --no-error-on-unmatched-pattern {staged_files}"
+run = "bunx --bun oxlint --report-unused-disable-directives --no-error-on-unmatched-pattern {staged_files}"
