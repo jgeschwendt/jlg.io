@@ -1,0 +1,105 @@
+name: update-deps
+
+# Daily dependency refresh: `bun update --latest` off main, shipped as an
+# auto-merge PR. The required checks are the merge gate — this workflow never
+# builds or tests. Red runs are repaired on the update-deps branch by the
+# local `github-failures` routine, which watches every repo's checks. First of
+# a family — copy per repo, or lift into a reusable workflow at the second
+# adopter.
+#
+# Every mutating step runs on a grove-code installation token, not
+# GITHUB_TOKEN: events created by GITHUB_TOKEN trigger no workflows, so a
+# GITHUB_TOKEN-opened PR would sit with its required checks forever unstarted,
+# and a GITHUB_TOKEN-armed auto-merge would land on main without triggering
+# the production deploy. Needs the GROVE_CODE_APP_PRIVATE_KEY secret (the
+# app's private key; app id is public).
+
+on:
+  schedule:
+    - cron: '17 9 * * *'
+  workflow_dispatch:
+
+concurrency:
+  cancel-in-progress: false
+  group: update-deps
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  ship:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - id: app
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: 3448825 # grove-code
+          private-key: ${{ secrets.GROVE_CODE_APP_PRIVATE_KEY }}
+
+      # One open update-deps PR at a time — yesterday's red PR is being
+      # repaired, not superseded.
+      - id: guard
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+        run: |
+          if [ -n "$(gh pr list -R "$GITHUB_REPOSITORY" --head update-deps --state open --json number --jq '.[].number')" ]; then
+            echo "open update-deps PR still pending — not stacking a second"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - if: steps.guard.outputs.skip != 'true'
+        uses: actions/checkout@v4
+        with:
+          token: ${{ steps.app.outputs.token }}
+
+      - if: steps.guard.outputs.skip != 'true'
+        uses: jdx/mise-action@v2
+
+      - if: steps.guard.outputs.skip != 'true'
+        name: bump
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          bun update --latest
+
+          # holds: deliberate pin-backs that `bun update --latest` would
+          # re-bump — restored after every update. Drop an entry when upstream
+          # catches up (the dated reason says what to check); add one whenever
+          # a red run ends in a pin-back on the branch.
+          # - swc-plugin-coverage-instrument 0.0.32: 0.0.33 targets swc_core
+          #   30.0.0 but next 16.3.3's plugin runner is 30.0.1 — instrumented
+          #   builds die ("failed to deserialize swc_ecma_ast"). Recheck on any
+          #   next or plugin release. (2026-08-27, PR #573)
+          holds="swc-plugin-coverage-instrument@0.0.32"
+
+          for hold in $holds; do
+            pkg="${hold%@*}"
+            if jq -e --arg p "$pkg" '.dependencies[$p]' package.json >/dev/null; then
+              bun add --exact "$hold"
+            else
+              bun add --exact -d "$hold"
+            fi
+          done
+
+      - if: steps.guard.outputs.skip != 'true'
+        name: ship
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+        run: |
+          if git diff --quiet; then
+            echo "already at latest — nothing to ship"
+            exit 0
+          fi
+          git config user.name 'grove-code[bot]'
+          git config user.email 'grove-code[bot]@users.noreply.github.com'
+          git checkout -b update-deps
+          # --no-verify: lefthook's hooks are not installed here, and the PR's
+          # required checks cover everything the hooks would.
+          git commit --no-verify -am 'task(//): deps — daily bun update --latest'
+          git push -f origin update-deps
+          gh pr create --head update-deps \
+            --title 'task(//): deps — daily bun update --latest' \
+            --body 'Automated daily refresh: `bun update --latest` off main. Auto-merges on green; a red run is repaired on this branch by the `github-failures` routine.'
+          gh pr merge update-deps --auto --squash
