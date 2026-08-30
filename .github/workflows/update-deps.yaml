@@ -16,9 +16,16 @@ name: update-deps
 # problem. Needs the Claude GitHub App (github.com/apps/claude) installed on
 # the repo and the CLAUDE_CODE_OAUTH_TOKEN secret (`claude setup-token`).
 
+# The schedule is a fallback, not the primary fire: GitHub delays `schedule:`
+# events under load — runs 33257848644 and 33316867543 started ~5h after
+# their 09:17 UTC cron. The punctual morning run is a local
+# `workflow_dispatch` from the `update-deps-dispatch` routine at 10:30 UTC;
+# this cron catches days that machine is off. Duplicate fires are cheap: the
+# guard skips while a PR is open, and a second bump on an already-shipped day
+# finds no diff.
 on:
   schedule:
-    - cron: '17 9 * * *'
+    - cron: '17 12 * * *'
   workflow_dispatch:
 
 concurrency:
