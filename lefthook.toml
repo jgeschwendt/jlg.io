@@ -4,9 +4,9 @@ parallel = true
 [pre-commit.commands.oxfmt]
 glob = "*.{cjs,js,json,jsx,mjs,ts,tsx}"
 # --no-error-on-unmatched-pattern: same footgun as oxlint below (see
-# lm:lefthook-unmatched) — when every staged file is oxfmt-ignored (e.g.
-# public/background wasm-bindgen output), oxfmt 0.62+ exits 2 ("Expected at
-# least one target file") and aborts the commit.
+# lm:lefthook-unmatched) — when every staged file is oxfmt-ignored (e.g. a
+# commit touching only .stele/ lock and index files), oxfmt 0.62+ exits 2
+# ("Expected at least one target file") and aborts the commit.
 run = "bunx --bun oxfmt --no-error-on-unmatched-pattern {staged_files}"
 stage_fixed = true
 
