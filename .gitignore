@@ -27,6 +27,9 @@ e2e/target
 *.tsbuildinfo
 next-env.d.ts
 
+# generated (built by deploy.yaml; `bun run background:build` locally)
+public/background/
+
 # tools
 .DS_Store
 .vscode

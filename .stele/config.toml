@@ -6,7 +6,7 @@
 # knowledge a root claim doesn't already route to:
 #   .github  → CI; the TS7-BUILD and LEFTHOOK hazards already cover it
 #   crates   → Rust/Bevy background source; the WASM-OUTPUT hazard covers its pipeline
-#   public   → static + generated (public/background is wasm-bindgen output)
+#   public   → static + gitignored generated output (public/background, built in deploy.yaml)
 #   scripts  → build tooling; the WASM-OUTPUT claim anchors into background-wasm.ts
 #   e2e      → Playwright suite; its hazards live at point of use (bypassCSP in
 #              playwright.config.ts, the no-type-annotations spec trap in the

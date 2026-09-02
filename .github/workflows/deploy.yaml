@@ -28,6 +28,45 @@ jobs:
       - name: Pull Vercel environment
         run: bunx --bun vercel pull --yes --environment=${{ inputs.environment }} --token=${{ secrets.VERCEL_TOKEN }}
 
+      # The Bevy release profile (lto, codegen-units = 1, opt-level = "z") is
+      # minutes cold and seconds warm — cache the registry and the crate's own
+      # target dir so only a source change pays the full compile.
+      - name: Cache cargo (background wasm)
+        uses: actions/cache@v6
+        with:
+          key: wasm-${{ runner.os }}-${{ hashFiles('crates/background/Cargo.lock') }}
+          path: |
+            ~/.cargo/registry
+            crates/background/target
+          restore-keys: wasm-${{ runner.os }}-
+
+      # mise-action's rust pin is a versioned toolchain, but
+      # `scripts/background-wasm.ts` builds with RUSTUP_TOOLCHAIN=stable, and the
+      # runner's rustup ships neither that toolchain nor the wasm32 target.
+      # (same shape as ci.yaml's `rustup component add`)
+      - run: rustup toolchain install stable --profile minimal --target wasm32-unknown-unknown
+
+      # The script probes `wasm-bindgen --version` and falls back to
+      # `cargo install wasm-bindgen-cli` — a multi-minute compile — whenever the
+      # binary is missing or off the Cargo.lock version. Dropping the matching
+      # prebuilt binary into ~/.local/bin (already on GITHUB_PATH from the node
+      # shim above) makes that fallback dead in CI; reading the version out of
+      # the lock keeps the same lockstep rule the script enforces.
+      - name: Install wasm-bindgen CLI
+        run: |
+          version=$(grep -A1 '^name = "wasm-bindgen"$' crates/background/Cargo.lock | sed -n 's/^version = "\(.*\)"/\1/p')
+          [ -n "$version" ] || { echo 'wasm-bindgen missing from crates/background/Cargo.lock' >&2; exit 1; }
+          dir="wasm-bindgen-${version}-x86_64-unknown-linux-musl"
+          mkdir -p "$HOME/.local/bin"
+          curl -fsSL "https://github.com/wasm-bindgen/wasm-bindgen/releases/download/${version}/${dir}.tar.gz" \
+            | tar -xz --strip-components=1 -C "$HOME/.local/bin" "${dir}/wasm-bindgen"
+
+      # Writes public/background/{background.js,background_bg.wasm}, which
+      # `next build` (inside `vercel build`) copies into the output. This is the
+      # only workflow that needs it — the e2e harness never asserts the
+      # background, and Background.tsx tolerates the module's absence.
+      - run: bun run background:build
+
       - name: Build
         run: bunx --bun vercel build ${{ inputs.environment == 'production' && '--prod' || '' }} --token=${{ secrets.VERCEL_TOKEN }}
 
