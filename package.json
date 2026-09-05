@@ -58,7 +58,7 @@
     "swc-plugin-coverage-instrument": "0.0.32",
     "tailwindcss": "4.3.3",
     "typescript": "7.0.2",
-    "vercel": "59.11.2"
+    "vercel": "59.11.7"
   },
   "engines": {
     "node": "24.x"
