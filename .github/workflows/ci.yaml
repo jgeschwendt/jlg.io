@@ -40,6 +40,86 @@ jobs:
       - run: ~/.local/bin/stele check
       - run: ~/.local/bin/stele emit --check
 
+  # The instrumented local chain, whole: a COVERAGE=1 `next build` (whose
+  # static-generation workers dump their counters through the `bunfig.toml`
+  # preload), the e2e suite (e2e/, driven by crates/harness) against
+  # `next start`, and the merged report that fails the job under 90 statements
+  # or lines. This is the half a deployment cannot report: a preview is a plain
+  # production build carrying no `window.__coverage__`, so `harness` can only
+  # say every assertion held, never which code paths it reached. Both run on a
+  # PR — this job proves the code paths, `harness` proves the deployment.
+  #
+  # PRs only: on main the identical chain already runs in coverage.yaml, which
+  # additionally publishes the HTML report to Pages, so running it here too
+  # would spend a second runner on a number that run already produces.
+  #
+  # No cargo fmt/clippy here — they run once per PR, in `harness`.
+  coverage:
+    if: github.event_name == 'pull_request'
+    needs: check
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      # mise.toml pins rust alongside bun, so this one action also
+      # provides the cargo toolchain the harness builds with.
+      - uses: jdx/mise-action@v2
+
+      # bun-only toolchain: shadow the runner's node so any node-shebang bin or
+      # hardcoded `node` spawn (agent-browser's CLI) resolves to bun.
+      - run: mkdir -p ~/.local/bin && ln -sf "$(command -v bun)" ~/.local/bin/node && echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Cache bun install cache
+        uses: actions/cache@v6
+        with:
+          key: bun-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+          path: ~/.bun/install/cache
+          restore-keys: bun-${{ runner.os }}-
+
+      - run: bun install --frozen-lockfile
+
+      - name: Cache cargo
+        uses: actions/cache@v6
+        with:
+          key: cargo-${{ runner.os }}-${{ hashFiles('crates/harness/Cargo.lock', 'e2e/Cargo.lock') }}
+          path: |
+            ~/.cargo/registry
+            crates/harness/target
+            e2e/target
+          restore-keys: cargo-${{ runner.os }}-
+
+      # Pinned: the harness speaks the daemon's socket protocol directly, so a
+      # silent CLI upgrade is a protocol change. Bump deliberately, with a local
+      # `bun run coverage` against the new version first.
+      - run: bun add -g agent-browser@0.34.0 && echo "$HOME/.bun/bin" >> "$GITHUB_PATH"
+
+      # Keyed on the CLI version, which decides the Chromium build it fetches.
+      - name: Cache agent-browser Chromium
+        uses: actions/cache@v6
+        with:
+          key: agent-browser-${{ runner.os }}-0.34.0
+          path: ~/.agent-browser/browsers
+
+      # `--with-deps` every time even on a cache hit: system libraries live
+      # outside the cached browser directory (same shape as coverage.yaml's).
+      - run: agent-browser install --with-deps
+
+      # Self-failing: the runner panics on any behavioral assertion, and
+      # `scripts/coverage-report.ts` exits non-zero below the thresholds and
+      # appends the coverage table to the job summary.
+      - run: bun run coverage
+
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          if-no-files-found: ignore
+          name: coverage
+          path: |
+            .nyc_output/
+            coverage/
+          retention-days: 7
+
   deploy:
     needs: check
     secrets: inherit
@@ -54,8 +134,9 @@ jobs:
   # returned, so it asserts the real Vercel edge — the per-request CSP as
   # actually served, and every live route, on the artifact that serves traffic.
   # No coverage: a deployment is a plain production build, so there is nothing
-  # to harvest. The instrumented local chain and its ≥90 gate live in
-  # coverage.yaml, which runs on every push to main and publishes the report.
+  # to harvest. The instrumented local chain and its ≥90 gate are the sibling
+  # `coverage` job on a PR, and coverage.yaml on every push to main (which also
+  # publishes the report to Pages).
   # The cargo fmt/clippy checks stay here — they are the crates' only lint gate
   # on a PR (`check` covers the TypeScript side).
   harness:
