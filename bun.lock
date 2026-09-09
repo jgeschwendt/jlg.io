@@ -18,9 +18,9 @@
         "sharp": "0.35.4",
       },
       "devDependencies": {
-        "@jlg/oxfmt": "npm:@jgeschwendt/oxfmt@0.3.0",
-        "@jlg/oxlint": "npm:@jgeschwendt/oxlint@0.3.0",
-        "@jlg/tsconfig": "npm:@jgeschwendt/tsconfig@0.1.0",
+        "@jlg/oxfmt": "0.1.0",
+        "@jlg/oxlint": "0.1.0",
+        "@jlg/tsconfig": "0.1.1",
         "@tailwindcss/postcss": "4.3.3",
         "@types/istanbul-lib-coverage": "2.0.6",
         "@types/istanbul-lib-report": "3.0.3",
@@ -192,11 +192,11 @@
 
     "@isaacs/fs-minipass": ["@isaacs/fs-minipass@4.0.1", "", { "dependencies": { "minipass": "^7.0.4" } }, "sha512-wgm9Ehl2jpeqP3zw/7mo3kRHFp5MEDhqAdwy1fTGkHAwnkGOVsgpvQhL8B5n1qlb01jV3n/bI0ZfZp5lWA1k4w=="],
 
-    "@jlg/oxfmt": ["@jgeschwendt/oxfmt@0.3.0", "https://npm.pkg.github.com/download/@jgeschwendt/oxfmt/0.3.0/a7eb02dca8befccc33bf762c247c1b3e3cb2915e", { "peerDependencies": { "oxfmt": "^0.59.0" } }, "sha512-Lc/hbimxvYt2peclNnAlJJVZXO4e3IrKrsssgDkVJ+8LlYfl4ubbNFBcYsqtZAbxKJVmDMeS7Yeq8M/0BzVFzw=="],
+    "@jlg/oxfmt": ["@jlg/oxfmt@0.1.0", "", { "peerDependencies": { "oxfmt": ">=0.59.0 <1.0.0" } }, "sha512-jZbrMXqV0hQLXwZAX8+xZezYKhY9dC/umZLbcdfJE7FmXy5F+tyWWXJd2ZiahUR60EY7eKOOZ9JwyFRnx4K8lA=="],
 
-    "@jlg/oxlint": ["@jgeschwendt/oxlint@0.3.0", "https://npm.pkg.github.com/download/@jgeschwendt/oxlint/0.3.0/64edfd28d50b6220564acd0bfaba6a78995cf575", { "dependencies": { "jsonc-parser": "^3.3.1" }, "peerDependencies": { "oxlint": "^1.75.0" } }, "sha512-jl1OToaGJUSPD8b/gtxlFLUv84kS2Zmlep32DMFkxSSmsdJF89Cv8muDUxgbCguEvYaoMov3mZ8qItvdP7Heqg=="],
+    "@jlg/oxlint": ["@jlg/oxlint@0.1.0", "", { "dependencies": { "jsonc-parser": "^3.3.1" }, "peerDependencies": { "oxlint": "^1.78.0" } }, "sha512-Yn5apxIDBema5BrcHPMtxnY2YGK9gNLA1srmk0h+pYx3JSzAVj0ReQjtvqjkh0h3J6RMuKuZyCbIVwri9k+Wbw=="],
 
-    "@jlg/tsconfig": ["@jgeschwendt/tsconfig@0.1.0", "https://npm.pkg.github.com/download/@jgeschwendt/tsconfig/0.1.0/c359512910a64124ebbe8c53d4bfaa0e569bed84", { "peerDependencies": { "typescript": "^7.0.0" } }, "sha512-ynkTSFJ95X5d+tS7OG40es6fCcyDbmuuMD+5WVjBlgL04oPcDTEIh92yTnuHZrDGvEaFOKbAfqQaHUYrR9h5OQ=="],
+    "@jlg/tsconfig": ["@jlg/tsconfig@0.1.1", "", { "peerDependencies": { "typescript": "^7.0.0" } }, "sha512-X+HQuVxyhdvEKHd35ANIPvzzp0B7WneAgzWeeR6Z04x/05yN86v6nz7GwrDuyF7LsE2VYu+QAg51ri5dmk5wgw=="],
 
     "@jridgewell/gen-mapping": ["@jridgewell/gen-mapping@0.3.13", "", { "dependencies": { "@jridgewell/sourcemap-codec": "^1.5.0", "@jridgewell/trace-mapping": "^0.3.24" } }, "sha512-2kkt/7niJ6MgEPxF0bYdQ6etZaA+fQvDcLKckhy1yIQOzaoKjBBjSj63/aLVjYE3qhRt5dvM+uUyfCg6UKCBbA=="],
 

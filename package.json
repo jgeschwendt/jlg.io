@@ -37,9 +37,9 @@
     "sharp": "0.35.4"
   },
   "devDependencies": {
-    "@jlg/oxfmt": "npm:@jgeschwendt/oxfmt@0.3.0",
-    "@jlg/oxlint": "npm:@jgeschwendt/oxlint@0.3.0",
-    "@jlg/tsconfig": "npm:@jgeschwendt/tsconfig@0.1.0",
+    "@jlg/oxfmt": "0.1.0",
+    "@jlg/oxlint": "0.1.0",
+    "@jlg/tsconfig": "0.1.1",
     "@tailwindcss/postcss": "4.3.3",
     "@types/istanbul-lib-coverage": "2.0.6",
     "@types/istanbul-lib-report": "3.0.3",

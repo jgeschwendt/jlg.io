@@ -11,8 +11,6 @@ commands:
   tsc: bunx --bun tsc --noEmit
   background:build: bun run background:build
 invariants:
-  - claim: ALIAS CONSUMPTION — @jlg/* names in package.json/configs are npm aliases to npm:@jgeschwendt/* on GitHub Packages (interim scope; the npmjs @jlg org is the end state); .npmrc + NODE_AUTH_TOKEN are required even for public reads (anonymous 401)
-    anchor: lm:alias-consumption
   - claim: FORMAT POLICY — printWidth is deliberately absent (oxfmt default 100; the repo predates the base's former 80); singleQuote comes from the @jlg/oxfmt base via defineConfig
     anchor: lm:format-policy
 hazards:
