@@ -6,9 +6,15 @@ on:
       environment:
         required: true
         type: string
+    outputs:
+      url:
+        description: The URL of the deployment this run produced.
+        value: ${{ jobs.deploy.outputs.url }}
 
 jobs:
   deploy:
+    outputs:
+      url: ${{ steps.deploy.outputs.url }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -68,5 +74,16 @@ jobs:
       - name: Build
         run: bunx --bun vercel build ${{ inputs.environment == 'production' && '--prod' || '' }} --token=${{ secrets.VERCEL_TOKEN }}
 
-      - name: Deploy
-        run: bunx --bun vercel deploy --prebuilt ${{ inputs.environment == 'production' && '--prod' || '' }} --token=${{ secrets.VERCEL_TOKEN }}
+      # "When deploying, `stdout` is always the Deployment URL" — the CLI puts
+      # progress and errors on stderr, so the command substitution below needs
+      # no parsing (https://vercel.com/docs/cli/deploy, fetched 2026-09-09).
+      # ci.yaml's `harness` job runs the e2e suite against this URL, so a
+      # deployment that never yields one must fail the job rather than hand a
+      # later step an empty string.
+      - id: deploy
+        name: Deploy
+        run: |
+          url=$(bunx --bun vercel deploy --prebuilt ${{ inputs.environment == 'production' && '--prod' || '' }} --token=${{ secrets.VERCEL_TOKEN }})
+          [ -n "$url" ] || { echo 'vercel deploy printed no deployment URL' >&2; exit 1; }
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+          echo "deployed $url" >> "$GITHUB_STEP_SUMMARY"

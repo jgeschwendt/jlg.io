@@ -15,6 +15,11 @@
 //! post-deploy check the local run cannot be — the assertions run against the
 //! artifact that is actually serving traffic, CDN, proxy and all.
 //!
+//! CI splits the two the same way. `ci.yaml`'s `harness` job takes the remote
+//! path against the deployment its own run just made, so every PR asserts its
+//! preview and every push to main asserts production; `coverage.yaml` takes the
+//! local path on main, and is the only place the coverage gate runs.
+//!
 //! The driving machinery lives in `harness::kit`; only this app's assertions
 //! live here.
 
