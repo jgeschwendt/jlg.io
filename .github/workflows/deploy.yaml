@@ -77,7 +77,7 @@ jobs:
       # "When deploying, `stdout` is always the Deployment URL" — the CLI puts
       # progress and errors on stderr, so the command substitution below needs
       # no parsing (https://vercel.com/docs/cli/deploy, fetched 2026-09-09).
-      # ci.yaml's `harness` job runs the e2e suite against this URL, so a
+      # ci.yaml's `preview` job runs the e2e suite against this URL, so a
       # deployment that never yields one must fail the job rather than hand a
       # later step an empty string.
       - id: deploy
