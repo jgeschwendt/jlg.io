@@ -4,13 +4,13 @@
 # non-root node's territory. This graph is deliberately shallow — root (system)
 # + src (container) — because the remaining top-level dirs carry no local
 # knowledge a root claim doesn't already route to:
-#   .github  → CI; the TS7-BUILD and LEFTHOOK hazards already cover it
+#   .github  → CI; the BUN-ONLY RUNTIME and LEFTHOOK hazards already cover it
 #   crates   → Rust/Bevy background source; the WASM-OUTPUT hazard covers its pipeline
 #   public   → static + gitignored generated output (public/background, built in deploy.yaml)
 #   scripts  → build tooling; the WASM-OUTPUT claim anchors into background-wasm.ts
-#   e2e      → Playwright suite; its hazards live at point of use (bypassCSP in
-#              playwright.config.ts, the no-type-annotations spec trap in the
-#              e2e/** oxlint override and coverage-guard.teardown.ts)
+#   e2e      → the Rust e2e suite (crates/harness drives it); its two modes and
+#              the CSP bypass they arm are documented in e2e/main.rs's module
+#              doc, at the point of use
 # Excluding a dir here drops only its exhaustiveness requirement; the anchor scan
 # still sees it, so lm:wasm-output in scripts/ keeps resolving.
 [exhaustiveness]
