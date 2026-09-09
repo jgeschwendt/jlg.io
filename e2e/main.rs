@@ -15,11 +15,11 @@
 //! post-deploy check the local run cannot be — the assertions run against the
 //! artifact that is actually serving traffic, CDN, proxy and all.
 //!
-//! CI runs both, every time. On a PR `ci.yaml` takes each path once: its
-//! `coverage` job runs the local path with the gate, and its `harness` job runs
-//! the remote path against the preview that same run deployed. On a push to
-//! main the two split across files — `coverage.yaml` takes the local path and
-//! publishes the report, while `ci.yaml`'s `harness` asserts production.
+//! CI runs both. `ci.yaml`'s `harness` job takes the local path, gate and all,
+//! on every run, and `coverage.yaml` repeats that chain on a push to main to
+//! publish the report to Pages. The remote path is `ci.yaml`'s `preview` job,
+//! which runs on a pull request only, against the preview deployment that same
+//! run produced.
 //!
 //! The driving machinery lives in `harness::kit`; only this app's assertions
 //! live here.

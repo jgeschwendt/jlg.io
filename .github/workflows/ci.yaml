@@ -40,25 +40,15 @@ jobs:
       - run: ~/.local/bin/stele check
       - run: ~/.local/bin/stele emit --check
 
-  # The instrumented local chain, whole: a COVERAGE=1 `next build` (whose
-  # static-generation workers dump their counters through the `bunfig.toml`
-  # preload), the e2e suite (e2e/, driven by crates/harness) against
-  # `next start`, and the merged report that fails the job under 90 statements
-  # or lines. This is the half a deployment cannot report: a preview is a plain
-  # production build carrying no `window.__coverage__`, so `harness` can only
-  # say every assertion held, never which code paths it reached. Both run on a
-  # PR — this job proves the code paths, `harness` proves the deployment.
-  #
-  # PRs only: on main the identical chain already runs in coverage.yaml, which
-  # additionally publishes the HTML report to Pages, so running it here too
-  # would spend a second runner on a number that run already produces.
-  #
-  # No cargo fmt/clippy here — they run once per PR, in `harness`.
-  coverage:
-    if: github.event_name == 'pull_request'
-    needs: check
+  # The e2e suite (e2e/, driven by crates/harness) against the production
+  # build: instrumented `next build`, every route asserted over `next start`,
+  # the ≥90 coverage gate. Prod on purpose — it is the artifact that deploys,
+  # it includes the build workers' counters, and it exercises the CSP bypass
+  # where it is load-bearing (dev grants 'unsafe-eval'). coverage.yml runs the
+  # same chain on main to publish the report to Pages.
+  harness:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
 
@@ -102,19 +92,29 @@ jobs:
           path: ~/.agent-browser/browsers
 
       # `--with-deps` every time even on a cache hit: system libraries live
-      # outside the cached browser directory (same shape as coverage.yaml's).
+      # outside the cached browser directory (same shape as coverage.yml's
+      # Playwright install).
       - run: agent-browser install --with-deps
 
+      # The runner's rustup provisions the mise-pinned toolchain with the
+      # minimal profile, which ships neither component.
+      # (observed 2026-08-18 · run 32158578774: "'cargo-fmt' is not installed")
+      - run: rustup component add clippy rustfmt
+
+      - run: cargo fmt --check --manifest-path crates/harness/Cargo.toml
+      - run: cargo fmt --check --manifest-path e2e/Cargo.toml
+      - run: cargo clippy --all-targets --manifest-path crates/harness/Cargo.toml -- -D warnings
+      - run: cargo clippy --all-targets --manifest-path e2e/Cargo.toml -- -D warnings
+
       # Self-failing: the runner panics on any behavioral assertion, and
-      # `scripts/coverage-report.ts` exits non-zero below the thresholds and
-      # appends the coverage table to the job summary.
+      # `scripts/coverage-report.ts` exits non-zero below the thresholds.
       - run: bun run coverage
 
       - uses: actions/upload-artifact@v7
         if: failure()
         with:
           if-no-files-found: ignore
-          name: coverage
+          name: harness-coverage
           path: |
             .nyc_output/
             coverage/
@@ -127,20 +127,20 @@ jobs:
     with:
       environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'preview' }}
 
-  # The e2e suite (e2e/, driven by crates/harness) against the deployment this
-  # run just made — the PR's preview, or on main the production deployment,
-  # where the same chain is the post-deploy smoke test. Nothing is built or
-  # served here: the suite drives a real browser through the URL `deploy`
-  # returned, so it asserts the real Vercel edge — the per-request CSP as
-  # actually served, and every live route, on the artifact that serves traffic.
-  # No coverage: a deployment is a plain production build, so there is nothing
-  # to harvest. The instrumented local chain and its ≥90 gate are the sibling
-  # `coverage` job on a PR, and coverage.yaml on every push to main (which also
-  # publishes the report to Pages).
-  # The cargo fmt/clippy checks stay here — they are the crates' only lint gate
-  # on a PR (`check` covers the TypeScript side).
-  harness:
+  # The same suite (e2e/) run against the preview deployment this PR just
+  # produced. Nothing is built or served here: the browser drives the URL
+  # `deploy` returned, so every assertion lands on the real Vercel edge — the
+  # per-request CSP as actually served, on the artifact that will serve
+  # traffic. No coverage on this path; a deployment is a plain production build
+  # carrying no counters, and `harness` above owns that half.
+  #
+  # `pull_request` only: on main the same run would point at production, which
+  # nobody asked for.
+  #
+  # No rustup/fmt/clippy either — `harness` runs them once per PR.
+  preview:
     needs: deploy
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -164,16 +164,6 @@ jobs:
             e2e/target
           restore-keys: cargo-${{ runner.os }}-
 
-      # The runner's rustup provisions the mise-pinned toolchain with the
-      # minimal profile, which ships neither component.
-      # (observed 2026-08-18 · run 32158578774: "'cargo-fmt' is not installed")
-      - run: rustup component add clippy rustfmt
-
-      - run: cargo fmt --check --manifest-path crates/harness/Cargo.toml
-      - run: cargo fmt --check --manifest-path e2e/Cargo.toml
-      - run: cargo clippy --all-targets --manifest-path crates/harness/Cargo.toml -- -D warnings
-      - run: cargo clippy --all-targets --manifest-path e2e/Cargo.toml -- -D warnings
-
       # Pinned: the harness speaks the daemon's socket protocol directly, so a
       # silent CLI upgrade is a protocol change. Bump deliberately, with a local
       # `bun run coverage` against the new version first.
@@ -187,12 +177,13 @@ jobs:
           path: ~/.agent-browser/browsers
 
       # `--with-deps` every time even on a cache hit: system libraries live
-      # outside the cached browser directory (same shape as coverage.yaml's).
+      # outside the cached browser directory (same shape as coverage.yml's
+      # Playwright install).
       - run: agent-browser install --with-deps
 
       # Self-failing: the runner panics on any behavioral assertion. No
       # `bun install` above it — remote mode compiles the e2e crate and drives
-      # agent-browser, and touches nothing in node_modules on either path.
+      # agent-browser, and touches nothing in node_modules.
       - run: bun run e2e:remote "${{ needs.deploy.outputs.url }}"
 
       # `.nyc_output/` is where `goto` files a failed navigation's autopsy;
@@ -201,6 +192,6 @@ jobs:
         if: failure()
         with:
           if-no-files-found: ignore
-          name: harness-remote
+          name: preview
           path: .nyc_output/
           retention-days: 7
