@@ -14,6 +14,69 @@ use serde_json::Value;
 use std::path::Path;
 use std::time::{Duration, Instant};
 
+// Reads the tap's buffer out of `sessionStorage`, empties it, and reports how
+// the CURRENT document was entered — after a full-load fallback that is the new
+// document, whose navigation type ("navigate" for a link the router let through
+// to the browser, "reload" for a genuine reload) separates the two stories.
+const RSC_DRAIN: &str = "(() => { const KEY = '__harness_rsc'; let log = []; \
+     try { log = JSON.parse(sessionStorage.getItem(KEY) || '[]'); } catch (e) {} \
+     try { sessionStorage.removeItem(KEY); } catch (e) {} \
+     const nav = performance.getEntriesByType('navigation')[0]; \
+     return JSON.stringify({ entries: log, navigation: nav ? nav.type : null, \
+       tapped: Boolean(window.__harness_rsc_tapped) }); })()";
+
+// `sessionStorage`, not a `window` property, is the whole point: it is the one
+// place a record written before a full page load can still be read after it,
+// and it is per-origin-per-tab, so a run never reads another's entries.
+const RSC_TAP: &str = "(() => { \
+     if (window.__harness_rsc_tapped) return false; \
+     window.__harness_rsc_tapped = true; \
+     const KEY = '__harness_rsc'; \
+     const LIMIT = 20; \
+     const record = (entry) => { try { \
+       const log = JSON.parse(sessionStorage.getItem(KEY) || '[]'); \
+       log.push(entry); \
+       sessionStorage.setItem(KEY, JSON.stringify(log.slice(-LIMIT))); \
+     } catch (e) {} }; \
+     const rscHeader = (input, init) => { \
+       const headers = (init && init.headers) \
+         || (input && typeof input === 'object' ? input.headers : null); \
+       if (!headers) return false; \
+       try { \
+         if (typeof headers.get === 'function') return headers.get('RSC') === '1'; \
+         if (Array.isArray(headers)) \
+           return headers.some((pair) => String(pair[0]).toLowerCase() === 'rsc'); \
+         return Object.keys(headers).some((key) => key.toLowerCase() === 'rsc'); \
+       } catch (e) { return false; } \
+     }; \
+     const original = window.fetch; \
+     window.fetch = function (input, init) { \
+       const url = typeof input === 'string' ? input : (input && input.url) || String(input); \
+       const watched = String(url).includes('_rsc=') || rscHeader(input, init); \
+       const pending = original.apply(this, arguments); \
+       if (!watched) return pending; \
+       let path = String(url); \
+       try { const parsed = new URL(String(url), location.href); \
+         path = parsed.pathname + parsed.search; } catch (e) {} \
+       const at = Date.now(); \
+       return pending.then((response) => { \
+         const nextjs = {}; \
+         try { response.headers.forEach((value, name) => { \
+           if (name.indexOf('x-nextjs-') === 0) nextjs[name] = value; }); } catch (e) {} \
+         const header = (name) => { \
+           try { return response.headers.get(name) || ''; } catch (e) { return ''; } }; \
+         record({ at, contentType: header('content-type'), nextjs, path, \
+           status: response.status, type: response.type, url: String(url), \
+           xMatchedPath: header('x-matched-path'), xVercelCache: header('x-vercel-cache'), \
+           xVercelId: header('x-vercel-id') }); \
+         return response; \
+       }, (error) => { \
+         record({ at, error: String(error), path, url: String(url) }); \
+         throw error; \
+       }); \
+     }; \
+     return true; })()";
+
 // Hydration is a race, not an event we can wait on: next/link's handler is
 // attached before the router can act, so a click can land in the gap and do
 // nothing at all. Retry the click-and-check as a unit.
@@ -25,6 +88,22 @@ pub struct FetchProbe {
     pub content_type: String,
     pub csp: String,
     pub status: u16,
+}
+
+/// Wraps `window.fetch` for the rest of the document's life so an App Router
+/// navigation fetch leaves evidence that OUTLIVES the page. A `<Link>` click
+/// degrades to a full page load when the RSC fetch for the target does not come
+/// back as an RSC payload — a non-`text/x-component` content type, an error
+/// page, a cross-origin redirect, a build/deployment-id mismatch — and the
+/// reload that follows wipes the page before anything can be asked about it.
+/// The record goes to `sessionStorage`, which survives a same-origin reload, so
+/// `print_rsc_log` can read it out of the NEW document. Same-origin responses
+/// hide no headers, so the Vercel routing trail (`x-vercel-id`,
+/// `x-vercel-cache`, `x-matched-path`, any `x-nextjs-*`) comes back alongside
+/// the status. Idempotent per document via `window.__harness_rsc_tapped`;
+/// diagnostics only, and a rejected fetch is re-thrown untouched.
+pub fn arm_rsc_tap(session: &Session) {
+    session.eval(RSC_TAP).expect("arm the RSC tap");
 }
 
 /// Reads an element's attribute, panicking when the element is missing.
@@ -45,6 +124,7 @@ pub fn back_until(session: &Session, path: &str) {
     session
         .eval("window.__harness = true")
         .expect("mark the document");
+    arm_rsc_tap(session);
     session.back().expect("history back");
 
     let deadline = Instant::now() + SPA_TIMEOUT;
@@ -60,9 +140,13 @@ pub fn back_until(session: &Session, path: &str) {
         std::thread::sleep(Duration::from_millis(250));
     }
 
-    assert_eq!(
-        session.eval("window.__harness === true").expect("sentinel"),
-        Value::Bool(true),
+    let client_side =
+        session.eval("window.__harness === true").expect("sentinel") == Value::Bool(true);
+    if !client_side {
+        print_rsc_log(session, &format!("history back to {path}, full page load"));
+    }
+    assert!(
+        client_side,
         "history back reached {path} by a full page load, not the router"
     );
 }
@@ -195,10 +279,16 @@ pub fn goto(session: &Session, url: &str) {
             .eval("document.documentElement.id === '__next_error__'")
             .expect("probe error shell");
         if shell != Value::Bool(true) {
+            // Armed here, not only at the interactions, so the app's own
+            // prefetches are caught: a `<Link>` in view fetches its RSC payload
+            // long before any click, and a prefetch that came back wrong is the
+            // likeliest reason a later click degrades to a full page load.
+            arm_rsc_tap(session);
             return;
         }
 
         dump(session, &format!("error shell on {url}, attempt {attempt}"));
+        print_rsc_log(session, &format!("error shell on {url}, attempt {attempt}"));
         // The navigated document and a fresh fetch of the same URL can tell
         // different stories (PR #570: fetch healthy, navigation crashed), so
         // report both sides and keep the whole body in .nyc_output, which the
@@ -274,6 +364,50 @@ pub fn press_escape_until(session: &Session, base: &str, from: &str, to: &str) {
     settle(session, base, script, from, to, "Escape");
 }
 
+/// Drains `arm_rsc_tap`'s buffer to stdout, one `rsc` line per navigation
+/// fetch, plus how the current document was entered. Diagnostics only — it
+/// asserts nothing, never panics on a missing tap, and empties the buffer so
+/// the next report carries only what happened since.
+pub fn print_rsc_log(session: &Session, context: &str) {
+    let raw = match session.eval(RSC_DRAIN) {
+        Ok(value) => value.as_str().unwrap_or_default().to_string(),
+        Err(e) => {
+            println!("[harness] rsc log ({context}): unavailable: {e}");
+            return;
+        }
+    };
+    let report: Value = serde_json::from_str(&raw).unwrap_or(Value::Null);
+    let entries = report["entries"].as_array().cloned().unwrap_or_default();
+    println!(
+        "[harness] rsc log ({context}): {} navigation fetch(es), navigation type {}, tapped {}",
+        entries.len(),
+        report["navigation"].as_str().unwrap_or("unknown"),
+        report["tapped"].as_bool().unwrap_or(false),
+    );
+    for entry in entries {
+        let path = entry["path"].as_str().unwrap_or("?");
+        if let Some(error) = entry["error"].as_str() {
+            println!("[harness]   rsc {path} rejected: {error}");
+            continue;
+        }
+        let nextjs = entry["nextjs"]
+            .as_object()
+            .filter(|headers| !headers.is_empty())
+            .map(|headers| format!(" x-nextjs {}", Value::Object(headers.clone())))
+            .unwrap_or_default();
+        println!(
+            "[harness]   rsc {path} status {} type {} content-type {:?} \
+             x-vercel-id {:?} x-vercel-cache {:?} x-matched-path {:?}{nextjs}",
+            entry["status"].as_u64().unwrap_or(0),
+            entry["type"].as_str().unwrap_or("?"),
+            entry["contentType"].as_str().unwrap_or(""),
+            entry["xVercelId"].as_str().unwrap_or(""),
+            entry["xVercelCache"].as_str().unwrap_or(""),
+            entry["xMatchedPath"].as_str().unwrap_or(""),
+        );
+    }
+}
+
 /// The server's cumulative map, read while the browser is still on a
 /// same-origin document: `evaluate` awaits promises, so the fetch resolves
 /// before the reply comes back and the run needs no HTTP client of its own.
@@ -302,13 +436,33 @@ pub fn server_coverage(session: &Session, output: &Path) -> (String, usize) {
 /// runner where nothing is precompiled. Each retry returns to `from`, waits
 /// for hydration, and reruns the interaction; a genuine regression fails every
 /// attempt. (observed 2026-08-18 · runs 32166774728, 32167373217)
+///
+/// What the retry is up against differs by target, so the bound does too. A
+/// remote base is a deployment that may be seconds old: its first RSC fetch can
+/// be served cold, or by a region that has not caught up with the new build,
+/// and the router answers a payload it does not recognize with a full page load
+/// — three attempts inside one second were not enough to outlast it (run
+/// 34307954043, 40s after the deploy; a re-run minutes later against the same
+/// URL passed with zero retries). So remote gets 5 attempts and a 1s-per-
+/// attempt backoff to let the edge settle. A local `next start` has no edge and
+/// no propagation, only the Turbopack race the original bound was sized for, so
+/// it stays at 3 — a real client-side-navigation regression must not need a
+/// six-second wall-clock budget to be called a failure. Neither bound changes
+/// what counts as success: an arrival by full page load is never success, and
+/// the coverage from the previous page is gone either way.
+///
+/// `HARNESS_DEBUG_RSC=1` prints the tap's log on success too, which is how one
+/// confirms the tap sees healthy navigations and not only broken ones.
 pub fn settle(session: &Session, base: &str, script: &str, from: &str, to: &str, what: &str) {
-    const ATTEMPTS: u32 = 3;
+    let local = base.contains("localhost") || base.contains("127.0.0.1");
+    let attempts: u32 = if local { 3 } else { 5 };
+    let debug = std::env::var_os("HARNESS_DEBUG_RSC").is_some_and(|v| !v.is_empty());
 
-    for attempt in 1..=ATTEMPTS {
+    for attempt in 1..=attempts {
         session
             .eval("window.__harness = true")
             .expect("mark the document");
+        arm_rsc_tap(session);
 
         let deadline = Instant::now() + SPA_TIMEOUT;
         loop {
@@ -324,10 +478,22 @@ pub fn settle(session: &Session, base: &str, script: &str, from: &str, to: &str,
         }
 
         if session.eval("window.__harness === true").expect("sentinel") == Value::Bool(true) {
+            if debug {
+                print_rsc_log(session, &format!("{what} reached {to} client-side"));
+            }
             return;
         }
 
         println!("[harness] {what}: {to} arrived by full page load (attempt {attempt}), retrying");
+        // Read out of the document the reload just installed — the tap's
+        // records outlived the page that wrote them, which is the only reason
+        // there is anything to say about why the router bailed out.
+        print_rsc_log(session, &format!("{what} reached {to} by full page load"));
+
+        if attempt == attempts {
+            break;
+        }
+        std::thread::sleep(Duration::from_secs(u64::from(attempt)));
         session
             .navigate(&format!("{base}{from}"))
             .expect("return to the interaction's origin");
@@ -335,7 +501,7 @@ pub fn settle(session: &Session, base: &str, script: &str, from: &str, to: &str,
     }
 
     panic!(
-        "{what} reached {to} only by full page loads across {ATTEMPTS} attempts — \
+        "{what} reached {to} only by full page loads across {attempts} attempts — \
          the coverage from the previous page is gone"
     );
 }
