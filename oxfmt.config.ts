@@ -1,6 +1,6 @@
 import { defineConfig } from '@jlg/oxfmt';
 
-// defineConfig shallow-merges the @jgeschwendt/oxfmt base (only `singleQuote`)
+// defineConfig shallow-merges the @jlg/oxfmt base (only `singleQuote`)
 // under these local keys (base first, local wins). oxfmt has no `extends`, but it
 // DOES auto-discover this `oxfmt.config.ts` in the repo root (verified 2026-07-22,
 // oxfmt 0.59 — no `-c` needed at any invocation site) and evaluates it under Node.

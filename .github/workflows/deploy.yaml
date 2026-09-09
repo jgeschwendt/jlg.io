@@ -19,8 +19,6 @@ jobs:
       - run: mkdir -p ~/.local/bin && ln -sf "$(command -v bun)" ~/.local/bin/node && echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
       - run: bun install --frozen-lockfile
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Link Vercel project
         run: bunx --bun vercel link --project=${{ vars.VERCEL_PROJECT_ID }} --scope=${{ vars.VERCEL_ORG_ID }} --token=${{ secrets.VERCEL_TOKEN }} --yes
