@@ -1,15 +1,26 @@
-//! The e2e suite and the coverage run, one binary: boots an instrumented Next
-//! server, drives a real browser through the app with `agent-browser`, asserts
-//! what the app must do, and drops raw Istanbul maps into `.nyc_output` for
-//! `scripts/coverage-report.ts` to merge and gate. The route functions below
-//! are the readable statement of the app's behavior — coverage is their
-//! byproduct, because a run that merely *loads* each route would produce an
-//! identical-looking report while proving nothing. The driving machinery lives
-//! in `harness::kit`; only this app's assertions live here.
+//! The e2e suite and the coverage run, one binary, with two targets.
+//!
+//! Local (the default) boots an instrumented Next server, drives a real browser
+//! through the app with `agent-browser`, asserts what the app must do, and drops
+//! raw Istanbul maps into `.nyc_output` for `scripts/coverage-report.ts` to
+//! merge and gate. The route functions below are the readable statement of the
+//! app's behavior — coverage is their byproduct, because a run that merely
+//! *loads* each route would produce an identical-looking report while proving
+//! nothing.
+//!
+//! Remote (`--base <url>`) points the same route functions at a deployment and
+//! starts no server. A deployment is a plain production build: it carries no
+//! `window.__coverage__` and its `/api/coverage` is closed, so the run harvests
+//! nothing and reports only that every assertion held. That makes it the
+//! post-deploy check the local run cannot be — the assertions run against the
+//! artifact that is actually serving traffic, CDN, proxy and all.
+//!
+//! The driving machinery lives in `harness::kit`; only this app's assertions
+//! live here.
 
 use harness::kit::{
-    attribute, back_until, click_until, count, dump, fetch_probe, goto, harvest, mode, nonce_of,
-    press_escape_until, server_coverage, strings, text, wait_hydrated,
+    attribute, back_until, base_url, click_until, count, dump, fetch_probe, goto, harvest, mode,
+    nonce_of, press_escape_until, server_coverage, strings, text, wait_hydrated,
 };
 use harness::server::{HOST, Server, repo_root};
 use harness::{Session, cdp::Bypass};
@@ -19,38 +30,67 @@ use std::time::Instant;
 // a stray server from another runner answering this one's requests would
 // produce a report of the wrong build.
 const PORT: u16 = 3200;
+// Its own daemon: a remote run must never adopt — or tear down — the browser a
+// local coverage run is holding its `window.__coverage__` in.
+const REMOTE_SESSION: &str = "jlg-remote";
 const SESSION: &str = "jlg-coverage";
 
 fn main() {
     let started = Instant::now();
-    let mode = mode();
     let root = repo_root();
-    let base = format!("http://{HOST}:{PORT}");
+    let remote = base_url();
+    let base = remote
+        .clone()
+        .unwrap_or_else(|| format!("http://{HOST}:{PORT}"));
 
+    // Both paths: `goto` files a failed navigation's autopsy here, and there is
+    // nowhere else for it to land. Only the local path fills it with coverage.
     let output = root.join(".nyc_output");
     std::fs::create_dir_all(&output).expect("create .nyc_output");
 
-    println!("[harness] {mode} server on {base}");
-    // `bun --bun next`, the repo convention. bun 1.3.14 segfaulted at process
-    // exit with instrumented modules loaded on Linux (SIGILL, coverage run
-    // 31955271334), which pinned this spawn to node via the bin's shebang; the
-    // 1.4.0 pin cleared it and the toolchain is bun-only again.
-    let command = if mode == "prod" { "start" } else { "dev" };
-    let server = Server::start(
-        "bun",
-        &["--bun", "next", command, "--port", &PORT.to_string()],
-        // COVERAGE arms the SWC instrumentation (dev) and opens
-        // `/api/coverage`; HARNESS_SERVER_DEBUG arms the bunfig-preloaded
-        // debug hook that surfaces async errors a streamed render swallows.
-        &[("COVERAGE", "1"), ("HARNESS_SERVER_DEBUG", "1")],
-        &root,
-        PORT,
-    );
-    server.wait_ready();
+    let server = remote.is_none().then(|| {
+        let mode = mode();
+        println!("[harness] {mode} server on {base}");
+        // `bun --bun next`, the repo convention. bun 1.3.14 segfaulted at
+        // process exit with instrumented modules loaded on Linux (SIGILL,
+        // coverage run 31955271334), which pinned this spawn to node via the
+        // bin's shebang; the 1.4.0 pin cleared it and the toolchain is bun-only
+        // again.
+        let command = if mode == "prod" { "start" } else { "dev" };
+        let server = Server::start(
+            "bun",
+            &["--bun", "next", command, "--port", &PORT.to_string()],
+            // COVERAGE arms the SWC instrumentation (dev) and opens
+            // `/api/coverage`; HARNESS_SERVER_DEBUG arms the bunfig-preloaded
+            // debug hook that surfaces async errors a streamed render swallows.
+            &[("COVERAGE", "1"), ("HARNESS_SERVER_DEBUG", "1")],
+            &root,
+            PORT,
+        );
+        server.wait_ready();
+        server
+    });
 
-    let session = Session::ensure(SESSION).expect("agent-browser session");
+    let session = Session::ensure(if remote.is_some() {
+        REMOTE_SESSION
+    } else {
+        SESSION
+    })
+    .expect("agent-browser session");
     let bypass = Bypass::arm(&session.cdp_url().expect("cdp_url")).expect("arm CSP bypass");
     println!("[harness] CSP enforcement disabled for this browser session");
+
+    // The local path has `wait_ready` for this; the remote path has nothing
+    // between it and a URL somebody typed. One status check first, so an
+    // unreachable or protected deployment fails saying so instead of failing
+    // eight assertions later on a missing <h1>. It is an in-page fetch because
+    // that is the only HTTP client this binary has — hence the navigation, which
+    // `home` performs again in a moment and which costs nothing.
+    if remote.is_some() {
+        goto(&session, &format!("{base}/"));
+        let probe = fetch_probe(&session, "/");
+        assert_eq!(probe.status, 200, "{base}/ did not answer 200");
+    }
 
     let mut written: Vec<(String, usize)> = Vec::new();
 
@@ -66,15 +106,25 @@ fn main() {
     content_security_policy(&session, "/resume");
 
     home_trips(&session, &base);
-    written.push(harvest(&session, &output, "home"));
+
+    // Nothing to harvest off a deployment: the maps below exist only because
+    // the local server was built with COVERAGE=1.
+    let coverage = remote.is_none();
+
+    if coverage {
+        written.push(harvest(&session, &output, "home"));
+    }
 
     resume(&session, &base);
-    written.push(harvest(&session, &output, "resume"));
+    if coverage {
+        written.push(harvest(&session, &output, "resume"));
+    }
 
     not_found(&session, &base);
-    written.push(harvest(&session, &output, "not-found"));
-
-    written.push(server_coverage(&session, &output));
+    if coverage {
+        written.push(harvest(&session, &output, "not-found"));
+        written.push(server_coverage(&session, &output));
+    }
 
     // Explicit, before the guards run: closing the session tears the daemon
     // down, and the bypass socket has nothing left to hold open once it does.
@@ -82,13 +132,17 @@ fn main() {
     session.close().expect("close session");
     drop(server);
 
-    println!(
-        "\n[harness] wrote {} file(s) to {}",
-        written.len(),
-        output.display()
-    );
-    for (name, files) in &written {
-        println!("  {name}: {files} source file(s)");
+    if let Some(base) = &remote {
+        println!("\n[harness] remote target {base}: assertions only, no coverage");
+    } else {
+        println!(
+            "\n[harness] wrote {} file(s) to {}",
+            written.len(),
+            output.display()
+        );
+        for (name, files) in &written {
+            println!("  {name}: {files} source file(s)");
+        }
     }
     println!("[harness] {:.1}s", started.elapsed().as_secs_f64());
 }
@@ -280,7 +334,6 @@ fn content_security_policy(session: &Session, path: &str) {
         "base-uri 'self'",
         "default-src 'none'",
         "form-action 'self'",
-        "frame-src 'none'",
         "upgrade-insecure-requests",
     ] {
         assert!(
@@ -289,6 +342,30 @@ fn content_security_policy(session: &Session, path: &str) {
             probe.csp
         );
     }
+
+    // frame-src is the one directive whose value depends on where the app is
+    // running: the CSP module widens it to vercel.live on a preview so the
+    // Vercel toolbar can frame itself, and locks it to 'none' everywhere else.
+    // That allowance is deliberate, so the assertion is not that frame-src is
+    // 'none' but that those two are the only values it ever takes — a third
+    // frame origin, or a second frame-src, is a regression on both.
+    let frames: Vec<&str> = probe
+        .csp
+        .split(';')
+        .map(str::trim)
+        .filter_map(|directive| directive.strip_prefix("frame-src "))
+        .collect();
+    assert_eq!(
+        frames.len(),
+        1,
+        "{path}: expected exactly one frame-src: {:?}",
+        probe.csp
+    );
+    assert!(
+        matches!(frames[0], "'none'" | "https://vercel.live"),
+        "{path}: unexpected frame-src {:?}",
+        frames[0]
+    );
 
     let nonce = nonce_of(&probe.csp, path);
     assert!(

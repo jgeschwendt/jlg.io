@@ -15,6 +15,7 @@
     "coverage:report": "bun scripts/coverage-report.ts",
     "cspell": "bunx cspell '**/*.{md,mjs,ts,tsx}'",
     "dev": "bun --bun next dev",
+    "e2e:remote": "cargo run --manifest-path e2e/Cargo.toml --bin e2e -- --base",
     "favicon": "bunx svg-to-ico public/jg.svg src/app/favicon.ico",
     "fmt": "bun --bun oxfmt",
     "fmt:check": "bun --bun oxfmt --check",
