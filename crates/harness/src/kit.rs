@@ -67,6 +67,33 @@ pub fn back_until(session: &Session, path: &str) {
     );
 }
 
+/// The origin a run drives instead of one it started itself: `--base <url>` or
+/// `--base=<url>` on the command line, else `HARNESS_BASE`. `None` is the
+/// default and means the suite owns its own `Server` — a deployment has no
+/// instrumentation to collect, so what a caller does with `Some` is its own
+/// business, not this module's. One trailing `/` comes off so `{base}/path`
+/// composes the same way either answer arrives.
+pub fn base_url() -> Option<String> {
+    let mut args = std::env::args().skip(1);
+    let mut base = std::env::var("HARNESS_BASE").ok();
+    while let Some(arg) = args.next() {
+        match arg.as_str() {
+            "--base" => base = args.next().or(base),
+            other => {
+                if let Some(value) = other.strip_prefix("--base=") {
+                    base = Some(value.to_string());
+                }
+            }
+        }
+    }
+    base.map(|mut url| {
+        if url.ends_with('/') {
+            url.pop();
+        }
+        url
+    })
+}
+
 /// Clicks `selector` until the location settles on `to`. `HTMLElement.click`
 /// dispatches an untrusted event, which React's synthetic handlers accept and
 /// next/link's `preventDefault` still fires on — so this is a genuine

@@ -6,6 +6,7 @@ purpose: Personal web profile — Next 16 App Router on Bun, deployed to Vercel,
 commands:
   build: bun run build
   dev: bun run dev
+  e2e:remote: bun run e2e:remote <deployment-url>
   lint: bun run lint
   fmt:check: bun run fmt:check
   tsc: bunx --bun tsc --noEmit
