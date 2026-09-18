@@ -37,7 +37,7 @@
       "budget": null,
       "claims": [
         {
-          "anchor": "lm:config-runtime",
+          "anchor": "※ config-runtime",
           "enforced_by": null,
           "id": "config-runtime",
           "kind": "hazard",
@@ -45,11 +45,11 @@
           "text": "BUN-ONLY RUNTIME — bun is the only JS runtime, locally and in CI (mise pins no node); repo-owned invocations carry --bun/bunx --bun, third-party node-shebang bins (agent-browser, vercel) resolve to bun via the node symlink dev machines and every CI job carry, and oxlint/oxfmt TS configs evaluate in-process under it",
           "verified": {
             "digest": null,
-            "sha": "e59786edf4b42a8e6bfbe5acff27937e65384059"
+            "sha": "84f41424a846a9c1b16dab7a177cfd4d1f813beb"
           }
         },
         {
-          "anchor": "lm:format-policy",
+          "anchor": "※ format-policy",
           "enforced_by": null,
           "id": "format-policy",
           "kind": "invariant",
@@ -57,11 +57,11 @@
           "text": "FORMAT POLICY — printWidth is deliberately absent (oxfmt default 100; the repo predates the base's former 80); singleQuote comes from the @jlg/oxfmt base via defineConfig",
           "verified": {
             "digest": "d1138e9ac0e1878d9b715295a1434d353690b0f02cbfdfbe05bc796cb86ed661",
-            "sha": "e59786edf4b42a8e6bfbe5acff27937e65384059"
+            "sha": "84f41424a846a9c1b16dab7a177cfd4d1f813beb"
           }
         },
         {
-          "anchor": "lm:lefthook-unmatched",
+          "anchor": "※ lefthook-unmatched",
           "enforced_by": null,
           "id": "lefthook-unmatched",
           "kind": "hazard",
@@ -69,11 +69,11 @@
           "text": "LEFTHOOK FOOTGUN — oxlint (exit 1, 'No files found to lint') and oxfmt 0.62+ (exit 2, 'Expected at least one target file') both fail the commit when every staged file is ignored; --no-error-on-unmatched-pattern is load-bearing on both hooks in lefthook.toml",
           "verified": {
             "digest": null,
-            "sha": "e59786edf4b42a8e6bfbe5acff27937e65384059"
+            "sha": "84f41424a846a9c1b16dab7a177cfd4d1f813beb"
           }
         },
         {
-          "anchor": "lm:wasm-output",
+          "anchor": "※ wasm-output",
           "enforced_by": null,
           "id": "wasm-output",
           "kind": "hazard",
@@ -81,7 +81,7 @@
           "text": "WASM OUTPUT — public/background is wasm-bindgen output, gitignored: deploy.yaml regenerates it with `bun run background:build` before `vercel build`, and local dev runs the same command once for the background to render — never hand-edited or committed, ignored by both lint and fmt",
           "verified": {
             "digest": "f5a239e2ae9f1e43569e8052af97b08d28ca6b71f7588875a6ef23ef07714b28",
-            "sha": "e59786edf4b42a8e6bfbe5acff27937e65384059"
+            "sha": "84f41424a846a9c1b16dab7a177cfd4d1f813beb"
           }
         }
       ],
@@ -113,7 +113,7 @@
       "budget": null,
       "claims": [
         {
-          "anchor": "lm:csp-dynamic",
+          "anchor": "※ csp-dynamic",
           "enforced_by": null,
           "id": "csp-dynamic",
           "kind": "invariant",
@@ -121,11 +121,11 @@
           "text": "CSP DYNAMIC — every response carries a fresh per-request CSP nonce minted in the proxy; a build-time static shell cannot hold it, so cacheComponents stays OFF in next.config.js and these routes stay fully dynamic (no cache flag at all — nothing uses the `use cache` directive)",
           "verified": {
             "digest": "179a67ab070d22decbf1a9133cf93352f25e6184459c1cf067ff79fa8efceee0",
-            "sha": "e59786edf4b42a8e6bfbe5acff27937e65384059"
+            "sha": "84f41424a846a9c1b16dab7a177cfd4d1f813beb"
           }
         },
         {
-          "anchor": "lm:proxy-short-circuit",
+          "anchor": "※ proxy-short-circuit",
           "enforced_by": null,
           "id": "proxy-short-circuit",
           "kind": "hazard",
@@ -133,7 +133,7 @@
           "text": "PROXY SHORT-CIRCUIT — a middleware handler aborts the chain by THROWING a NextResponse (caught in createMiddleware and returned as-is); a normally-returned response is merged into the shared response, not short-circuited",
           "verified": {
             "digest": "b01e117c2768bdda3cf61105cf5078d92adbc041335851716e66cd003e64cd77",
-            "sha": "e59786edf4b42a8e6bfbe5acff27937e65384059"
+            "sha": "84f41424a846a9c1b16dab7a177cfd4d1f813beb"
           }
         }
       ],
@@ -152,5 +152,5 @@
       "purpose": "Next App Router UI (app/ pages, components/) plus the Edge middleware chain under server/proxy. Rendering is fully dynamic — see the CSP invariant."
     }
   },
-  "version": 1
+  "version": 2
 }

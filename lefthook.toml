@@ -15,5 +15,5 @@ glob = "*.{cjs,js,jsx,mjs,ts,tsx}"
 # --no-error-on-unmatched-pattern: when every staged file is oxlint-ignored
 # (e.g. a commit touching only oxfmt.config.ts / oxlint.config.ts), oxlint
 # would otherwise exit 1 ("No files found to lint") and abort the commit.
-# stele:landmark lefthook-unmatched
+# ※ lefthook-unmatched
 run = "bunx --bun oxlint --report-unused-disable-directives --no-error-on-unmatched-pattern {staged_files}"
