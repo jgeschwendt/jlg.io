@@ -41,7 +41,7 @@ run('cargo', [
   'wasm32-unknown-unknown',
 ]);
 
-// stele:landmark wasm-output
+// ※ wasm-output
 run('wasm-bindgen', [
   '--no-typescript',
   '--out-dir',

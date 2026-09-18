@@ -13,7 +13,7 @@ const createMiddleware =
   async (request: Readonly<NextRequest>): Promise<Response> => {
     const modifiedResponse = new NextResponse();
 
-    // stele:landmark proxy-short-circuit
+    // ※ proxy-short-circuit
     try {
       const tasks = middleware.map(async (handler) => handler(request, modifiedResponse));
 

@@ -5,7 +5,7 @@
 # symlink dev machines and every CI job carry. bun 1.3.14's exit-path segfault
 # once forced node into the instrumented build (runs 31955271334, 31956326050);
 # the 1.4.0 pin cleared it — hold the pin at >=1.4.0.
-# stele:landmark config-runtime
+# ※ config-runtime
 bun = "1.4.0"
 rust = "latest"
 

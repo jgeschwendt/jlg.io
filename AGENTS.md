@@ -13,24 +13,24 @@ commands:
   background:build: bun run background:build
 invariants:
   - claim: FORMAT POLICY — printWidth is deliberately absent (oxfmt default 100; the repo predates the base's former 80); singleQuote comes from the @jlg/oxfmt base via defineConfig
-    anchor: lm:format-policy
+    anchor: ※ format-policy
 hazards:
   - claim: LEFTHOOK FOOTGUN — oxlint (exit 1, 'No files found to lint') and oxfmt 0.62+ (exit 2, 'Expected at least one target file') both fail the commit when every staged file is ignored; --no-error-on-unmatched-pattern is load-bearing on both hooks in lefthook.toml
-    anchor: lm:lefthook-unmatched
+    anchor: ※ lefthook-unmatched
   - claim: BUN-ONLY RUNTIME — bun is the only JS runtime, locally and in CI (mise pins no node); repo-owned invocations carry --bun/bunx --bun, third-party node-shebang bins (agent-browser, vercel) resolve to bun via the node symlink dev machines and every CI job carry, and oxlint/oxfmt TS configs evaluate in-process under it
-    anchor: lm:config-runtime
+    anchor: ※ config-runtime
   - claim: 'WASM OUTPUT — public/background is wasm-bindgen output, gitignored: deploy.yaml regenerates it with `bun run background:build` before `vercel build`, and local dev runs the same command once for the background to render — never hand-edited or committed, ignored by both lint and fmt'
-    anchor: lm:wasm-output
+    anchor: ※ wasm-output
 ```
 
-<!-- stele:begin router -->
+<!-- @stele -->
 
 ## Hazards (4 active)
 
-- ⚠ `/`: BUN-ONLY RUNTIME — bun is the only JS runtime, locally and in CI (mise pins no node); repo-owned invocations carry --bun/bunx --bun, third-party node-shebang bins (agent-browser, vercel) resolve to bun via the node symlink dev machines and every CI job carry, and oxlint/oxfmt TS configs evaluate in-process under it (→ lm:config-runtime)
-- ⚠ `/`: LEFTHOOK FOOTGUN — oxlint (exit 1, 'No files found to lint') and oxfmt 0.62+ (exit 2, 'Expected at least one target file') both fail the commit when every staged file is ignored; --no-error-on-unmatched-pattern is load-bearing on both hooks in lefthook.toml (→ lm:lefthook-unmatched)
-- ⚠ `src`: PROXY SHORT-CIRCUIT — a middleware handler aborts the chain by THROWING a NextResponse (caught in createMiddleware and returned as-is); a normally-returned response is merged into the shared response, not short-circuited (→ lm:proxy-short-circuit)
-- ⚠ `/`: WASM OUTPUT — public/background is wasm-bindgen output, gitignored: deploy.yaml regenerates it with `bun run background:build` before `vercel build`, and local dev runs the same command once for the background to render — never hand-edited or committed, ignored by both lint and fmt (→ lm:wasm-output)
+- ⚠ `/`: BUN-ONLY RUNTIME — bun is the only JS runtime, locally and in CI (mise pins no node); repo-owned invocations carry --bun/bunx --bun, third-party node-shebang bins (agent-browser, vercel) resolve to bun via the node symlink dev machines and every CI job carry, and oxlint/oxfmt TS configs evaluate in-process under it (→ ※ config-runtime)
+- ⚠ `/`: LEFTHOOK FOOTGUN — oxlint (exit 1, 'No files found to lint') and oxfmt 0.62+ (exit 2, 'Expected at least one target file') both fail the commit when every staged file is ignored; --no-error-on-unmatched-pattern is load-bearing on both hooks in lefthook.toml (→ ※ lefthook-unmatched)
+- ⚠ `src`: PROXY SHORT-CIRCUIT — a middleware handler aborts the chain by THROWING a NextResponse (caught in createMiddleware and returned as-is); a normally-returned response is merged into the shared response, not short-circuited (→ ※ proxy-short-circuit)
+- ⚠ `/`: WASM OUTPUT — public/background is wasm-bindgen output, gitignored: deploy.yaml regenerates it with `bun run background:build` before `vercel build`, and local dev runs the same command once for the background to render — never hand-edited or committed, ignored by both lint and fmt (→ ※ wasm-output)
 
 ## Map
 
@@ -46,7 +46,7 @@ All invariants: `.stele/index/invariants.md` · all hazards: `.stele/index/hazar
 
 `stele` CLI available → `stele root | unfold <id> | invariants --touching <path> | hazards | nodes --kind <k>`. MCP: `stele serve`.
 No engine → everything above is complete; nested AGENTS.md files carry the detail (nearest file wins).
-<!-- stele:end -->
+<!-- @end -->
 
 <!-- BEGIN:nextjs-agent-rules -->
 
