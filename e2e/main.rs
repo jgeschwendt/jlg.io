@@ -60,7 +60,7 @@ fn main() {
         // `bun --bun next`, the repo convention. bun 1.3.14 segfaulted at
         // process exit with instrumented modules loaded on Linux (SIGILL,
         // coverage run 31955271334), which pinned this spawn to node via the
-        // bin's shebang; the 1.4.0 pin cleared it and the toolchain is bun-only
+        // bin's shebang; the 1.4.0 pin cleared it and the server runs on bun
         // again.
         let command = if mode == "prod" { "start" } else { "dev" };
         let server = Server::start(
