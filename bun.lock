@@ -31,7 +31,7 @@
         "istanbul-lib-coverage": "3.2.2",
         "istanbul-lib-report": "3.0.1",
         "istanbul-reports": "3.2.0",
-        "lefthook": "2.1.14",
+        "lefthook": "2.1.15",
         "oxfmt": "0.71.0",
         "oxlint": "1.86.0",
         "oxlint-tsgolint": "7.0.2003",
@@ -39,7 +39,7 @@
         "swc-plugin-coverage-instrument": "0.0.32",
         "tailwindcss": "4.3.3",
         "typescript": "7.0.2",
-        "vercel": "61.0.0",
+        "vercel": "61.1.0",
       },
     },
   },
@@ -636,17 +636,17 @@
 
     "@vercel/static-config": ["@vercel/static-config@3.4.4", "", { "dependencies": { "ajv": "8.6.3", "json-schema-to-ts": "1.6.4", "oxc-parser": "0.121.0", "ts-morph": "12.0.0" } }, "sha512-WppaPyEKQhO8qo5gVee3mSo1QSCgDZaUcUDHrqICSlt90oYeC/SHTmKCPWY1x1NB9hU+kR2oDzJwAeRKKv5NIw=="],
 
-    "@vercel/vc-native-darwin-arm64": ["@vercel/vc-native-darwin-arm64@61.0.0", "", { "os": "darwin", "cpu": "arm64" }, "sha512-8aokrwc2Bm0KDevcXXPLmbe6KL6MhswemcY7dBq+cST0dtbKsP18EQ4FR8UT7KaGrzp6YnbyhH+p1lrX+r9P+w=="],
+    "@vercel/vc-native-darwin-arm64": ["@vercel/vc-native-darwin-arm64@61.1.0", "", { "os": "darwin", "cpu": "arm64" }, "sha512-HWoVSJdlLyIbHgXi+IopKQ9J0ae60qH28wpvBnwmibf2HkHCaZeF4rX8eZ762BYpfwKEGAG5rru8cgt8wvkm5w=="],
 
-    "@vercel/vc-native-darwin-x64": ["@vercel/vc-native-darwin-x64@61.0.0", "", { "os": "darwin", "cpu": "x64" }, "sha512-NgMFg2H7BNeTJkDgG+wg6kbxFbYVQfXNY11jM3N5VeZIsIrskhbhnCuNp9lsGX960ObYHbcpSYJmn9vmEORPZQ=="],
+    "@vercel/vc-native-darwin-x64": ["@vercel/vc-native-darwin-x64@61.1.0", "", { "os": "darwin", "cpu": "x64" }, "sha512-UZ4lt+lM8MeaVM0kiV8/UJYRIMOfJwdDbIuMJmJ9sOYI6ccZh+NSEwZaG7Am5GxITf7ztejOIIO48iNnrWRUVA=="],
 
-    "@vercel/vc-native-linux-arm64": ["@vercel/vc-native-linux-arm64@61.0.0", "", { "os": "linux", "cpu": "arm64" }, "sha512-NxtrZxxqy6ojvYZe7zrmKQvzjb4BeGgyE9+O4cnwrDYHgXPzw0ZIqnLSpzRHAHDro8xGBt6IyUBF3/N85gwUsA=="],
+    "@vercel/vc-native-linux-arm64": ["@vercel/vc-native-linux-arm64@61.1.0", "", { "os": "linux", "cpu": "arm64" }, "sha512-b2bs8SiAvLqBdw5UlcuVd4o5lm0vcsFtZModNOHwykoNIkYJzcS1821D+8Po3Vo9fdTIOHhcrY7ruGP/gccA9w=="],
 
-    "@vercel/vc-native-linux-x64": ["@vercel/vc-native-linux-x64@61.0.0", "", { "os": "linux", "cpu": "x64" }, "sha512-1X5rgoEexUgkiPII8cUaxzxIGReoXsWo54Ye7RUzOa4/HZb/WNuezbl2ieiVzviLZHOuSRLdrvF0vM2J4JrMZQ=="],
+    "@vercel/vc-native-linux-x64": ["@vercel/vc-native-linux-x64@61.1.0", "", { "os": "linux", "cpu": "x64" }, "sha512-NW6EU7IMkniwtJtYBdXAaenroqjF+So6i0i/tsiEg7t+0Jo5hhGf4E0VWfV7MrhWvHzQkXq9UCmluSibtYQK2w=="],
 
-    "@vercel/vc-native-win32-arm64": ["@vercel/vc-native-win32-arm64@61.0.0", "", { "os": "win32", "cpu": "arm64" }, "sha512-TgW/Kuwvu7zId0zrwMOuYNADolrX3MYaluecjEzK3piw1PhM1csVpdyfHrwEO7HycqS7B6N5jG6CPvEs8sGIGQ=="],
+    "@vercel/vc-native-win32-arm64": ["@vercel/vc-native-win32-arm64@61.1.0", "", { "os": "win32", "cpu": "arm64" }, "sha512-E86vc8ej7UCMNnfaCxCnJPv+QaAQcwECfModTgUcXXmg2yKstQJNwu/f3p+TH9NDhEM20ojsnQccb8hKNHEZBg=="],
 
-    "@vercel/vc-native-win32-x64": ["@vercel/vc-native-win32-x64@61.0.0", "", { "os": "win32", "cpu": "x64" }, "sha512-RFbprv0VSxQxyqoFYw5VA9mNkZvnBQuRZHg6qrWHSNMIGIheNbTFiwvHT09h4vPOWEXL9BU1VUssCK0W6thOkw=="],
+    "@vercel/vc-native-win32-x64": ["@vercel/vc-native-win32-x64@61.1.0", "", { "os": "win32", "cpu": "x64" }, "sha512-lu7ED4GeiNNMu2OXJ9LGBYSQHXJ7ffBLyTAgio87hsG6ksjOTzcGF0snxrTI8yV73wAuWilo5QPM0Auj2kckLQ=="],
 
     "@workflow/serde": ["@workflow/serde@4.1.0-beta.2", "", {}, "sha512-8kkeoQKLDaKXefjV5dbhBj2aErfKp1Mc4pb6tj8144cF+Em5SPbyMbyLCHp+BVrFfFVCBluCtMx+jjvaFVZGww=="],
 
@@ -688,7 +688,7 @@
 
     "bytes": ["bytes@3.1.0", "", {}, "sha512-zauLjrfCG+xvoyaqLoV8bLVXXNGC4JqlxFCutSDWA6fJrTo2ZuvLYTqZ7aHBLZSMOopbzwv8f+wZcVzfVTI2Dg=="],
 
-    "caniuse-lite": ["caniuse-lite@1.0.30001813", "", {}, "sha512-zfjJo4rM0+fUomGDBW/xcDjhIwz/210DGvip2MAMDZ8KHcRPnOHmEgHPZP0UHlZoxr8fYKVJOqcORhYQcG4FKQ=="],
+    "caniuse-lite": ["caniuse-lite@1.0.30001814", "", {}, "sha512-/Uaf1lAzr59XcMpW0o96WoEfr+VXK2OX4U9AgFoiSHsVJ4HppnIFUjtYzsyDH2+tgANaQb2/oxYGwCPapN1FpA=="],
 
     "chokidar": ["chokidar@4.0.0", "", { "dependencies": { "readdirp": "^4.0.1" } }, "sha512-mxIojEAQcuEvT/lyXq+jf/3cO/KoA6z4CeNDGGevTybECPOMFCnQy3OPahluUkbqgPNGw5Bi78UC7Po6Lhy+NA=="],
 
@@ -832,27 +832,27 @@
 
     "jsonlines": ["jsonlines@0.1.1", "", {}, "sha512-ekDrAGso79Cvf+dtm+mL8OBI2bmAOt3gssYs833De/C9NmIpWDWyUO4zPgB5x2/OhY366dkhgfPMYfwZF7yOZA=="],
 
-    "lefthook": ["lefthook@2.1.14", "", { "optionalDependencies": { "lefthook-darwin-arm64": "2.1.14", "lefthook-darwin-x64": "2.1.14", "lefthook-freebsd-arm64": "2.1.14", "lefthook-freebsd-x64": "2.1.14", "lefthook-linux-arm64": "2.1.14", "lefthook-linux-x64": "2.1.14", "lefthook-openbsd-arm64": "2.1.14", "lefthook-openbsd-x64": "2.1.14", "lefthook-windows-arm64": "2.1.14", "lefthook-windows-x64": "2.1.14" }, "bin": { "lefthook": "bin/index.js" } }, "sha512-Y9TL1dmpRlIdSp73SJ6bb+xAZ4s2SinGTK3pgC9PRWMSjMr2iOfowPGnlSOfAo5fu6S5rdiItsQDxeLEWCGk4g=="],
+    "lefthook": ["lefthook@2.1.15", "", { "optionalDependencies": { "lefthook-darwin-arm64": "2.1.15", "lefthook-darwin-x64": "2.1.15", "lefthook-freebsd-arm64": "2.1.15", "lefthook-freebsd-x64": "2.1.15", "lefthook-linux-arm64": "2.1.15", "lefthook-linux-x64": "2.1.15", "lefthook-openbsd-arm64": "2.1.15", "lefthook-openbsd-x64": "2.1.15", "lefthook-windows-arm64": "2.1.15", "lefthook-windows-x64": "2.1.15" }, "bin": { "lefthook": "bin/index.js" } }, "sha512-l/BSlOZBou3zLDuSIV8V+kbNyC6UiFCACVHu8dVUCDxH5+8qZXmJr8iROruI/7hv6W7c3sVlVT+6+BpVhGZRmA=="],
 
-    "lefthook-darwin-arm64": ["lefthook-darwin-arm64@2.1.14", "", { "os": "darwin", "cpu": "arm64" }, "sha512-VMUAqY81+8ph7Mc0iROd3JWqj2sOuK7SYDyd8ZgzYVKChCt+Nnz8ehd4gUwprJy7QI28IFSUh1M3wnIRiYh+fA=="],
+    "lefthook-darwin-arm64": ["lefthook-darwin-arm64@2.1.15", "", { "os": "darwin", "cpu": "arm64" }, "sha512-6sNtlNsoeahxZySHbMMijFS8qB5nxZjMohO5t9x4UoM03sKAwXL++vR196mKOF942YdvkuDrwd+qyxfAU6QmWg=="],
 
-    "lefthook-darwin-x64": ["lefthook-darwin-x64@2.1.14", "", { "os": "darwin", "cpu": "x64" }, "sha512-uSmjcPRU+yB+D6vk+u6WJDnyHlB+XIv1QZw97N2+qNGG2bNSLH/7MuJ6puCdJv+lVPBEO5wBjE3JIbaEzPOQCw=="],
+    "lefthook-darwin-x64": ["lefthook-darwin-x64@2.1.15", "", { "os": "darwin", "cpu": "x64" }, "sha512-B2upzVBV/9adKe0fGUO4JCrgx/iKx3qC6PQ2N3Qrok9yL5wDx+AZ6L5GNNgAKUbUWP6XZywyZZ/DFTPLOGxA/Q=="],
 
-    "lefthook-freebsd-arm64": ["lefthook-freebsd-arm64@2.1.14", "", { "os": "freebsd", "cpu": "arm64" }, "sha512-po/pmjbp/7BjE9RFfeDnh+CeNsA0d+utppOYKB425I7mgI1GcmT8GAZ9DDut4DIutNjVqKL/lzrj+F87Gm40Rg=="],
+    "lefthook-freebsd-arm64": ["lefthook-freebsd-arm64@2.1.15", "", { "os": "freebsd", "cpu": "arm64" }, "sha512-7PbO32jhKKHqRdD6DIucmQrZ5nHlXwhxHdqy6CxTH2wNNPlvjXPrMqb6W0SpHuOLS0dWdz77ZVJsOvwfH139AA=="],
 
-    "lefthook-freebsd-x64": ["lefthook-freebsd-x64@2.1.14", "", { "os": "freebsd", "cpu": "x64" }, "sha512-+KiXiFjJf7YdHUYjzhDsklcA5bAFZN+pNcz/NbBftrhVTwzNALNoK+SYEKt+9QJsrzL6tpDWmHHFpeLGp+8t8w=="],
+    "lefthook-freebsd-x64": ["lefthook-freebsd-x64@2.1.15", "", { "os": "freebsd", "cpu": "x64" }, "sha512-0XEgTQomWVV/uw4v5A/OMSfRk/9MRu3OBgTX1xF2QvUrb+fCEglkrJW299vSqndKn53MkUtyoIntz0ajw4PJlA=="],
 
-    "lefthook-linux-arm64": ["lefthook-linux-arm64@2.1.14", "", { "os": "linux", "cpu": "arm64" }, "sha512-bjeJB16ftJaPWGTedssh8ZrqRy1ACfQuTV7a0O3NU1FoIsJtfHOm0o0mV4cPf4q+ZCVCwq1Xf2I11qUpuJFV4Q=="],
+    "lefthook-linux-arm64": ["lefthook-linux-arm64@2.1.15", "", { "os": "linux", "cpu": "arm64" }, "sha512-HfgGoLtzqop68Zo9FDdP7rozFc+hv3xf2s4fWsyH50SbQLNgoKz/9vsneZG7n8bQ5YYGR/up0H9D8WQ7pou01g=="],
 
-    "lefthook-linux-x64": ["lefthook-linux-x64@2.1.14", "", { "os": "linux", "cpu": "x64" }, "sha512-gYExzjU2w3uKrP1MklbHENS1cXUdCQRIiEJkykI7q4RjhIHi+mQEUAZLxZw93a6jE2pNWaO0me5tB8EbEt4/GQ=="],
+    "lefthook-linux-x64": ["lefthook-linux-x64@2.1.15", "", { "os": "linux", "cpu": "x64" }, "sha512-oyhZn6koNmXvSlSQXeTL1Zmxmlp1ysInjZCETwfAhjGb5r42HX2coaPzO0e6dvoP6bqEO8cyWoqqj+FYVz9nig=="],
 
-    "lefthook-openbsd-arm64": ["lefthook-openbsd-arm64@2.1.14", "", { "os": "openbsd", "cpu": "arm64" }, "sha512-MCW76gTlEMBF3Ds8O63UTxjaSguha/5zT0U3Vr719I1sXueSpttfRmm/5YfIB4MygB116yA/Vi+DsizT/X0kcg=="],
+    "lefthook-openbsd-arm64": ["lefthook-openbsd-arm64@2.1.15", "", { "os": "openbsd", "cpu": "arm64" }, "sha512-/hF3ap8CUqD2whU127pesD0x0CLOymDmtR5NR5jbNrT/BryjxlL6YL7HL3KB1Xz3MZwBqYeLIceqFE9/Gc53xQ=="],
 
-    "lefthook-openbsd-x64": ["lefthook-openbsd-x64@2.1.14", "", { "os": "openbsd", "cpu": "x64" }, "sha512-salAc1PAhLI6xrB9pth5UxALQlTOGvZAfaAvgFwixhkdu8D//uW8zS3faFq31ktd1bDAy5wDI8p9yg+fF5+2uA=="],
+    "lefthook-openbsd-x64": ["lefthook-openbsd-x64@2.1.15", "", { "os": "openbsd", "cpu": "x64" }, "sha512-IljStK5gOS8oQPxCsHNDoHeD8vSCDHFuHWtJfRbYWVtNMEA9/2shtIKHswFWQBAxltgt4/i/lN86rErKdDoIug=="],
 
-    "lefthook-windows-arm64": ["lefthook-windows-arm64@2.1.14", "", { "os": "win32", "cpu": "arm64" }, "sha512-q3JC6lBrYLzkhXEhfnmFxJF47gSd5JeDweH3aNrHoLGX/KkRiOrk9RSyoRwSuGq03EYxSkJhl1FLj2GUxF7VqQ=="],
+    "lefthook-windows-arm64": ["lefthook-windows-arm64@2.1.15", "", { "os": "win32", "cpu": "arm64" }, "sha512-S1HIhsM0RZua8fQlHzXFrF0CpA/eo2/UYVUAqU+pJ/3IBAq0ZpWG4ZzfrQiSSBbcG9LB4tJgqiJVtumQKO+ZgA=="],
 
-    "lefthook-windows-x64": ["lefthook-windows-x64@2.1.14", "", { "os": "win32", "cpu": "x64" }, "sha512-WwIxdwW1lDAaJUU3ETcKlCtdqluGr3Cy+LjKvP4QIQnFf0FEXL78THstIkZ6k6qhfUn7/WvyqSIf0cbTAKw2nQ=="],
+    "lefthook-windows-x64": ["lefthook-windows-x64@2.1.15", "", { "os": "win32", "cpu": "x64" }, "sha512-cp4ZhMYpX9khKw+fu0JEskq0Aeo1csREkb4WTMmJaEL7KTt+Lpp5zzSPPa8NGtpcQSKUo+ZXYrtqzpxYpPdt0g=="],
 
     "lightningcss": ["lightningcss@1.32.0", "", { "dependencies": { "detect-libc": "^2.0.3" }, "optionalDependencies": { "lightningcss-android-arm64": "1.32.0", "lightningcss-darwin-arm64": "1.32.0", "lightningcss-darwin-x64": "1.32.0", "lightningcss-freebsd-x64": "1.32.0", "lightningcss-linux-arm-gnueabihf": "1.32.0", "lightningcss-linux-arm64-gnu": "1.32.0", "lightningcss-linux-arm64-musl": "1.32.0", "lightningcss-linux-x64-gnu": "1.32.0", "lightningcss-linux-x64-musl": "1.32.0", "lightningcss-win32-arm64-msvc": "1.32.0", "lightningcss-win32-x64-msvc": "1.32.0" } }, "sha512-NXYBzinNrblfraPGyrbPoD19C1h9lfI/1mzgWYvXUTe414Gz/X1FD2XBZSZM7rRTrMA8JL3OtAaGifrIKhQ5yQ=="],
 
@@ -1022,7 +1022,7 @@
 
     "smol-toml": ["smol-toml@1.5.2", "", {}, "sha512-QlaZEqcAH3/RtNyet1IPIYPsEWAaYyXXv1Krsi+1L/QHppjX4Ifm8MQsBISz9vE8cHicIq3clogsheili5vhaQ=="],
 
-    "source-map-js": ["source-map-js@1.2.1", "", {}, "sha512-UXWMKhLOwVKb728IUtQPXxfYU+usdybtUrK/8uGE8CQMvrhOpwvzDBwj0QhSL7MQc7vIsISBG8VQ8+IDQxpfQA=="],
+    "source-map-js": ["source-map-js@1.2.2", "", {}, "sha512-KGj/8Y43x35aZVDtt+J4mK1hoLGHULMYfSkODJNQjNDC3oW1PqPoxMwo0pLUsWM/UEGzON/NxeHywEfNXNP3Vw=="],
 
     "srvx": ["srvx@0.11.16", "", { "bin": { "srvx": "bin/srvx.mjs" } }, "sha512-bp07zRuycfTY43IjAvvTFnmnJi8ikW0VFiHwOhhYcVW/L4xQ1XY4PAd4Nuum1rsA17C39zL7x+CDhrn5AL32Rw=="],
 
@@ -1090,7 +1090,7 @@
 
     "uuid": ["uuid@14.0.1", "", { "bin": { "uuid": "dist-node/bin/uuid" } }, "sha512-6ZxzVpzDXDa3bJWaHilVayA+BH/1zmxCJoVgvmqJnid/gPoKHxUrS/aC/T6LGQtNHT+XHG9fXPJB4d+IrU30Ew=="],
 
-    "vercel": ["vercel@61.0.0", "", { "dependencies": { "@vercel/backends": "11.0.2", "@vercel/blob": "2.8.0", "@vercel/build-utils": "14.13.2", "@vercel/cli-auth": "0.3.9", "@vercel/cli-config": "0.3.0", "@vercel/container": "11.0.2", "@vercel/detect-agent": "1.2.5", "@vercel/elysia": "11.0.2", "@vercel/express": "11.0.2", "@vercel/fastify": "11.0.2", "@vercel/fun": "1.3.6", "@vercel/go": "14.0.2", "@vercel/h3": "11.0.2", "@vercel/hono": "11.0.2", "@vercel/hydrogen": "12.0.2", "@vercel/koa": "11.0.2", "@vercel/nestjs": "11.0.2", "@vercel/next": "15.0.2", "@vercel/node": "16.0.2", "@vercel/prepare-flags-definitions": "0.3.0", "@vercel/python": "17.0.2", "@vercel/python-analysis": "0.14.0", "@vercel/redwood": "13.0.2", "@vercel/remix-builder": "16.0.2", "@vercel/ruby": "13.0.2", "@vercel/rust": "12.0.2", "@vercel/static-build": "13.0.2", "chokidar": "4.0.0", "esbuild": "0.27.0", "jose": "5.9.6", "jsonc-parser": "3.3.1", "luxon": "^3.4.0", "sandbox": "4.4.0", "smol-toml": "1.5.2", "undici": "5.29.0", "uuid": "14.0.1", "zod": "4.1.11" }, "optionalDependencies": { "@vercel/vc-native-darwin-arm64": "61.0.0", "@vercel/vc-native-darwin-x64": "61.0.0", "@vercel/vc-native-linux-arm64": "61.0.0", "@vercel/vc-native-linux-x64": "61.0.0", "@vercel/vc-native-win32-arm64": "61.0.0", "@vercel/vc-native-win32-x64": "61.0.0" }, "bin": { "vc": "dist/vc.js", "vercel": "dist/vc.js" } }, "sha512-V2y1OZenHG1p7fVHgDJiVqfMp+Hjh0oJ/1EB0EVkKktDA4die6o/IEVA4ihZor1LJbH2/AkELn+HJIC88iOxcA=="],
+    "vercel": ["vercel@61.1.0", "", { "dependencies": { "@vercel/backends": "11.0.2", "@vercel/blob": "2.8.0", "@vercel/build-utils": "14.13.2", "@vercel/cli-auth": "0.3.9", "@vercel/cli-config": "0.3.0", "@vercel/container": "11.0.2", "@vercel/detect-agent": "1.2.5", "@vercel/elysia": "11.0.2", "@vercel/express": "11.0.2", "@vercel/fastify": "11.0.2", "@vercel/fun": "1.3.6", "@vercel/go": "14.0.2", "@vercel/h3": "11.0.2", "@vercel/hono": "11.0.2", "@vercel/hydrogen": "12.0.2", "@vercel/koa": "11.0.2", "@vercel/nestjs": "11.0.2", "@vercel/next": "15.0.2", "@vercel/node": "16.0.2", "@vercel/prepare-flags-definitions": "0.3.0", "@vercel/python": "17.0.2", "@vercel/python-analysis": "0.14.0", "@vercel/redwood": "13.0.2", "@vercel/remix-builder": "16.0.2", "@vercel/ruby": "13.0.2", "@vercel/rust": "12.0.2", "@vercel/static-build": "13.0.2", "chokidar": "4.0.0", "esbuild": "0.27.0", "jose": "5.9.6", "jsonc-parser": "3.3.1", "luxon": "^3.4.0", "sandbox": "4.4.0", "smol-toml": "1.5.2", "undici": "5.29.0", "uuid": "14.0.1", "zod": "4.1.11" }, "optionalDependencies": { "@vercel/vc-native-darwin-arm64": "61.1.0", "@vercel/vc-native-darwin-x64": "61.1.0", "@vercel/vc-native-linux-arm64": "61.1.0", "@vercel/vc-native-linux-x64": "61.1.0", "@vercel/vc-native-win32-arm64": "61.1.0", "@vercel/vc-native-win32-x64": "61.1.0" }, "bin": { "vc": "dist/vc.js", "vercel": "dist/vc.js" } }, "sha512-YDcjzOgyxNGT5ebES1V8y66fJT+z28E4ZJ+cZurBA+cpAfLfYh8KnN7WThDi+GsEDIcyOd6mqLHXz36vhEVjhg=="],
 
     "web-vitals": ["web-vitals@0.2.4", "", {}, "sha512-6BjspCO9VriYy12z356nL6JBS0GYeEcA457YyRzD+dD6XYCQ75NKhcOHUMHentOE7OcVCIXXDvOm0jKFfQG2Gg=="],
 
