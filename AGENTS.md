@@ -17,7 +17,7 @@ invariants:
 hazards:
   - claim: LEFTHOOK FOOTGUN — oxlint (exit 1, 'No files found to lint') and oxfmt 0.62+ (exit 2, 'Expected at least one target file') both fail the commit when every staged file is ignored; --no-error-on-unmatched-pattern is load-bearing on both hooks in lefthook.toml
     anchor: ※ lefthook-unmatched
-  - claim: BUN-ONLY RUNTIME — bun is the only JS runtime, locally and in CI (mise pins no node); repo-owned invocations carry --bun/bunx --bun, third-party node-shebang bins (agent-browser, vercel) resolve to bun via the node symlink dev machines and every CI job carry, and oxlint/oxfmt TS configs evaluate in-process under it
+  - claim: TWO RUNTIMES — mise pins both bun and node, locally and in CI; repo-owned invocations must carry --bun/bunx --bun or they run on node, while third-party node-shebang bins (agent-browser, vercel and its builders, oxlint/oxfmt and the TS configs they evaluate) run on node
     anchor: ※ config-runtime
   - claim: 'WASM OUTPUT — public/background is wasm-bindgen output, gitignored: deploy.yaml regenerates it with `bun run background:build` before `vercel build`, and local dev runs the same command once for the background to render — never hand-edited or committed, ignored by both lint and fmt'
     anchor: ※ wasm-output
@@ -27,7 +27,7 @@ hazards:
 
 ## Hazards (4 active)
 
-- ⚠ `/`: BUN-ONLY RUNTIME — bun is the only JS runtime, locally and in CI (mise pins no node); repo-owned invocations carry --bun/bunx --bun, third-party node-shebang bins (agent-browser, vercel) resolve to bun via the node symlink dev machines and every CI job carry, and oxlint/oxfmt TS configs evaluate in-process under it (→ ※ config-runtime)
+- ⚠ `/`: TWO RUNTIMES — mise pins both bun and node, locally and in CI; repo-owned invocations must carry --bun/bunx --bun or they run on node, while third-party node-shebang bins (agent-browser, vercel and its builders, oxlint/oxfmt and the TS configs they evaluate) run on node (→ ※ config-runtime)
 - ⚠ `/`: LEFTHOOK FOOTGUN — oxlint (exit 1, 'No files found to lint') and oxfmt 0.62+ (exit 2, 'Expected at least one target file') both fail the commit when every staged file is ignored; --no-error-on-unmatched-pattern is load-bearing on both hooks in lefthook.toml (→ ※ lefthook-unmatched)
 - ⚠ `src`: PROXY SHORT-CIRCUIT — a middleware handler aborts the chain by THROWING a NextResponse (caught in createMiddleware and returned as-is); a normally-returned response is merged into the shared response, not short-circuited (→ ※ proxy-short-circuit)
 - ⚠ `/`: WASM OUTPUT — public/background is wasm-bindgen output, gitignored: deploy.yaml regenerates it with `bun run background:build` before `vercel build`, and local dev runs the same command once for the background to render — never hand-edited or committed, ignored by both lint and fmt (→ ※ wasm-output)

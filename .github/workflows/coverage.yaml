@@ -39,10 +39,6 @@ jobs:
       # entry point — see ci.yaml.
       - uses: jdx/mise-action@v2
 
-      # bun-only toolchain: shadow the runner's node so any node-shebang bin or
-      # hardcoded `node` spawn (agent-browser's CLI) resolves to bun.
-      - run: mkdir -p ~/.local/bin && ln -sf "$(command -v bun)" ~/.local/bin/node && echo "$HOME/.local/bin" >> "$GITHUB_PATH"
-
       - name: Cache bun install cache
         uses: actions/cache@v6
         with:

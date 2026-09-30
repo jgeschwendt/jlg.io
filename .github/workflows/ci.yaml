@@ -22,10 +22,6 @@ jobs:
           fetch-depth: 0
       - uses: jdx/mise-action@v2
 
-      # bun-only toolchain: shadow the runner's node so any node-shebang bin or
-      # hardcoded `node` spawn resolves to bun (the same symlink dev machines carry).
-      - run: mkdir -p ~/.local/bin && ln -sf "$(command -v bun)" ~/.local/bin/node && echo "$HOME/.local/bin" >> "$GITHUB_PATH"
-
       - run: bun install --frozen-lockfile
       - run: bun run fmt:check
       - run: bun run lint
@@ -55,10 +51,6 @@ jobs:
       # mise.toml pins rust alongside bun, so this one action also
       # provides the cargo toolchain the harness builds with.
       - uses: jdx/mise-action@v2
-
-      # bun-only toolchain: shadow the runner's node so any node-shebang bin or
-      # hardcoded `node` spawn (agent-browser's CLI) resolves to bun.
-      - run: mkdir -p ~/.local/bin && ln -sf "$(command -v bun)" ~/.local/bin/node && echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
       - name: Cache bun install cache
         uses: actions/cache@v6
@@ -149,10 +141,6 @@ jobs:
       # mise.toml pins rust alongside bun, so this one action also
       # provides the cargo toolchain the harness builds with.
       - uses: jdx/mise-action@v2
-
-      # bun-only toolchain: shadow the runner's node so any node-shebang bin or
-      # hardcoded `node` spawn (agent-browser's CLI) resolves to bun.
-      - run: mkdir -p ~/.local/bin && ln -sf "$(command -v bun)" ~/.local/bin/node && echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
       - name: Cache cargo
         uses: actions/cache@v6
