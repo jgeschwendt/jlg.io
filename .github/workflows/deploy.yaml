@@ -28,23 +28,37 @@ jobs:
       - name: Pull Vercel environment
         run: bunx --bun vercel pull --yes --environment=${{ inputs.environment }} --token=${{ secrets.VERCEL_TOKEN }}
 
-      # The Bevy release profile (lto, codegen-units = 1, opt-level = "z") is
-      # minutes cold and seconds warm — cache the registry and the crate's own
-      # target dir so only a source change pays the full compile.
-      - name: Cache cargo (background wasm)
+      # The wasm background only changes when its crate or build script does, so
+      # cache the built output itself, keyed on exactly those inputs: a hit skips
+      # the toolchain, cargo and wasm-bindgen steps below entirely.
+      - name: Cache background wasm output
+        id: wasm-output
         uses: actions/cache@v6
         with:
-          key: wasm-${{ runner.os }}-${{ hashFiles('crates/background/Cargo.lock') }}
-          path: |
-            ~/.cargo/registry
-            crates/background/target
-          restore-keys: wasm-${{ runner.os }}-
+          key: wasm-output-${{ runner.os }}-${{ hashFiles('crates/background/Cargo.lock', 'crates/background/Cargo.toml', 'crates/background/src/**', 'scripts/background-wasm.ts') }}
+          path: public/background
 
       # mise-action's rust pin is a versioned toolchain, but
       # `scripts/background-wasm.ts` builds with RUSTUP_TOOLCHAIN=stable, and the
       # runner's rustup ships neither that toolchain nor the wasm32 target.
       # (same shape as ci.yaml's `rustup component add`)
-      - run: rustup toolchain install stable --profile minimal --target wasm32-unknown-unknown
+      - if: steps.wasm-output.outputs.cache-hit != 'true'
+        run: rustup toolchain install stable --profile minimal --target wasm32-unknown-unknown
+
+      # On a source change the Bevy release profile (lto, codegen-units = 1,
+      # opt-level = "z") is minutes cold and seconds warm. rust-cache keys on the
+      # rustc that will build (hence RUSTUP_TOOLCHAIN) and re-saves when that key
+      # moves; the hand-rolled actions/cache it replaces keyed on Cargo.lock
+      # alone, so an exact hit never re-saved and a stale target dir was restored
+      # into a full 218-crate rebuild on every deploy.
+      - name: Cache cargo (background wasm)
+        if: steps.wasm-output.outputs.cache-hit != 'true'
+        uses: Swatinem/rust-cache@v2
+        env:
+          RUSTUP_TOOLCHAIN: stable
+        with:
+          key: wasm32
+          workspaces: crates/background -> target
 
       # The script probes `wasm-bindgen --version` and falls back to
       # `cargo install wasm-bindgen-cli` — a multi-minute compile — whenever the
@@ -53,6 +67,7 @@ jobs:
       # shim above) makes that fallback dead in CI; reading the version out of
       # the lock keeps the same lockstep rule the script enforces.
       - name: Install wasm-bindgen CLI
+        if: steps.wasm-output.outputs.cache-hit != 'true'
         run: |
           version=$(grep -A1 '^name = "wasm-bindgen"$' crates/background/Cargo.lock | sed -n 's/^version = "\(.*\)"/\1/p')
           [ -n "$version" ] || { echo 'wasm-bindgen missing from crates/background/Cargo.lock' >&2; exit 1; }
@@ -65,7 +80,8 @@ jobs:
       # `next build` (inside `vercel build`) copies into the output. This is the
       # only workflow that needs it — the e2e harness never asserts the
       # background, and Background.tsx tolerates the module's absence.
-      - run: bun run background:build
+      - if: steps.wasm-output.outputs.cache-hit != 'true'
+        run: bun run background:build
 
       - name: Build
         run: bunx --bun vercel build ${{ inputs.environment == 'production' && '--prod' || '' }} --token=${{ secrets.VERCEL_TOKEN }}
