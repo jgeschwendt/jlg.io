@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useEffect } from 'react';
 import type { JSX } from 'react';
 import { Statement } from './Statement';
-import { At, File, GitHub, LinkedIn } from '@/components/icons';
+import { At, File, GitHub } from '@/components/icons';
 
 const [HIDE, SHOW] = ['0', '1'];
 
@@ -13,7 +13,6 @@ const links = [
   [{ svg: At }, 'Email', 'mailto:joshua@geschwendt.com'],
   [{ svg: File }, 'Resume', '/resume'],
   [{ svg: GitHub }, 'GitHub', 'https://github.com/jgeschwendt'],
-  [{ svg: LinkedIn }, 'LinkedIn', 'https://www.linkedin.com/in/jgeschwendt'],
 ] as const;
 
 // Module scope so the entrance plays once per session, not again on every return navigation.
@@ -119,7 +118,7 @@ export function Main(): JSX.Element {
               >
                 <Link
                   aria-label={label}
-                  className="mx-1 flex h-11 w-11 items-center justify-center rounded-lg border-2 border-[oklch(1_0_0/.05)] bg-[oklch(1_0_0/.05)] text-xl text-white transition duration-300 hover:border-[oklch(1_0_0/.1)] hover:bg-[oklch(1_0_0/.1)]"
+                  className="mx-1 flex h-11 w-11 items-center justify-center rounded-lg border-2 border-[oklch(1_0_0/.05)] bg-[oklch(1_0_0/.05)] text-2xl text-white transition duration-300 hover:border-[oklch(1_0_0/.1)] hover:bg-[oklch(1_0_0/.1)]"
                   href={href}
                 >
                   <icon.svg />

@@ -1,7 +1,7 @@
 import { Atkinson_Hyperlegible_Next as atkinsonHyperlegibleNext } from 'next/font/google';
 import type { JSX } from 'react';
 
-import { contacts, education, experience } from './Resume';
+import { contacts, education, experience, region } from './Resume';
 
 const atkinson = atkinsonHyperlegibleNext({
   // Next has no fallback metrics for this font; opt out to keep builds clean.
@@ -23,14 +23,17 @@ export function Sheet(): JSX.Element {
           </h1>
         </header>
 
-        <section className="mb-6 flex-1">
+        <section className="mb-6 flex flex-1 flex-col lg:mb-16 print:mb-16">
           <h2 className="mb-5 text-[0.8125rem] font-medium text-[#18453b] uppercase">
             {'Experience'}
           </h2>
-          <ol className="flex flex-col-reverse">
+          <ol className="flex flex-col-reverse lg:flex-1 lg:justify-between print:flex-1 print:justify-between">
             {experience.map(([company, title, [start, end], highlights, technologies]) => (
-              <li className="not-first:mb-8 min-[8.5in]:not-first:mb-7" key={company}>
-                <div className="mb-2 flex flex-col gap-1 min-[8.5in]:flex-row min-[8.5in]:items-baseline min-[8.5in]:justify-between min-[8.5in]:gap-4">
+              <li
+                className="not-first:mb-8 min-[8.5in]:not-first:mb-7 print:not-first:mb-7"
+                key={company}
+              >
+                <div className="mb-2 flex flex-col gap-1 min-[8.5in]:flex-row min-[8.5in]:items-baseline min-[8.5in]:justify-between min-[8.5in]:gap-4 print:flex-row print:items-baseline print:justify-between print:gap-4">
                   <h3 className="text-[0.8125rem] font-medium text-black/87">
                     {company}
                     <span className="text-[0.75rem] font-light text-black/66">
@@ -41,11 +44,13 @@ export function Sheet(): JSX.Element {
                     {`${start} – ${end}`}
                   </span>
                 </div>
-                <ul className="mb-2 list-disc space-y-1.5 pl-4 text-[0.75rem] leading-snug marker:text-black/35">
-                  {highlights.map((highlight) => (
-                    <li key={highlight}>{highlight}</li>
-                  ))}
-                </ul>
+                {highlights.length > 0 && (
+                  <ul className="mb-2 list-disc space-y-1.5 pl-4 text-[0.75rem] leading-snug text-pretty marker:text-black/35">
+                    {highlights.map((highlight) => (
+                      <li key={highlight}>{highlight}</li>
+                    ))}
+                  </ul>
+                )}
                 <div className="text-[0.75rem]">
                   <span className="font-normal text-black/87">{'Stack:'}</span>
                   {`\u2002${technologies.join('\u2002·\u2002')}`}
@@ -55,14 +60,14 @@ export function Sheet(): JSX.Element {
           </ol>
         </section>
 
-        <footer className="flex flex-col gap-10 min-[8.5in]:flex-row min-[8.5in]:gap-0">
+        <footer className="flex flex-col gap-10 min-[8.5in]:flex-row min-[8.5in]:gap-0 print:flex-row print:gap-0">
           <div className="flex-1">
             <h2 className="mb-5 text-[0.8125rem] font-medium text-[#18453b] uppercase">
               {'Education'}
             </h2>
             <div className="space-y-2 text-[0.75rem] leading-snug">
               {education.map(([degree, specialization, institution, college, location]) => (
-                <div key={degree}>
+                <div className="space-y-1.5" key={degree}>
                   <div>
                     <span className="font-normal text-black/87">{degree}</span>
                     <i>{`\u2002·\u2002${specialization}`}</i>
@@ -78,6 +83,7 @@ export function Sheet(): JSX.Element {
               {'Contact'}
             </h2>
             <div className="space-y-1.5 text-[0.75rem] leading-snug">
+              <div>{region}</div>
               {contacts.map(([href, display]) => (
                 <a
                   className="block text-black/87 hover:text-black hover:underline"
