@@ -1,1 +1,1 @@
-export { At, File, GitHub, LinkedIn } from './Icons';
+export { At, File, GitHub } from './Icons';

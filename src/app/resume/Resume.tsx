@@ -20,7 +20,7 @@ const experience: readonly Experience[] = [
     'Applications Developer',
     ['November 2014', 'June 2016'],
     [
-      'Delivered client projects ranging from single-page applications to enterprise content management systems.',
+      'Rebuilt Haworth’s website and delivered projects for Delphi, Spectrum Health (now Corewell Health), and other enterprise clients.',
     ],
     ['AngularJS', 'C#', 'Node.js'],
   ],
@@ -29,9 +29,8 @@ const experience: readonly Experience[] = [
     'Senior Software Engineer',
     ['June 2016', 'August 2017'],
     [
-      'Built a modern WordPress theme and rolled it out across 2,000+ school athletics sites, significantly increasing traffic.',
-      'Migrated the platform’s PHP REST API to Elixir, adding GraphQL support, and its AngularJS app to React.',
-      'Optimized ad-slot performance across the network, raising client CTR and company ROI.',
+      'Migrated the PHP REST API to Elixir with GraphQL, and the AngularJS app to React.',
+      'Built and rolled out a WordPress theme across 1,700+ school athletics sites.',
     ],
     ['Elixir', 'Node.js', 'PHP', 'React', 'WordPress'],
   ],
@@ -40,7 +39,7 @@ const experience: readonly Experience[] = [
     'Senior Software Engineer',
     ['August 2017', 'November 2018'],
     [
-      'Assessed client systems with strategists and designers, then built the software to close the gaps.',
+      'Embedded with strategists and designers to audit client systems, then built the software that closed the gaps.',
     ],
     ['Elixir', 'Node.js', 'React', 'TypeScript'],
   ],
@@ -49,8 +48,8 @@ const experience: readonly Experience[] = [
     'Senior Product Developer',
     ['November 2018', 'December 2020'],
     [
-      'Architected and built the chat component shipped across Cars.com and Dealer Inspire products, serving thousands of dealerships and millions of messages per day.',
-      'Set TypeScript standards and architecture for the Conversations™ platform alongside its principal engineer.',
+      'Architected and built the Cars.com and Dealer Inspire chat component, handling millions of messages for thousands of dealerships.',
+      'Established TypeScript standards and architecture for the Conversations platform alongside its principal engineer.',
     ],
     ['Node.js', 'React', 'TypeScript'],
   ],
@@ -59,9 +58,9 @@ const experience: readonly Experience[] = [
     'Staff Software Engineer',
     ['January 2021', 'July 2025'],
     [
-      'Led the migration of rockethomes.com to TypeScript and modern React, improving stability and usability across the platform.',
-      'Defined the site’s architecture and engineering standards, then led its move from a homegrown framework to Next.js.',
-      'Repeatedly halved deploy and CI times, and cut dev-tooling startup from minutes to near-instant.',
+      'Led rockethomes.com’s move from a homegrown framework to Next.js, cutting errors and lifting Core Web Vitals, SEO, and conversion.',
+      'Defined rockethomes.com’s architecture and engineering standards, now the foundation of Rocket Mortgage’s servicing app.',
+      'Repeatedly halved deploy and CI times; cut dev-server startup from 2–5 minutes to near-instant.',
     ],
     ['Next.js', 'Node.js', 'React', 'TypeScript'],
   ],
@@ -70,9 +69,9 @@ const experience: readonly Experience[] = [
     'Staff Software Engineer',
     ['July 2025', 'Present'],
     [
-      'Rebuilt Rocket Mortgage’s servicing platform from Angular to Next.js in six months, compressing a multi-year scope with AI-assisted development, and unified Rocket and Mr. Cooper clients on a single platform.',
-      'Dreamed up, built, and shipped remote development environments: collaborative spaces that embed AI harnesses in the live application, letting any team make changes together from a URL with no setup.',
-      'Mentor team members and guide the organization’s transition to AI-forward engineering.',
+      'Laid the groundwork for Rocket Mortgage’s AI-assisted servicing rebuild, building the first pages end to end on its foundational team before more teams scaled it out for nearly 10M clients in six months, not years.',
+      'Keep rocket.com’s build, test, and deploy loop fast and trustworthy, giving engineers and AI agents the confidence to move quickly while agents on routines handle the upkeep.',
+      'Mentor engineers and give talks on working effectively with generative AI as Rocket shifts to AI-forward engineering.',
     ],
     ['Elixir', 'Next.js', 'Node.js', 'Rust', 'TypeScript'],
   ],
@@ -90,8 +89,10 @@ const education: readonly Education[] = [
 
 const contacts = [
   ['mailto:joshua@geschwendt.com', 'joshua@geschwendt.com'],
+  ['https://joshua.geschwendt.com', 'joshua.geschwendt.com'],
   ['https://github.com/jgeschwendt', 'github.com/jgeschwendt'],
-  ['https://linkedin.com/in/jgeschwendt', 'linkedin.com/in/jgeschwendt'],
 ];
 
-export { contacts, education, experience };
+const region = 'West Michigan';
+
+export { contacts, education, experience, region };

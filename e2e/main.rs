@@ -153,7 +153,7 @@ fn main() {
     println!("[harness] {:.1}s", started.elapsed().as_secs_f64());
 }
 
-/// `/` — the statement, the four icon links, the metadata. The hydration-proof
+/// `/` — the statement, the three icon links, the metadata. The hydration-proof
 /// interactions live in `home_trips`, which runs after the response-layer
 /// probes have warmed `/resume`.
 fn home(session: &Session, base: &str) {
@@ -174,7 +174,6 @@ fn home(session: &Session, base: &str) {
     for (label, href) in [
         ("Email", "mailto:joshua@geschwendt.com"),
         ("GitHub", "https://github.com/jgeschwendt"),
-        ("LinkedIn", "https://www.linkedin.com/in/jgeschwendt"),
         ("Resume", "/resume"),
     ] {
         let actual = attribute(session, &format!("a[aria-label=\"{label}\"]"), "href");

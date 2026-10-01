@@ -25,8 +25,6 @@
     "update": "bunx npm-check-updates -u && bun install"
   },
   "dependencies": {
-    "@fortawesome/free-brands-svg-icons": "7.3.1",
-    "@fortawesome/free-solid-svg-icons": "7.3.1",
     "@vercel/analytics": "2.0.1",
     "@vercel/speed-insights": "2.0.0",
     "geist": "1.7.2",
