@@ -39,40 +39,26 @@ jobs:
       # entry point — see ci.yaml.
       - uses: jdx/mise-action@v2
 
-      - name: Cache bun install cache
-        uses: actions/cache@v6
-        with:
-          key: bun-${{ runner.os }}-${{ hashFiles('bun.lock') }}
-          path: ~/.bun/install/cache
-          restore-keys: bun-${{ runner.os }}-
-
+      # No bun cache, and caches restored rather than saved — see ci.yaml's
+      # harness job, which owns both and runs this same chain on every push.
       - run: bun install --frozen-lockfile
 
-      - name: Cache cargo
-        uses: actions/cache@v6
+      - uses: Swatinem/rust-cache@v2
         with:
-          key: cargo-${{ runner.os }}-${{ hashFiles('crates/harness/Cargo.lock', 'e2e/Cargo.lock') }}
-          path: |
-            ~/.cargo/registry
-            crates/harness/target
-            e2e/target
-          restore-keys: cargo-${{ runner.os }}-
+          save-if: false
+          shared-key: harness
+          workspaces: |
+            crates/harness -> target
+            e2e -> target
 
-      # Pinned: the harness speaks the daemon's socket protocol directly, so a
-      # silent CLI upgrade is a protocol change. Bump deliberately, with a local
-      # `bun run coverage:dev` against the new version first.
-      - run: bun add -g agent-browser@0.34.0 && echo "$HOME/.bun/bin" >> "$GITHUB_PATH"
-
-      # Keyed on the CLI version, which decides the Chromium build it fetches.
-      - name: Cache agent-browser Chromium
-        uses: actions/cache@v6
+      - name: Cache Next build (coverage)
+        uses: actions/cache/restore@v6
         with:
-          key: agent-browser-${{ runner.os }}-0.34.0
-          path: ~/.agent-browser/browsers
+          key: next-coverage-${{ runner.os }}-${{ hashFiles('bun.lock') }}-${{ hashFiles('bunfig.toml', 'next.config.js', 'postcss.config.js', 'src/**', 'tsconfig.json') }}
+          path: .next/cache
+          restore-keys: next-coverage-${{ runner.os }}-${{ hashFiles('bun.lock') }}-
 
-      # `--with-deps` every time even on a cache hit: system libraries live
-      # outside the cached browser directory.
-      - run: agent-browser install --with-deps
+      - uses: ./.github/actions/agent-browser
 
       # Fast standalone signal; `next build` also type-checks since 16.3 + TS7 stable.
       - run: bunx --bun tsc --noEmit

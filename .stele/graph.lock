@@ -45,7 +45,7 @@
           "text": "TWO RUNTIMES — mise pins both bun and node, locally and in CI; repo-owned invocations must carry --bun/bunx --bun or they run on node, while third-party node-shebang bins (agent-browser, vercel and its builders, oxlint/oxfmt and the TS configs they evaluate) run on node",
           "verified": {
             "digest": null,
-            "sha": "a011f06d53891344d3d1750ff61b7a1ef661be0f"
+            "sha": "103d147a3f746985c748d3c50bfa68f8aa35bbc9"
           }
         },
         {
@@ -57,7 +57,7 @@
           "text": "FORMAT POLICY — printWidth is deliberately absent (oxfmt default 100; the repo predates the base's former 80); singleQuote comes from the @jlg/oxfmt base via defineConfig",
           "verified": {
             "digest": "d1138e9ac0e1878d9b715295a1434d353690b0f02cbfdfbe05bc796cb86ed661",
-            "sha": "a011f06d53891344d3d1750ff61b7a1ef661be0f"
+            "sha": "103d147a3f746985c748d3c50bfa68f8aa35bbc9"
           }
         },
         {
@@ -69,7 +69,7 @@
           "text": "LEFTHOOK FOOTGUN — oxlint (exit 1, 'No files found to lint') and oxfmt 0.62+ (exit 2, 'Expected at least one target file') both fail the commit when every staged file is ignored; --no-error-on-unmatched-pattern is load-bearing on both hooks in lefthook.toml",
           "verified": {
             "digest": null,
-            "sha": "a011f06d53891344d3d1750ff61b7a1ef661be0f"
+            "sha": "103d147a3f746985c748d3c50bfa68f8aa35bbc9"
           }
         },
         {
@@ -81,7 +81,7 @@
           "text": "WASM OUTPUT — public/background is wasm-bindgen output, gitignored: deploy.yaml regenerates it with `bun run background:build` before `vercel build`, or restores it from a cache keyed on the crate sources and build script, and local dev runs the same command once for the background to render — never hand-edited or committed, ignored by both lint and fmt",
           "verified": {
             "digest": "f5a239e2ae9f1e43569e8052af97b08d28ca6b71f7588875a6ef23ef07714b28",
-            "sha": "a011f06d53891344d3d1750ff61b7a1ef661be0f"
+            "sha": "103d147a3f746985c748d3c50bfa68f8aa35bbc9"
           }
         }
       ],
@@ -121,7 +121,7 @@
           "text": "CSP DYNAMIC — every response carries a fresh per-request CSP nonce minted in the proxy; a build-time static shell cannot hold it, so cacheComponents stays OFF in next.config.js and these routes stay fully dynamic (no cache flag at all — nothing uses the `use cache` directive)",
           "verified": {
             "digest": "179a67ab070d22decbf1a9133cf93352f25e6184459c1cf067ff79fa8efceee0",
-            "sha": "a011f06d53891344d3d1750ff61b7a1ef661be0f"
+            "sha": "103d147a3f746985c748d3c50bfa68f8aa35bbc9"
           }
         },
         {
@@ -133,7 +133,7 @@
           "text": "PROXY SHORT-CIRCUIT — a middleware handler aborts the chain by THROWING a NextResponse (caught in createMiddleware and returned as-is); a normally-returned response is merged into the shared response, not short-circuited",
           "verified": {
             "digest": "b01e117c2768bdda3cf61105cf5078d92adbc041335851716e66cd003e64cd77",
-            "sha": "a011f06d53891344d3d1750ff61b7a1ef661be0f"
+            "sha": "103d147a3f746985c748d3c50bfa68f8aa35bbc9"
           }
         }
       ],

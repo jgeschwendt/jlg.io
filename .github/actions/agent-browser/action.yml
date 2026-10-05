@@ -1,0 +1,40 @@
+name: agent-browser
+description: Install the pinned agent-browser CLI and the Chrome it drives, cached on that Chrome build.
+
+runs:
+  using: composite
+  steps:
+    # Pinned: the harness speaks the daemon's socket protocol directly, so a
+    # silent CLI upgrade is a protocol change. Bump deliberately, with a local
+    # `bun run coverage` against the new version first.
+    - shell: bash
+      run: bun add -g agent-browser@0.34.0 && echo "$HOME/.bun/bin" >> "$GITHUB_PATH"
+
+    # `agent-browser install` fetches whatever Chrome for Testing marks Stable
+    # right now — the CLI version does not decide it — so the cache keys on the
+    # same feed the CLI reads. A CLI-version key restored a superseded Chrome,
+    # never re-saved, and downloaded the new one every run.
+    # (observed 2026-10-02 · run 37029925800: cache hit, then "Downloading Chrome 154")
+    - id: chrome
+      shell: bash
+      run: |
+        version=$(curl -fsSL https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions-with-downloads.json | jq -r .channels.Stable.version)
+        [ -n "$version" ] && [ "$version" != null ] || { echo 'no Chrome for Testing stable version' >&2; exit 1; }
+        echo "version=$version" >> "$GITHUB_OUTPUT"
+
+    - uses: actions/cache@v6
+      with:
+        key: chrome-${{ runner.os }}-${{ steps.chrome.outputs.version }}
+        path: ~/.agent-browser/browsers
+
+    # The runner image already carries Chrome's shared libraries, so the apt
+    # pass behind `--with-deps` (seconds normally, the whole job timeout when
+    # the Azure mirror stalls) runs only when the binary is missing one.
+    - shell: bash
+      run: |
+        agent-browser install
+        chrome=$(find ~/.agent-browser/browsers -type f -name chrome -perm -u+x | head -n 1)
+        [ -n "$chrome" ] || { echo 'agent-browser installed no chrome binary' >&2; exit 1; }
+        if ldd "$chrome" | grep 'not found'; then
+          agent-browser install --with-deps
+        fi

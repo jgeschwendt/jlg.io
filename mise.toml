@@ -8,7 +8,11 @@
 # ※ config-runtime
 bun = "1.4.0"
 node = "24.21.0"
-rust = "latest"
+# The rustup channel, not "latest": mise resolves "latest" against the network
+# on every install (~8s a CI job · run 37029925800 "rust@latest resolving"),
+# while "stable" is the toolchain the runner image already carries — the same
+# one deploy.yaml's wasm build uses.
+rust = "stable"
 
 [env]
 _.file = ".env"
