@@ -54,7 +54,7 @@
     "oxlint": "1.87.0",
     "oxlint-tsgolint": "7.0.2003",
     "postcss": "8.5.29",
-    "swc-plugin-coverage-instrument": "0.0.32",
+    "swc-plugin-coverage-instrument": "0.0.33",
     "tailwindcss": "4.3.3",
     "typescript": "7.0.2",
     "vercel": "62.7.0"
