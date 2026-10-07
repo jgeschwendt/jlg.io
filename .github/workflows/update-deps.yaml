@@ -66,11 +66,7 @@ jobs:
           # re-bump — restored after every update. Drop an entry when upstream
           # catches up (the dated reason says what to check); add one whenever
           # a red run ends in a pin-back on the branch.
-          # - swc-plugin-coverage-instrument 0.0.32: 0.0.33 targets swc_core
-          #   30.0.0 but next 16.3.3's plugin runner is 30.0.1 — instrumented
-          #   builds die ("failed to deserialize swc_ecma_ast"). Recheck on any
-          #   next or plugin release. (2026-08-27, PR #573)
-          holds="swc-plugin-coverage-instrument@0.0.32"
+          holds=""
 
           for hold in $holds; do
             pkg="${hold%@*}"
