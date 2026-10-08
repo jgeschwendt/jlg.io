@@ -11,7 +11,9 @@
 #   e2e      → the Rust e2e suite (crates/harness drives it); its two modes and
 #              the CSP bypass they arm are documented in e2e/main.rs's module
 #              doc, at the point of use
+#   patches  → bun `patchedDependencies` diffs (next@16.4.0: vercel/next.js#82117);
+#              version-keyed, so a next bump orphans the entry — re-key or drop it
 # Excluding a dir here drops only its exhaustiveness requirement; the anchor scan
 # still sees it, so lm:wasm-output in scripts/ keeps resolving.
 [exhaustiveness]
-exclude = ["node_modules", "_build", "deps", "target", ".github", "crates", "public", "scripts", "e2e"]
+exclude = ["node_modules", "_build", "deps", "target", ".github", "crates", "public", "scripts", "e2e", "patches"]

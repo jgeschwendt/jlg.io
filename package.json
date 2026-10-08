@@ -62,6 +62,9 @@
   "engines": {
     "node": "24.x"
   },
+  "patchedDependencies": {
+    "next@16.4.0": "patches/next@16.4.0.patch"
+  },
   "trustedDependencies": [
     "@tailwindcss/oxide",
     "@vercel/speed-insights",

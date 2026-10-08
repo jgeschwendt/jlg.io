@@ -1,0 +1,52 @@
+diff --git a/dist/build/templates/app-page-runtime.js b/dist/build/templates/app-page-runtime.js
+index fc5eef172bc3e2567ab414416590f85fb49e4ef1..87be1ea46e5e33ddb76bdcd73fbe93de88e8b54e 100644
+--- a/dist/build/templates/app-page-runtime.js
++++ b/dist/build/templates/app-page-runtime.js
+@@ -1364,17 +1364,18 @@ function createAppPageEntrypoint({ tree, page, pathname, require: __next_app_req
+                     if (!isMinimalMode || !isSSG) {
+                         delete headers[_constants1.NEXT_CACHE_TAGS_HEADER];
+                     }
++                    const nextRes = new _node.NodeNextResponse(res);
+                     for (let [key, value] of Object.entries(headers)){
+                         if (typeof value === 'undefined') continue;
+                         if (Array.isArray(value)) {
+                             for (const v of value){
+-                                res.appendHeader(key, v);
++                                nextRes.appendHeader(key, v);
+                             }
+                         } else if (typeof value === 'number') {
+                             value = value.toString();
+-                            res.appendHeader(key, value);
++                            nextRes.appendHeader(key, value);
+                         } else {
+-                            res.appendHeader(key, value);
++                            nextRes.appendHeader(key, value);
+                         }
+                     }
+                 }
+diff --git a/dist/esm/build/templates/app-page-runtime.js b/dist/esm/build/templates/app-page-runtime.js
+index 96beb1b9bd89e6eb55e9d0cfbed49fa3aa9c42ea..bdf682fc72f7cdf535e14187ce481244fb670c2b 100644
+--- a/dist/esm/build/templates/app-page-runtime.js
++++ b/dist/esm/build/templates/app-page-runtime.js
+@@ -1383,17 +1383,18 @@ export function createAppPageEntrypoint({ tree, page, pathname, require: __next_
+                     if (!isMinimalMode || !isSSG) {
+                         delete headers[NEXT_CACHE_TAGS_HEADER];
+                     }
++                    const nextRes = new NodeNextResponse(res);
+                     for (let [key, value] of Object.entries(headers)){
+                         if (typeof value === 'undefined') continue;
+                         if (Array.isArray(value)) {
+                             for (const v of value){
+-                                res.appendHeader(key, v);
++                                nextRes.appendHeader(key, v);
+                             }
+                         } else if (typeof value === 'number') {
+                             value = value.toString();
+-                            res.appendHeader(key, value);
++                            nextRes.appendHeader(key, value);
+                         } else {
+-                            res.appendHeader(key, value);
++                            nextRes.appendHeader(key, value);
+                         }
+                     }
+                 }
