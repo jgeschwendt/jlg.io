@@ -16,6 +16,9 @@
 //! would break on the day it is tightened. (verified 2026-08-18 · the dev
 //! server's response header carries `'unsafe-eval'`, `next start`'s does not)
 //!
+//! The same attach registers `kit::COVERAGE_STASH` on each target, which files
+//! a document's client counters before a full page load discards them.
+//!
 //! The override is scoped to the CDP session that set it and reverts the moment
 //! that session detaches, so this type owns the WebSocket and must outlive
 //! every navigation the run performs. Arm it before the first request to the
@@ -92,9 +95,16 @@ impl Bypass {
                 json!({ "enabled": true }),
                 Some(&session),
             )?;
+            // The same per-target hook carries the client-coverage stash, so
+            // every document the run loads keeps its counters past unload.
+            bypass.command(
+                "Page.addScriptToEvaluateOnNewDocument",
+                json!({ "source": crate::kit::COVERAGE_STASH }),
+                Some(&session),
+            )?;
         }
         println!(
-            "[harness] CSP bypass armed on {} page target(s)",
+            "[harness] CSP bypass and coverage stash armed on {} page target(s)",
             target_ids.len()
         );
 

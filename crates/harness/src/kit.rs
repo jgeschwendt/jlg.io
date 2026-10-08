@@ -324,16 +324,48 @@ pub fn goto(session: &Session, url: &str) {
     panic!("{url} served the __next_error__ shell across {ATTEMPTS} attempts");
 }
 
-/// Reads `window.__coverage__` and files it under `.nyc_output`. Every hard
-/// navigation discards the map, so this has to run before the next one — client
-/// coverage is not cumulative across page loads the way the server's is.
+/// Registered on every page target (`cdp::Bypass::arm`) so a document's client
+/// counters outlive it. A full page load — `goto`, or a `<Link>` click that
+/// degrades into one under the hydration race — discards the JS heap and with
+/// it `window.__coverage__`; on `pagehide` this files the map in
+/// `sessionStorage`, which survives a same-origin load, and zeroes the live
+/// counters so a back-forward-cache restore does not count them twice.
+/// (observed 2026-10-08 · a race-degraded Close click lost `Main.tsx`'s
+/// return-visit branch; the run before it, race-free, had covered it)
+pub const COVERAGE_STASH: &str = "addEventListener('pagehide', () => { \
+  const live = window.__coverage__; if (!live) return; \
+  const stash = JSON.parse(sessionStorage.getItem('__harness_coverage') ?? '[]'); \
+  stash.push(live); sessionStorage.setItem('__harness_coverage', JSON.stringify(stash)); \
+  for (const file of Object.values(live)) { \
+    for (const id in file.s) file.s[id] = 0; for (const id in file.f) file.f[id] = 0; \
+    for (const id in file.b) file.b[id] = file.b[id].map(() => 0); } });";
+
+/// Every client counter since the last harvest — the live map plus whatever
+/// `COVERAGE_STASH` filed from documents a load replaced — summed into one map
+/// and written under `.nyc_output`. The stash is cleared and the live counters
+/// zeroed, so no hit is ever reported twice.
 pub fn harvest(session: &Session, output: &Path, label: &str) -> (String, usize) {
-    let raw = session
-        .eval("JSON.stringify(window.__coverage__ ?? {})")
-        .expect("read window.__coverage__");
+    let raw = session.eval(HARVEST).expect("read window.__coverage__");
     let raw = raw.as_str().expect("coverage map is a JSON string");
     write_map(output, &format!("client-harness-{label}"), raw, true)
 }
+
+const HARVEST: &str = "(() => { \
+  const maps = JSON.parse(sessionStorage.getItem('__harness_coverage') ?? '[]'); \
+  sessionStorage.removeItem('__harness_coverage'); \
+  const live = window.__coverage__; \
+  if (live) maps.push(JSON.parse(JSON.stringify(live))); \
+  const merged = {}; \
+  for (const map of maps) for (const [path, file] of Object.entries(map)) { \
+    const into = merged[path]; \
+    if (!into) { merged[path] = file; continue; } \
+    for (const id in file.s) into.s[id] += file.s[id]; \
+    for (const id in file.f) into.f[id] += file.f[id]; \
+    for (const id in file.b) into.b[id] = into.b[id].map((n, arm) => n + file.b[id][arm]); } \
+  if (live) for (const file of Object.values(live)) { \
+    for (const id in file.s) file.s[id] = 0; for (const id in file.f) file.f[id] = 0; \
+    for (const id in file.b) file.b[id] = file.b[id].map(() => 0); } \
+  return JSON.stringify(merged); })()";
 
 /// `dev` unless COVERAGE_MODE or `--mode` says `prod`.
 pub fn mode() -> String {
