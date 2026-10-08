@@ -44,6 +44,63 @@ for (const file of files) {
   }
 }
 
+// `// coverage skip -- <reason>`, on a line of its own, removes the statement
+// that starts on the next line from the totals — with everything inside it:
+// nested statements, functions, branches. It stands in for Istanbul's own
+// `istanbul ignore` hints, which never reach the SWC plugin under Turbopack
+// (verified 2026-10-08 · even `istanbul ignore file` left the file
+// instrumented). For code a coverage build cannot contain, never for code a
+// test could reach: a marker without a reason, or one with no statement under
+// it, fails the report rather than quietly excusing whatever moves there.
+const SKIP = '// coverage skip';
+const REASON = /^\s+--\s+\S/u;
+
+const keepWhere = <T>(record: Record<string, T>, keep: (value: T) => boolean): Record<string, T> =>
+  Object.fromEntries(Object.entries(record).filter(([, value]) => keep(value)));
+
+const keepIds = <T>(record: Record<string, T>, ids: Record<string, unknown>): Record<string, T> =>
+  Object.fromEntries(Object.entries(record).filter(([id]) => id in ids));
+
+const skipped: string[] = [];
+
+for (const file of map.files()) {
+  const source = await readFile(path.resolve(CWD, file), 'utf8');
+  const { data } = map.fileCoverageFor(file);
+  const markers = source.split('\n').flatMap((line, index) => {
+    const text = line.trim();
+    return text.startsWith(SKIP) ? [{ line: index + 1, reason: text.slice(SKIP.length) }] : [];
+  });
+
+  for (const marker of markers) {
+    const where = `${file}:${marker.line}`;
+
+    if (!REASON.test(marker.reason)) {
+      throw new Error(`${where}: \`${SKIP}\` needs a reason: \`${SKIP} -- <why>\``);
+    }
+
+    const first = marker.line + 1;
+    const ends = Object.values(data.statementMap)
+      .filter((range) => range.start.line === first)
+      .map((range) => range.end.line);
+
+    if (ends.length === 0) {
+      throw new Error(`${where}: \`${SKIP}\` has no statement under it — remove it.`);
+    }
+
+    const last = Math.max(...ends);
+    const outside = (range: libCoverage.Range): boolean =>
+      range.start.line < first || range.end.line > last;
+
+    data.statementMap = keepWhere(data.statementMap, outside);
+    data.s = keepIds(data.s, data.statementMap);
+    data.fnMap = keepWhere(data.fnMap, (mapping) => outside(mapping.loc));
+    data.f = keepIds(data.f, data.fnMap);
+    data.branchMap = keepWhere(data.branchMap, (mapping) => outside(mapping.loc));
+    data.b = keepIds(data.b, data.branchMap);
+    skipped.push(where);
+  }
+}
+
 const context = libReport.createContext({
   coverageMap: map,
   defaultSummarizer: 'nested',
@@ -69,6 +126,9 @@ if (dropped.size > 0) {
     `Filtered ${dropped.size} synthetic module(s) with no source on disk (e.g. ${[...dropped][0]}).`,
   );
 }
+if (skipped.length > 0) {
+  console.log(`Skipped by \`// coverage skip\`: ${skipped.join(', ')}.`);
+}
 console.log(`HTML report: ${path.join(REPORT_DIR, 'index.html')}`);
 
 // Enforced minimums, local and CI alike. A report is not evidence on its own:
@@ -76,13 +136,11 @@ console.log(`HTML report: ${path.join(REPORT_DIR, 'index.html')}`);
 // perfectly well-formed report, just of less. Only a gate turns the number into
 // a claim.
 //
-// 90 is the floor, not the mark: statements and lines both sit ~1.4–2 points
-// above it in either mode, which is margin enough that a real regression trips
-// the gate while normal per-run drift does not. Branches and functions are
-// reported but not gated — branch coverage here is dominated by the CSP
-// builder's preview/production ternaries, arms no local run can enter.
-// (measured 2026-08-18 · `bun run coverage` 92.00 stmts / 91.48 lines,
-// `bun run coverage:dev` 91.83 / 91.30, harness runner)
+// 90 is the floor, not the mark — every metric now measures 100 under
+// `bun run coverage` (the e2e suite's deployment-shaped pass reaches the CSP
+// preview arms, and `// coverage skip` excludes the one dev-only arm), so the
+// gate trips only on a broad regression. Branches and functions are reported
+// but not gated. (measured 2026-10-08)
 const THRESHOLDS = { lines: 90, statements: 90 } as const;
 
 const totals = map.getCoverageSummary();

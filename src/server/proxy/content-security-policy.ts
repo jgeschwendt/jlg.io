@@ -10,7 +10,12 @@ export const contentSecurityPolicy = (
   // ※ csp-dynamic
   const nonce = Buffer.from(crypto.randomUUID()).toString('base64');
   const preview = process.env['VERCEL_ENV'] === 'preview';
-  const production = process.env.NODE_ENV !== 'development';
+
+  let scriptSource = `'self' 'nonce-${nonce}' ${preview ? 'https://vercel.live' : "'strict-dynamic'"}`;
+  // coverage skip -- `next dev` only: a build bakes NODE_ENV in as "production"
+  if (process.env.NODE_ENV === 'development') {
+    scriptSource = `'self' 'nonce-${nonce}' 'strict-dynamic' 'unsafe-eval'`;
+  }
 
   const policy = [
     "default-src 'none';",
@@ -24,11 +29,7 @@ export const contentSecurityPolicy = (
       preview ? "'self' https://vercel.com https://vercel.live blob: data:" : "'self' blob: data:"
     };`,
     // wasm-unsafe-eval: WebAssembly.instantiate() for the Bevy background wasm module.
-    `script-src 'wasm-unsafe-eval' ${
-      production
-        ? `'self' 'nonce-${nonce}' ${preview ? 'https://vercel.live' : "'strict-dynamic'"}`
-        : `'self' 'nonce-${nonce}' 'strict-dynamic' 'unsafe-eval'`
-    };`,
+    `script-src 'wasm-unsafe-eval' ${scriptSource};`,
     `style-src ${
       preview ? "'self' https://vercel.live 'unsafe-inline'" : "'self' 'unsafe-inline'"
     };`,
