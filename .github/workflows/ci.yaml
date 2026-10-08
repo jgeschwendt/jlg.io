@@ -52,41 +52,37 @@ jobs:
       # provides the cargo toolchain the harness builds with.
       - uses: jdx/mise-action@v2
 
-      - name: Cache bun install cache
-        uses: actions/cache@v6
-        with:
-          key: bun-${{ runner.os }}-${{ hashFiles('bun.lock') }}
-          path: ~/.bun/install/cache
-          restore-keys: bun-${{ runner.os }}-
-
+      # No bun cache: `bun install` from the registry takes ~2s, while the
+      # ~/.bun/install/cache it replaced had grown to 2GB (every restore carried
+      # old versions forward), cost ~55s a job to restore and save, and crowded
+      # the repo's 10GB cache quota until rust-cache entries were evicted.
       - run: bun install --frozen-lockfile
 
-      - name: Cache cargo
+      # One dependency cache for both crates, shared with `preview` and
+      # coverage.yaml, saved only here: this job compiles the superset (clippy
+      # and the e2e build), so a sibling saving first would freeze a cache
+      # missing the clippy artifacts. rust-cache keys on rustc + lockfiles and
+      # re-saves when either moves — a plain actions/cache keyed on the
+      # lockfiles never re-saved after its first exact hit.
+      - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: harness
+          workspaces: |
+            crates/harness -> target
+            e2e -> target
+
+      # Turbopack writes its build cache to .next/cache (on by default since
+      # Next 16.3); restoring it takes the instrumented compile from ~35s to
+      # near zero. Scoped to one bun.lock so the cache restarts whenever the
+      # dependencies move rather than accreting across them.
+      - name: Cache Next build (coverage)
         uses: actions/cache@v6
         with:
-          key: cargo-${{ runner.os }}-${{ hashFiles('crates/harness/Cargo.lock', 'e2e/Cargo.lock') }}
-          path: |
-            ~/.cargo/registry
-            crates/harness/target
-            e2e/target
-          restore-keys: cargo-${{ runner.os }}-
+          key: next-coverage-${{ runner.os }}-${{ hashFiles('bun.lock') }}-${{ hashFiles('bunfig.toml', 'next.config.js', 'postcss.config.js', 'src/**', 'tsconfig.json') }}
+          path: .next/cache
+          restore-keys: next-coverage-${{ runner.os }}-${{ hashFiles('bun.lock') }}-
 
-      # Pinned: the harness speaks the daemon's socket protocol directly, so a
-      # silent CLI upgrade is a protocol change. Bump deliberately, with a local
-      # `bun run coverage` against the new version first.
-      - run: bun add -g agent-browser@0.34.0 && echo "$HOME/.bun/bin" >> "$GITHUB_PATH"
-
-      # Keyed on the CLI version, which decides the Chromium build it fetches.
-      - name: Cache agent-browser Chromium
-        uses: actions/cache@v6
-        with:
-          key: agent-browser-${{ runner.os }}-0.34.0
-          path: ~/.agent-browser/browsers
-
-      # `--with-deps` every time even on a cache hit: system libraries live
-      # outside the cached browser directory (same shape as coverage.yml's
-      # Playwright install).
-      - run: agent-browser install --with-deps
+      - uses: ./.github/actions/agent-browser
 
       # The runner's rustup provisions the mise-pinned toolchain with the
       # minimal profile, which ships neither component.
@@ -142,32 +138,16 @@ jobs:
       # provides the cargo toolchain the harness builds with.
       - uses: jdx/mise-action@v2
 
-      - name: Cache cargo
-        uses: actions/cache@v6
+      # Restore only — `harness` owns the save (see there).
+      - uses: Swatinem/rust-cache@v2
         with:
-          key: cargo-${{ runner.os }}-${{ hashFiles('crates/harness/Cargo.lock', 'e2e/Cargo.lock') }}
-          path: |
-            ~/.cargo/registry
-            crates/harness/target
-            e2e/target
-          restore-keys: cargo-${{ runner.os }}-
+          save-if: false
+          shared-key: harness
+          workspaces: |
+            crates/harness -> target
+            e2e -> target
 
-      # Pinned: the harness speaks the daemon's socket protocol directly, so a
-      # silent CLI upgrade is a protocol change. Bump deliberately, with a local
-      # `bun run coverage` against the new version first.
-      - run: bun add -g agent-browser@0.34.0 && echo "$HOME/.bun/bin" >> "$GITHUB_PATH"
-
-      # Keyed on the CLI version, which decides the Chromium build it fetches.
-      - name: Cache agent-browser Chromium
-        uses: actions/cache@v6
-        with:
-          key: agent-browser-${{ runner.os }}-0.34.0
-          path: ~/.agent-browser/browsers
-
-      # `--with-deps` every time even on a cache hit: system libraries live
-      # outside the cached browser directory (same shape as coverage.yml's
-      # Playwright install).
-      - run: agent-browser install --with-deps
+      - uses: ./.github/actions/agent-browser
 
       # Self-failing: the runner panics on any behavioral assertion. No
       # `bun install` above it — remote mode compiles the e2e crate and drives

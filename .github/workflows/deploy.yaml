@@ -83,6 +83,16 @@ jobs:
       - if: steps.wasm-output.outputs.cache-hit != 'true'
         run: bun run background:build
 
+      # `vercel build` runs `next build`, whose Turbopack cache lives in
+      # .next/cache — keyed like ci.yaml's coverage build, kept separate because
+      # the instrumented and plain builds compile different modules.
+      - name: Cache Next build
+        uses: actions/cache@v6
+        with:
+          key: next-${{ inputs.environment }}-${{ runner.os }}-${{ hashFiles('bun.lock') }}-${{ hashFiles('next.config.js', 'postcss.config.js', 'src/**', 'tsconfig.json') }}
+          path: .next/cache
+          restore-keys: next-${{ inputs.environment }}-${{ runner.os }}-${{ hashFiles('bun.lock') }}-
+
       - name: Build
         run: bunx --bun vercel build ${{ inputs.environment == 'production' && '--prod' || '' }} --token=${{ secrets.VERCEL_TOKEN }}
 
