@@ -217,8 +217,20 @@ pub fn dump(session: &Session, context: &str) {
 /// come back in a single round trip — and a same-origin `Response` hides
 /// nothing but `Set-Cookie`.
 pub fn fetch_probe(session: &Session, path: &str) -> FetchProbe {
+    fetch_probe_with(session, path, &[])
+}
+
+/// `fetch_probe` with request headers — for routes whose behavior a header
+/// selects. Names and values are embedded as JSON string literals.
+pub fn fetch_probe_with(session: &Session, path: &str, headers: &[(&str, &str)]) -> FetchProbe {
+    let headers = Value::Object(
+        headers
+            .iter()
+            .map(|(name, value)| ((*name).to_string(), Value::String((*value).to_string())))
+            .collect(),
+    );
     let script = format!(
-        "fetch('{path}', {{ cache: 'no-store' }}).then(async (r) => JSON.stringify({{ \
+        "fetch('{path}', {{ cache: 'no-store', headers: {headers} }}).then(async (r) => JSON.stringify({{ \
            body: await r.text(), \
            cacheControl: r.headers.get('cache-control') ?? '', \
            contentType: r.headers.get('content-type') ?? '', \

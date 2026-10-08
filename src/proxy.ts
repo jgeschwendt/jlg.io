@@ -1,4 +1,4 @@
-import proxy, { contentSecurityPolicy } from '@/server/proxy';
+import proxy, { contentSecurityPolicy, coverageFault } from '@/server/proxy';
 
 export const config = {
   matcher: [
@@ -12,4 +12,10 @@ export const config = {
   ],
 };
 
-export default proxy([contentSecurityPolicy]);
+// The fault handler exists to cover the chain's failure paths; a build without
+// COVERAGE=1 never adds it, so no request header can reach it in production.
+export default proxy(
+  process.env['COVERAGE'] === '1'
+    ? [contentSecurityPolicy, coverageFault]
+    : [contentSecurityPolicy],
+);

@@ -25,8 +25,8 @@
 //! live here.
 
 use harness::kit::{
-    attribute, back_until, base_url, click_until, count, dump, fetch_probe, goto, harvest, mode,
-    nonce_of, press_escape_until, server_coverage, strings, text, wait_hydrated,
+    attribute, back_until, base_url, click_until, count, dump, fetch_probe, fetch_probe_with, goto,
+    harvest, mode, nonce_of, press_escape_until, server_coverage, strings, text, wait_hydrated,
 };
 use harness::server::{HOST, Server, repo_root};
 use harness::{Session, cdp::Bypass};
@@ -127,6 +127,7 @@ fn main() {
     }
 
     not_found(&session, &base);
+    proxy_faults(&session, remote.is_none());
     if coverage {
         written.push(harvest(&session, &output, "not-found"));
         written.push(server_coverage(&session, &output));
@@ -390,6 +391,32 @@ fn content_security_policy(session: &Session, path: &str) {
 /// The 404 path, which renders Next's own not-found page rather than anything
 /// in `src/app`. The status comes from a fetch, the rendered body from a real
 /// navigation — the fetch alone would not exercise the client render.
+/// `createProxy`'s failure paths, through `src/server/proxy/coverage-fault.ts`.
+/// The local server is a COVERAGE=1 build, which carries the fault handler: a
+/// thrown NextResponse comes back untouched, anything else thrown becomes a
+/// 500. A deployment is built without the flag, so there the header must be
+/// inert — the proof the handler never ships.
+fn proxy_faults(session: &Session, armed: bool) {
+    let short_circuit = fetch_probe_with(session, "/", &[("x-coverage-fault", "response")]);
+    let error = fetch_probe_with(session, "/", &[("x-coverage-fault", "error")]);
+
+    if armed {
+        assert_eq!(short_circuit.status, 418, "short-circuit status");
+        assert_eq!(short_circuit.body, "short-circuit", "short-circuit body");
+        assert_eq!(error.status, 500, "thrown-error status");
+        assert_eq!(error.body, "Internal Server Error", "thrown-error body");
+    } else {
+        assert_eq!(
+            short_circuit.status, 200,
+            "fault header must be inert when deployed"
+        );
+        assert_eq!(
+            error.status, 200,
+            "fault header must be inert when deployed"
+        );
+    }
+}
+
 fn not_found(session: &Session, base: &str) {
     let probe = fetch_probe(session, "/no-such-page");
     assert_eq!(probe.status, 404, "unknown path status");
