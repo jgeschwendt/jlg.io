@@ -371,9 +371,24 @@ pub fn nonce_of(csp: &str, path: &str) -> String {
 }
 
 pub fn press_escape_until(session: &Session, base: &str, from: &str, to: &str) {
-    let script = "(() => { document.dispatchEvent(new KeyboardEvent('keydown', \
-                  { bubbles: true, key: 'Escape' })); return location.pathname; })()";
-    settle(session, base, script, from, to, "Escape");
+    press_keys_until(session, base, &["Escape"], from, to);
+}
+
+/// `press_escape_until` for a key sequence, dispatched in order within one
+/// evaluation — so when the last key's navigation lands, every key before it
+/// reached the same listener.
+pub fn press_keys_until(session: &Session, base: &str, keys: &[&str], from: &str, to: &str) {
+    let presses: String = keys
+        .iter()
+        .map(|key| {
+            format!(
+                "document.dispatchEvent(new KeyboardEvent('keydown', {{ bubbles: true, key: {} }})); ",
+                Value::String((*key).to_string())
+            )
+        })
+        .collect();
+    let script = format!("(() => {{ {presses}return location.pathname; }})()");
+    settle(session, base, &script, from, to, &keys.join("+"));
 }
 
 /// Drains `arm_rsc_tap`'s buffer to stdout, one `rsc` line per navigation

@@ -21,9 +21,13 @@ export async function GET(): Promise<Response> {
     return new Response(ReasonPhrases.NOT_FOUND, { status: StatusCodes.NOT_FOUND });
   }
 
-  const coverage = (globalThis as { __coverage__?: CoverageMapData }).__coverage__;
+  // Always defined here: `scripts/coverage-shared.cjs` installs it ahead of
+  // every module whenever COVERAGE=1. A process that skipped the preload fails
+  // this response loudly rather than reporting no server counters.
+  const coverage = (globalThis as typeof globalThis & { __coverage__: CoverageMapData })
+    .__coverage__;
 
-  return Response.json(coverage ?? null, {
+  return Response.json(coverage, {
     headers: { 'cache-control': 'no-store' },
   });
 }

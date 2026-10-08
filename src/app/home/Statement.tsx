@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { Fragment } from 'react';
 import type { JSX } from 'react';
-import { interleave, pipe } from '@/fns';
+import { intersperse, pipe } from '@/fns';
 
 function getYearsOfExperience(): number {
   const CAREER_YEAR_START = 2012;
@@ -16,20 +16,14 @@ function statement(): string {
 }
 
 function replace(value: string, replacement: JSX.Element) {
-  return (words: (string | JSX.Element)[]): (string | JSX.Element)[] => {
-    if (words.includes(value)) {
-      const index = words.indexOf(value);
-      return [...words.slice(0, index), replacement, ...words.slice(index + 1)];
-    }
-
-    return words;
-  };
+  return (words: (string | JSX.Element)[]): (string | JSX.Element)[] =>
+    words.map((word) => (word === value ? replacement : word));
 }
 
 function Statement(): JSX.Element[] {
   const years = String(getYearsOfExperience());
 
-  return interleave(
+  return intersperse(
     pipe(
       replace(
         years,

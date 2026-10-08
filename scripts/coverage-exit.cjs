@@ -19,9 +19,13 @@ const path = require('node:path');
 const NYC_OUTPUT = path.join(process.cwd(), '.nyc_output');
 
 // The preload itself cannot be conditional — `bunfig.toml` is static — so
-// COVERAGE is what arms it. An ordinary `bun run build`/`bun run dev` loads an
+// COVERAGE is what arms it, or COVERAGE_FLUSH alone for a server that must run
+// with COVERAGE off (the e2e suite's deployment-shaped pass). An ordinary `bun run build`/`bun run dev` loads an
 // inert module.
-if (process.env.COVERAGE === '1' && !globalThis.__coverageExitHookInstalled) {
+if (
+  (process.env.COVERAGE === '1' || process.env.COVERAGE_FLUSH === '1') &&
+  !globalThis.__coverageExitHookInstalled
+) {
   globalThis.__coverageExitHookInstalled = true;
 
   const flush = () => {

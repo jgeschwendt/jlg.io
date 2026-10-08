@@ -1,4 +1,4 @@
-const interleave = <T, K>(list: readonly T[], item: K): (T | K)[] =>
+const intersperse = <T, K>(list: readonly T[], item: K): (T | K)[] =>
   list.flatMap((node) => [node, item]).slice(0, -1);
 
 const pipe =
@@ -13,4 +13,4 @@ const pipe =
     return result;
   };
 
-export { interleave, pipe };
+export { intersperse, pipe };

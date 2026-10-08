@@ -2,8 +2,14 @@
 # `preload` is inherited by every child process started from this directory —
 # the only hook that reaches the workers a `next build` spawns.
 #
-# `coverage-exit.cjs` (armed by COVERAGE=1) flushes build-time Istanbul
-# counters; `harness-server-debug.cjs` (armed by HARNESS_SERVER_DEBUG=1)
-# surfaces errors the e2e server would swallow. Both are inert unarmed, so
-# `bun run dev`, `bun run build` and plain `bun x` pay two cheap requires.
-preload = ["./scripts/coverage-exit.cjs", "./scripts/harness-server-debug.cjs"]
+# `coverage-shared.cjs` and `coverage-exit.cjs` (armed by COVERAGE=1 or
+# COVERAGE_FLUSH=1) make a module's bundled copies share one counter record and
+# flush the counters when the process exits; `harness-server-debug.cjs` (armed
+# by HARNESS_SERVER_DEBUG=1)
+# surfaces errors the e2e server would swallow. All are inert unarmed, so
+# `bun run dev`, `bun run build` and plain `bun x` pay three cheap requires.
+preload = [
+  "./scripts/coverage-shared.cjs",
+  "./scripts/coverage-exit.cjs",
+  "./scripts/harness-server-debug.cjs",
+]
