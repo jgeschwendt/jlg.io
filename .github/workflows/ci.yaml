@@ -55,21 +55,19 @@ jobs:
       # No bun cache: `bun install` from the registry takes ~2s, while the
       # ~/.bun/install/cache it replaced had grown to 2GB (every restore carried
       # old versions forward), cost ~55s a job to restore and save, and crowded
-      # the repo's 10GB cache quota until rust-cache entries were evicted.
+      # the repo's 10GB cache quota until the cargo cache entries were evicted.
       - run: bun install --frozen-lockfile
 
-      # One dependency cache for both crates, shared with `preview` and
-      # coverage.yaml, saved only here: this job compiles the superset (clippy
-      # and the e2e build), so a sibling saving first would freeze a cache
-      # missing the clippy artifacts. rust-cache keys on rustc + lockfiles and
-      # re-saves when either moves — a plain actions/cache keyed on the
-      # lockfiles never re-saved after its first exact hit.
-      - uses: Swatinem/rust-cache@v2
+      # mbx (mise.toml's `cargo` wrapper) caches each rustc invocation on its
+      # inputs and compiler. `objects` mode carries that store, not a target
+      # tree, so one entry serves both workspaces' target dirs; it omits the
+      # registry, which cargo re-downloads. Saved after a green push to main,
+      # keyed per commit; PRs and `preview` restore the latest main entry and
+      # never save, and coverage.yaml is read-only — this job compiles the
+      # superset (clippy and the e2e build), so it alone writes.
+      - uses: jdx/mr-boxington-action@v1
         with:
-          shared-key: harness
-          workspaces: |
-            crates/harness -> target
-            e2e -> target
+          github-cache-mode: objects
 
       # Turbopack writes its build cache to .next/cache (on by default since
       # Next 16.3); restoring it takes the instrumented compile from ~35s to
@@ -130,6 +128,8 @@ jobs:
     needs: deploy
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
+    # Restore only — `harness` owns every save (see there).
+    cache-mode: read
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
@@ -138,14 +138,9 @@ jobs:
       # provides the cargo toolchain the harness builds with.
       - uses: jdx/mise-action@v2
 
-      # Restore only — `harness` owns the save (see there).
-      - uses: Swatinem/rust-cache@v2
+      - uses: jdx/mr-boxington-action@v1
         with:
-          save-if: false
-          shared-key: harness
-          workspaces: |
-            crates/harness -> target
-            e2e -> target
+          github-cache-mode: objects
 
       - uses: ./.github/actions/agent-browser
 

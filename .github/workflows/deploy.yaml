@@ -46,19 +46,19 @@ jobs:
         run: rustup toolchain install stable --profile minimal --target wasm32-unknown-unknown
 
       # On a source change the Bevy release profile (lto, codegen-units = 1,
-      # opt-level = "z") is minutes cold and seconds warm. rust-cache keys on the
-      # rustc that will build (hence RUSTUP_TOOLCHAIN) and re-saves when that key
-      # moves; the hand-rolled actions/cache it replaces keyed on Cargo.lock
-      # alone, so an exact hit never re-saved and a stale target dir was restored
-      # into a full 218-crate rebuild on every deploy.
+      # opt-level = "z") is minutes cold and seconds warm. mbx (mise.toml's
+      # `cargo` wrapper) caches each rustc invocation; the key follows the rustc
+      # that will build (hence RUSTUP_TOOLCHAIN) and the commit, saved on a
+      # green production push only. Its own generation keeps this lineage apart
+      # from ci.yaml's harness entries, which share the default key prefix.
       - name: Cache cargo (background wasm)
         if: steps.wasm-output.outputs.cache-hit != 'true'
-        uses: Swatinem/rust-cache@v2
+        uses: jdx/mr-boxington-action@v1
         env:
           RUSTUP_TOOLCHAIN: stable
         with:
-          key: wasm32
-          workspaces: crates/background -> target
+          cache-generation: wasm32
+          github-cache-mode: objects
 
       # The script probes `wasm-bindgen --version` and falls back to
       # `cargo install wasm-bindgen-cli` — a multi-minute compile — whenever the

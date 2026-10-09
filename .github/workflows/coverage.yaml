@@ -24,6 +24,11 @@ permissions:
 
 jobs:
   coverage:
+    # Restore only: on the same push ci.yaml's harness job compiles the
+    # superset and owns every save (mbx, Next, Chrome). mr-boxington-action
+    # saves on any green main push, and its per-commit key would let this
+    # job's narrower store race harness's to the write.
+    cache-mode: read
     permissions:
       contents: read
       id-token: write
@@ -39,17 +44,13 @@ jobs:
       # entry point — see ci.yaml.
       - uses: jdx/mise-action@v2
 
-      # No bun cache, and caches restored rather than saved — see ci.yaml's
-      # harness job, which owns both and runs this same chain on every push.
+      # No bun cache — see ci.yaml's harness job, which runs this same chain
+      # on every push.
       - run: bun install --frozen-lockfile
 
-      - uses: Swatinem/rust-cache@v2
+      - uses: jdx/mr-boxington-action@v1
         with:
-          save-if: false
-          shared-key: harness
-          workspaces: |
-            crates/harness -> target
-            e2e -> target
+          github-cache-mode: objects
 
       - name: Cache Next build (coverage)
         uses: actions/cache/restore@v6

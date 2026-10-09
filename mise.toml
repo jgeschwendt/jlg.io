@@ -7,12 +7,17 @@
 # 31955271334, 31956326050); the 1.4.0 pin cleared it — hold the pin at >=1.4.0.
 # ※ config-runtime
 bun = "1.4.0"
+# jdx's compilation cache for cargo. `mr_boxington` on the rust pin below puts
+# a `cargo` wrapper that runs mbx first on PATH — under `mise exec`, activated
+# shells, shims and mise-action's GITHUB_PATH — so plain `cargo …` (package.json
+# scripts, CI steps) is cached without naming mbx anywhere.
+mr-boxington = "1.22.0"
 node = "24.21.0"
 # The rustup channel, not "latest": mise resolves "latest" against the network
 # on every install (~8s a CI job · run 37029925800 "rust@latest resolving"),
 # while "stable" is the toolchain the runner image already carries — the same
 # one deploy.yaml's wasm build uses.
-rust = "stable"
+rust = { version = "stable", mr_boxington = true }
 
 [env]
 _.file = ".env"
