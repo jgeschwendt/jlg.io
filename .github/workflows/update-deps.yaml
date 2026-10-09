@@ -69,10 +69,7 @@ jobs:
           # oxlint + oxlint-tsgolint: @jlg/oxlint pins oxlint exactly (JS plugins
           # sit outside its semver) and bun only warns on a peer mismatch; drop
           # both when @jlg/oxlint bumps its pin (2026-10-09)
-          # @jlg/oxlint 0.1.0: oxlint.config.ts names jsPlugins rules only the
-          # next minor ships; drop this hold in the PR that bumps @jlg/oxlint and
-          # lands that config together (2026-10-09)
-          holds="@jlg/oxlint@0.1.0 oxlint@1.87.0 oxlint-tsgolint@7.0.2003"
+          holds="oxlint@1.87.0 oxlint-tsgolint@7.0.2003"
 
           for hold in $holds; do
             pkg="${hold%@*}"
