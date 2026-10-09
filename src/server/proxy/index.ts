@@ -1,6 +1,5 @@
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
 import { ReasonPhrases, StatusCodes } from 'http-status-codes';
+import { type NextRequest, NextResponse } from 'next/server';
 import { log } from '@/logger';
 
 const createProxy =

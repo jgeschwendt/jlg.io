@@ -1,4 +1,77 @@
 import { defineConfig } from '@jlg/oxlint';
+import type { OxlintConfig } from 'oxlint';
+
+/**
+ * `@next/eslint-plugin-next`'s core-web-vitals severities (16.2.9): these 13 at
+ * warn, the other 8 at error. oxlint files every nextjs rule under correctness,
+ * which the base sets to error.
+ */
+const nextCoreWebVitals: OxlintConfig['rules'] = Object.fromEntries(
+  [
+    'google-font-display',
+    'google-font-preconnect',
+    'next-script-for-ga',
+    'no-async-client-component',
+    'no-before-interactive-script-outside-document',
+    'no-css-tags',
+    'no-head-element',
+    'no-img-element',
+    'no-page-custom-font',
+    'no-styled-jsx-in-document',
+    'no-title-in-document-head',
+    'no-typos',
+    'no-unwanted-polyfillio',
+  ].map((rule) => [`nextjs/${rule}`, 'warn'] as const),
+);
+
+/**
+ * The jsx-a11y set eslint-config-next applied through `next/core-web-vitals`
+ * (12.0.7 → 14.2.14, 2021-12 → 2025-01), all at warn. Enabling the plugin puts
+ * its other rules (all correctness but anchor-ambiguous-text) under the base's
+ * categories, so each is named off.
+ */
+const jsxA11y: OxlintConfig['rules'] = {
+  ...Object.fromEntries(
+    [
+      'anchor-ambiguous-text',
+      'anchor-has-content',
+      'anchor-is-valid',
+      'aria-activedescendant-has-tabindex',
+      'aria-role',
+      'autocomplete-valid',
+      'click-events-have-key-events',
+      'control-has-associated-label',
+      'heading-has-content',
+      'html-has-lang',
+      'iframe-has-title',
+      'img-redundant-alt',
+      'interactive-supports-focus',
+      'label-has-associated-control',
+      'lang',
+      'media-has-caption',
+      'mouse-events-have-key-events',
+      'no-access-key',
+      'no-aria-hidden-on-focusable',
+      'no-autofocus',
+      'no-distracting-elements',
+      'no-interactive-element-to-noninteractive-role',
+      'no-noninteractive-element-interactions',
+      'no-noninteractive-element-to-interactive-role',
+      'no-noninteractive-tabindex',
+      'no-redundant-roles',
+      'no-static-element-interactions',
+      'prefer-tag-over-role',
+      'scope',
+      'tabindex-no-positive',
+    ].map((rule) => [`jsx-a11y/${rule}`, 'off'] as const),
+  ),
+  'jsx-a11y/alt-text': ['warn', { elements: ['img'], img: ['Image'] }],
+  'jsx-a11y/aria-props': 'warn',
+  'jsx-a11y/aria-proptypes': 'warn',
+  'jsx-a11y/aria-unsupported-elements': 'warn',
+  'jsx-a11y/role-has-required-aria-props': 'warn',
+  'jsx-a11y/role-supports-aria-props': 'warn',
+};
 
 export default defineConfig({
   ignorePatterns: [
@@ -13,41 +86,29 @@ export default defineConfig({
     'oxlint.config.ts',
     'public/background',
   ],
-  options: { typeAware: true },
-  plugins: ['eslint', 'import', 'nextjs', 'oxc', 'react', 'typescript', 'unicorn'],
+  // reportUnusedDisableDirectives: eslint.config.js's 'error', on every surface
+  // (editor included); a bare `--report-unused-disable-directives` on the CLI
+  // overrides it down to warn (verified 2026-10-09 · probe, oxlint 1.87)
+  options: { reportUnusedDisableDirectives: 'error', typeAware: true },
+  plugins: ['eslint', 'import', 'jsx-a11y', 'nextjs', 'oxc', 'react', 'typescript', 'unicorn'],
   rules: {
-    // func-style: the @jlg/eslint stack tuned func-style per Next file type
-    // (declaration vs expression); the @jlg/oxlint base does NOT port that
-    // (see its README "What was DROPPED"). This repo intentionally mixes
-    // `function foo()` and `const foo = () =>`, so the base's blanket
-    // func-style errors on every file. Disabled — matches the pre-migration
-    // effective behavior. (2026-07-20)
-    'func-style': 'off',
-    // id-length: the authored eslint.config.js enabled id-length ONLY for
-    // **/*.tsx (exceptions x,y). The base turns it on globally, which flags
-    // conventional single-letter generic type params (T, K) in .ts files.
-    // Off here; re-enabled for .tsx in the override below. (2026-07-20)
-    'id-length': 'off',
-    'max-statements': 'off',
-    // no-duplicate-imports (core) treats a value import and a separate
-    // type-only import from the same module as a duplicate, which conflicts
-    // with the base's `import/consistent-type-specifier-style` (prefers a
-    // top-level `import type`). The smarter `import/no-duplicates` is enabled
-    // by the base and correctly permits separate type imports while still
-    // catching genuine value duplicates, so the core rule is redundant here.
-    // (2026-07-20)
-    'no-duplicate-imports': 'off',
+    ...jsxA11y,
+    ...nextCoreWebVitals,
+    // top-level `import type` when every specifier is a type; inline
+    // `{ type Foo, bar }` when a value rides along (the base default,
+    // prefer-top-level, forces a second import line for that case)
+    'import/consistent-type-specifier-style': ['error', 'prefer-top-level-if-only-type-imports'],
+    'no-async-await': 'off',
     // require-await conflicts with the base's type-aware
     // `typescript/promise-function-async`, which wants a promise-returning
     // function to BE async even when it never awaits (e.g. a `.then` callback
     // that forwards a promise). Keep the author's async style; disable the
     // core rule that fights it. (2026-07-20)
     'require-await': 'off',
-    // no-deprecated: motion 12.42 marks `staggerChildren` deprecated
-    // (Main.tsx uses it 3x). Migrating to `delayChildren: stagger(...)` is a
-    // real animation change, not a lint mechanic — demoted to warn so the
-    // signal stays visible without blocking lint. (2026-07-20)
-    'typescript/no-deprecated': 'warn',
+    // jlg.io's 2025 flat config (ab6970c^:eslint.config.js): natural key order,
+    // and `props` is not an abbreviation worth expanding
+    'sort-keys': ['error', 'asc', { natural: true }],
+    'unicorn-js/prevent-abbreviations': ['error', { allowList: { props: true } }],
     // The authored eslint.config.js disabled prefer-readonly-parameter-types
     // for all ts/tsx; base ships it at warn. Off here to match. (2026-07-20)
     'typescript/prefer-readonly-parameter-types': 'off',
@@ -68,6 +129,8 @@ export default defineConfig({
     {
       files: ['scripts/**/*.ts'],
       rules: {
+        // istanbul's FileCoverageData names its hit counters s, f and b
+        'id-length': ['error', { checkGeneric: false, exceptions: ['b', 'f', 's'] }],
         'import/no-nodejs-modules': 'off',
         'no-await-in-loop': 'off',
         'no-console': 'off',
@@ -123,13 +186,31 @@ export default defineConfig({
     {
       files: ['**/*.ts', '**/*.tsx'],
       rules: {
+        // as eslint.config.js scoped it: .js files keep the base's max of 10
+        'max-statements': 'off',
+        // the package subpaths this app imports by design, as eslint.config.js allowed them
+        'import-js/no-internal-modules': [
+          'warn',
+          {
+            allow: [
+              'motion/react',
+              'next/font/google',
+              'next/headers',
+              'next/image',
+              'next/link',
+              'next/navigation',
+              'next/server',
+            ],
+          },
+        ],
         'import/no-unassigned-import': ['warn', { allow: ['@/app/global.css'] }],
       },
     },
     {
       files: ['**/*.tsx'],
       rules: {
-        'id-length': ['error', { exceptions: ['x', 'y'] }],
+        // options replace the base's whole object, so its checkGeneric goes too
+        'id-length': ['error', { checkGeneric: false, exceptions: ['x', 'y'] }],
         'react/forbid-component-props': [
           'error',
           {
@@ -138,6 +219,27 @@ export default defineConfig({
         ],
         'react/jsx-max-depth': ['error', { max: 7 }],
         'unicorn/filename-case': ['error', { case: 'pascalCase' }],
+      },
+    },
+    // @jlg/eslint's func-style matrix (eslint-baseline.json): the base's
+    // expression everywhere, declaration in JSX and Next's convention files,
+    // and layout/page named exports (metadata, generateMetadata) as expressions
+    {
+      files: ['**/*.{jsx,tsx}'],
+      rules: {
+        'func-style': ['error', 'declaration'],
+      },
+    },
+    {
+      files: ['**/{instrumentation,middleware,robots,route}.{js,ts}'],
+      rules: {
+        'func-style': ['error', 'declaration'],
+      },
+    },
+    {
+      files: ['**/{layout,page}.{jsx,tsx}'],
+      rules: {
+        'func-style': ['error', 'declaration', { overrides: { namedExports: 'expression' } }],
       },
     },
     {
@@ -150,16 +252,17 @@ export default defineConfig({
       },
     },
     {
-      files: ['src/proxy.ts', '**/server/proxy/index.ts', '**/default.tsx'],
+      files: ['src/proxy.ts', '**/server/proxy/index.ts'],
       rules: {
         'import/no-default-export': 'off',
       },
     },
     {
-      files: ['src/app/resume/Resume.tsx'],
+      // a thrown NextResponse IS the proxy chain's short-circuit contract
+      // (※ proxy-short-circuit) — scoped here, as inline directives are banned
+      files: ['src/server/proxy/coverage-fault.ts'],
       rules: {
-        'react/jsx-curly-brace-presence': 'off',
-        'react/jsx-no-literals': 'off',
+        'typescript/only-throw-error': 'off',
       },
     },
   ],

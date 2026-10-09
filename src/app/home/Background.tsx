@@ -1,7 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
-import type { JSX } from 'react';
+import { type JSX, useEffect, useRef } from 'react';
 
 // Module scope: the Bevy app boots once per session and owns this canvas for its
 // lifetime — remounts re-adopt the node instead of spawning a second app.

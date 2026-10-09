@@ -1,6 +1,5 @@
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
 import { StatusCodes } from 'http-status-codes';
+import { type NextRequest, NextResponse } from 'next/server';
 
 /**
  * Drives `createProxy`'s failure paths, which no production handler reaches:
@@ -13,7 +12,6 @@ export const coverageFault = (request: NextRequest, response: NextResponse): Nex
   const fault = request.headers.get('x-coverage-fault');
 
   if (fault === 'response') {
-    // oxlint-disable-next-line typescript/only-throw-error -- a thrown NextResponse IS the chain's short-circuit contract (※ proxy-short-circuit)
     throw new NextResponse('short-circuit', { status: StatusCodes.IM_A_TEAPOT });
   }
 

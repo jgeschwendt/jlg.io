@@ -1,10 +1,10 @@
 #!/usr/bin/env bun
-import { existsSync } from 'node:fs';
-import { appendFile, readFile, readdir } from 'node:fs/promises';
-import path from 'node:path';
 import libCoverage from 'istanbul-lib-coverage';
 import libReport from 'istanbul-lib-report';
 import reports from 'istanbul-reports';
+import { existsSync } from 'node:fs';
+import { appendFile, readFile, readdir } from 'node:fs/promises';
+import path from 'node:path';
 
 const CWD = process.cwd();
 const NYC_OUTPUT = path.join(CWD, '.nyc_output');

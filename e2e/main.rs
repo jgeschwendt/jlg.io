@@ -202,7 +202,7 @@ fn home(session: &Session, base: &str) {
         );
     }
 
-    // `Statement` splits the sentence on spaces and swaps two words for links —
+    // `statement` (copy.ts) marks two words, and Main.tsx links them —
     // the years figure and "AI".
     let inline = strings(
         session,

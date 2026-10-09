@@ -8,7 +8,7 @@ commands:
   dev: bun run dev
   e2e:remote: bun run e2e:remote <deployment-url>
   lint: bun run lint
-  fmt:check: bun run fmt:check
+  fmt:check: bun run fmt --check
   tsc: bunx --bun tsc --noEmit
   background:build: bun run background:build
 invariants:
@@ -17,7 +17,7 @@ invariants:
 hazards:
   - claim: LEFTHOOK FOOTGUN — oxlint (exit 1, 'No files found to lint') and oxfmt 0.62+ (exit 2, 'Expected at least one target file') both fail the commit when every staged file is ignored; --no-error-on-unmatched-pattern is load-bearing on both hooks in lefthook.toml
     anchor: ※ lefthook-unmatched
-  - claim: TWO RUNTIMES — mise pins both bun and node, locally and in CI; repo-owned invocations must carry --bun/bunx --bun or they run on node, while third-party node-shebang bins (agent-browser, vercel and its builders, oxlint/oxfmt and the TS configs they evaluate) run on node
+  - claim: TWO RUNTIMES — mise pins both bun and node, locally and in CI; repo-owned invocations must carry --bun/bunx --bun or they run on node, while third-party node-shebang bins (agent-browser, vercel and its builders) run on node; oxlint/oxfmt and @jlg/oxlint's JS plugins run on bun because package.json and lefthook launch them with --bun
     anchor: ※ config-runtime
   - claim: 'WASM OUTPUT — public/background is wasm-bindgen output, gitignored: deploy.yaml regenerates it with `bun run background:build` before `vercel build`, or restores it from a cache keyed on the crate sources and build script, and local dev runs the same command once for the background to render — never hand-edited or committed, ignored by both lint and fmt'
     anchor: ※ wasm-output
@@ -27,7 +27,7 @@ hazards:
 
 ## Hazards (4 active)
 
-- ⚠ `/`: TWO RUNTIMES — mise pins both bun and node, locally and in CI; repo-owned invocations must carry --bun/bunx --bun or they run on node, while third-party node-shebang bins (agent-browser, vercel and its builders, oxlint/oxfmt and the TS configs they evaluate) run on node (→ ※ config-runtime)
+- ⚠ `/`: TWO RUNTIMES — mise pins both bun and node, locally and in CI; repo-owned invocations must carry --bun/bunx --bun or they run on node, while third-party node-shebang bins (agent-browser, vercel and its builders) run on node; oxlint/oxfmt and @jlg/oxlint's JS plugins run on bun because package.json and lefthook launch them with --bun (→ ※ config-runtime)
 - ⚠ `/`: LEFTHOOK FOOTGUN — oxlint (exit 1, 'No files found to lint') and oxfmt 0.62+ (exit 2, 'Expected at least one target file') both fail the commit when every staged file is ignored; --no-error-on-unmatched-pattern is load-bearing on both hooks in lefthook.toml (→ ※ lefthook-unmatched)
 - ⚠ `src`: PROXY SHORT-CIRCUIT — a proxy handler aborts the chain by THROWING a NextResponse (caught in createProxy and returned as-is); a normally-returned response is merged into the shared response, not short-circuited (→ ※ proxy-short-circuit)
 - ⚠ `/`: WASM OUTPUT — public/background is wasm-bindgen output, gitignored: deploy.yaml regenerates it with `bun run background:build` before `vercel build`, or restores it from a cache keyed on the crate sources and build script, and local dev runs the same command once for the background to render — never hand-edited or committed, ignored by both lint and fmt (→ ※ wasm-output)

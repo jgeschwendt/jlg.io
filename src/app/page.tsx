@@ -1,17 +1,14 @@
 import { LazyMotion, MotionConfig, domAnimation } from 'motion/react';
+import type { Metadata } from 'next';
 import { headers } from 'next/headers';
 import { connection } from 'next/server';
 import type { JSX } from 'react';
-import type { Metadata } from 'next';
 import { Main, statement } from './home';
 
 export const generateMetadata = async (): Promise<Metadata> => {
-  // Defer to request time: statement() derives the years figure from the clock,
-  // which cache components forbid during build-time prerendering.
   await connection();
-
   return {
-    description: statement(),
+    description: statement(String).join(''),
     title: 'Joshua L Geschwendt—Software Engineer',
   };
 };

@@ -6,8 +6,7 @@
 }
 
 @page {
-  /* The resume sheet carries its own page padding (.75in .5in .5in), matching
-     the original jlg-resume print layout. */
+  /* The resume sheet carries its own page padding (.75in .5in .5in), matching the original jlg-resume print layout. */
   margin: 0;
   size: letter;
 }

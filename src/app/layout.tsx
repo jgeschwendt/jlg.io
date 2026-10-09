@@ -1,8 +1,8 @@
 import '@/app/global.css';
-import { SpeedInsights } from '@vercel/speed-insights/next';
 import { Analytics } from '@vercel/analytics/react';
-import { GeistSans } from 'geist/font/sans';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 import { GeistMono } from 'geist/font/mono';
+import { GeistSans } from 'geist/font/sans';
 import type { Metadata } from 'next';
 import { headers } from 'next/headers';
 import type { JSX, PropsWithChildren } from 'react';

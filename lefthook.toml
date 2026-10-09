@@ -2,7 +2,8 @@
 parallel = true
 
 [pre-commit.commands.oxfmt]
-glob = "*.{cjs,js,json,jsx,mjs,ts,tsx}"
+# every type the CI fmt check gates, so none passes the commit and fails CI
+glob = "*.{cjs,css,js,json,jsonc,jsx,md,mdx,mjs,toml,ts,tsx,yaml,yml}"
 # --no-error-on-unmatched-pattern: same footgun as oxlint below (see
 # lm:lefthook-unmatched) — when every staged file is oxfmt-ignored (e.g. a
 # commit touching only .stele/ lock and index files), oxfmt 0.62+ exits 2
@@ -12,8 +13,15 @@ stage_fixed = true
 
 [pre-commit.commands.oxlint]
 glob = "*.{cjs,js,jsx,mjs,ts,tsx}"
+# No --report-unused-disable-directives: the flag would lower the config's
+# options.reportUnusedDisableDirectives from error to warn.
 # --no-error-on-unmatched-pattern: when every staged file is oxlint-ignored
 # (e.g. a commit touching only oxfmt.config.ts / oxlint.config.ts), oxlint
 # would otherwise exit 1 ("No files found to lint") and abort the commit.
 # ※ lefthook-unmatched
-run = "bunx --bun oxlint --report-unused-disable-directives --no-error-on-unmatched-pattern {staged_files}"
+run = "bunx --bun oxlint --no-error-on-unmatched-pattern {staged_files}"
+
+# rules/stele.md's pre-push gate: CI's lint job, run locally before the push.
+# The unset keeps git's hook-exported GIT_DIR & co. out of child processes.
+[pre-push.commands.gate]
+run = "unset $(git rev-parse --local-env-vars); bun run fmt --check && bun run lint && bunx --bun tsc --noEmit && stele check && stele emit --check"
