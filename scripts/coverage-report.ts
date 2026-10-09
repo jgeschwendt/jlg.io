@@ -136,12 +136,13 @@ console.log(`HTML report: ${path.join(REPORT_DIR, 'index.html')}`);
 // perfectly well-formed report, just of less. Only a gate turns the number into
 // a claim.
 //
-// 90 is the floor, not the mark — every metric now measures 100 under
+// 100 is the mark, and the gate holds it: every metric measures 100 under
 // `bun run coverage` (the e2e suite's deployment-shaped pass reaches the CSP
-// preview arms, and `// coverage skip` excludes the one dev-only arm), so the
-// gate trips only on a broad regression. Branches and functions are reported
-// but not gated. (measured 2026-10-08)
-const THRESHOLDS = { lines: 90, statements: 90 } as const;
+// preview arms, and `// coverage skip` excludes the one dev-only arm), so any
+// uncovered line, statement, branch or function fails the job — the fix is a
+// test that reaches it, or a `// coverage skip` with its reason, never a
+// lower floor. (100 reached 2026-10-08 · #632; gated 2026-10-09)
+const THRESHOLDS = { branches: 100, functions: 100, lines: 100, statements: 100 } as const;
 
 const totals = map.getCoverageSummary();
 const metrics = ['branches', 'functions', 'lines', 'statements'] as const;
