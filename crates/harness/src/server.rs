@@ -85,15 +85,30 @@ impl Drop for Server {
     fn drop(&mut self) {
         // Signal the group, not the process: `process_group(0)` made the
         // child's pid its own group id, so a negative pid reaches its helpers
-        // too. `kill(1)` avoids a libc dependency for one signal.
+        // too. `kill(1)` avoids a libc dependency for one signal; `--` ends its
+        // options so `-<pgid>` is a target, not a flag — the bare form left a CI
+        // server untouched until the grace ran out, its coverage flush unwritten.
+        // (observed 2026-10-09 · coverage run 37949298563, 10.5s stall)
         let group = format!("-{}", self.child.id());
-        let _ = Command::new("kill")
-            .args(["-TERM", &group])
-            .stderr(Stdio::null())
-            .status();
+        match Command::new("kill")
+            .args(["-s", "TERM", "--", &group])
+            .output()
+        {
+            Ok(out) if out.status.success() => {}
+            Ok(out) => eprintln!(
+                "[harness] kill -s TERM -- {group} failed: {}",
+                String::from_utf8_lossy(&out.stderr).trim()
+            ),
+            Err(error) => eprintln!("[harness] kill -s TERM -- {group}: {error}"),
+        }
         let deadline = Instant::now() + STOP_GRACE;
         while Instant::now() < deadline && matches!(self.child.try_wait(), Ok(None)) {
             std::thread::sleep(Duration::from_millis(50));
+        }
+        if matches!(self.child.try_wait(), Ok(None)) {
+            eprintln!(
+                "[harness] server {group} outlived its {STOP_GRACE:?} SIGTERM grace — killing it; exit hooks (the coverage flush) did not run"
+            );
         }
         let _ = self.child.kill();
         let _ = self.child.wait();
