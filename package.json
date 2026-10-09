@@ -18,8 +18,8 @@
     "e2e:remote": "cargo run --manifest-path e2e/Cargo.toml --bin e2e -- --base",
     "favicon": "bunx svg-to-ico public/jg.svg src/app/favicon.ico",
     "fmt": "bun --bun oxfmt",
-    "fmt:check": "bun --bun oxfmt --check",
-    "lint": "bun --bun oxlint --report-unused-disable-directives",
+    "lint": "bun --bun oxlint",
+    "lint:fix": "bun --bun oxlint --fix",
     "resume:pdf": "bun run build && cargo run --manifest-path e2e/Cargo.toml --bin resume-pdf",
     "start": "bun --bun next start",
     "update": "bunx npm-check-updates -u && bun install"
@@ -36,8 +36,8 @@
     "sharp": "0.35.5"
   },
   "devDependencies": {
-    "@jlg/oxfmt": "0.1.0",
-    "@jlg/oxlint": "0.1.0",
+    "@jlg/oxfmt": "0.1.1",
+    "@jlg/oxlint": "0.1.1",
     "@jlg/tsconfig": "0.1.1",
     "@tailwindcss/postcss": "4.3.3",
     "@types/istanbul-lib-coverage": "2.0.6",

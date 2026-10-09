@@ -1,11 +1,10 @@
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
 import { ReasonPhrases, StatusCodes } from 'http-status-codes';
+import { type NextRequest, NextResponse } from 'next/server';
 import { log } from '@/logger';
 
-const createMiddleware =
+const createProxy =
   (
-    middleware: readonly ((
+    handlers: readonly ((
       request: NextRequest,
       response: NextResponse,
     ) => Response | PromiseLike<Response>)[],
@@ -15,7 +14,7 @@ const createMiddleware =
 
     // ※ proxy-short-circuit
     try {
-      const tasks = middleware.map(async (handler) => handler(request, modifiedResponse));
+      const tasks = handlers.map(async (handler) => handler(request, modifiedResponse));
 
       await Promise.all(tasks);
     } catch (error) {
@@ -39,5 +38,6 @@ const createMiddleware =
     return response;
   };
 
-export default createMiddleware;
+export default createProxy;
 export * from './content-security-policy';
+export * from './coverage-fault';

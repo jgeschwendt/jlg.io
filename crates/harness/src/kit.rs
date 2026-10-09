@@ -217,8 +217,20 @@ pub fn dump(session: &Session, context: &str) {
 /// come back in a single round trip — and a same-origin `Response` hides
 /// nothing but `Set-Cookie`.
 pub fn fetch_probe(session: &Session, path: &str) -> FetchProbe {
+    fetch_probe_with(session, path, &[])
+}
+
+/// `fetch_probe` with request headers — for routes whose behavior a header
+/// selects. Names and values are embedded as JSON string literals.
+pub fn fetch_probe_with(session: &Session, path: &str, headers: &[(&str, &str)]) -> FetchProbe {
+    let headers = Value::Object(
+        headers
+            .iter()
+            .map(|(name, value)| ((*name).to_string(), Value::String((*value).to_string())))
+            .collect(),
+    );
     let script = format!(
-        "fetch('{path}', {{ cache: 'no-store' }}).then(async (r) => JSON.stringify({{ \
+        "fetch('{path}', {{ cache: 'no-store', headers: {headers} }}).then(async (r) => JSON.stringify({{ \
            body: await r.text(), \
            cacheControl: r.headers.get('cache-control') ?? '', \
            contentType: r.headers.get('content-type') ?? '', \
@@ -312,16 +324,48 @@ pub fn goto(session: &Session, url: &str) {
     panic!("{url} served the __next_error__ shell across {ATTEMPTS} attempts");
 }
 
-/// Reads `window.__coverage__` and files it under `.nyc_output`. Every hard
-/// navigation discards the map, so this has to run before the next one — client
-/// coverage is not cumulative across page loads the way the server's is.
+/// Registered on every page target (`cdp::Bypass::arm`) so a document's client
+/// counters outlive it. A full page load — `goto`, or a `<Link>` click that
+/// degrades into one under the hydration race — discards the JS heap and with
+/// it `window.__coverage__`; on `pagehide` this files the map in
+/// `sessionStorage`, which survives a same-origin load, and zeroes the live
+/// counters so a back-forward-cache restore does not count them twice.
+/// (observed 2026-10-08 · a race-degraded Close click lost `Main.tsx`'s
+/// return-visit branch; the run before it, race-free, had covered it)
+pub const COVERAGE_STASH: &str = "addEventListener('pagehide', () => { \
+  const live = window.__coverage__; if (!live) return; \
+  const stash = JSON.parse(sessionStorage.getItem('__harness_coverage') ?? '[]'); \
+  stash.push(live); sessionStorage.setItem('__harness_coverage', JSON.stringify(stash)); \
+  for (const file of Object.values(live)) { \
+    for (const id in file.s) file.s[id] = 0; for (const id in file.f) file.f[id] = 0; \
+    for (const id in file.b) file.b[id] = file.b[id].map(() => 0); } });";
+
+/// Every client counter since the last harvest — the live map plus whatever
+/// `COVERAGE_STASH` filed from documents a load replaced — summed into one map
+/// and written under `.nyc_output`. The stash is cleared and the live counters
+/// zeroed, so no hit is ever reported twice.
 pub fn harvest(session: &Session, output: &Path, label: &str) -> (String, usize) {
-    let raw = session
-        .eval("JSON.stringify(window.__coverage__ ?? {})")
-        .expect("read window.__coverage__");
+    let raw = session.eval(HARVEST).expect("read window.__coverage__");
     let raw = raw.as_str().expect("coverage map is a JSON string");
     write_map(output, &format!("client-harness-{label}"), raw, true)
 }
+
+const HARVEST: &str = "(() => { \
+  const maps = JSON.parse(sessionStorage.getItem('__harness_coverage') ?? '[]'); \
+  sessionStorage.removeItem('__harness_coverage'); \
+  const live = window.__coverage__; \
+  if (live) maps.push(JSON.parse(JSON.stringify(live))); \
+  const merged = {}; \
+  for (const map of maps) for (const [path, file] of Object.entries(map)) { \
+    const into = merged[path]; \
+    if (!into) { merged[path] = file; continue; } \
+    for (const id in file.s) into.s[id] += file.s[id]; \
+    for (const id in file.f) into.f[id] += file.f[id]; \
+    for (const id in file.b) into.b[id] = into.b[id].map((n, arm) => n + file.b[id][arm]); } \
+  if (live) for (const file of Object.values(live)) { \
+    for (const id in file.s) file.s[id] = 0; for (const id in file.f) file.f[id] = 0; \
+    for (const id in file.b) file.b[id] = file.b[id].map(() => 0); } \
+  return JSON.stringify(merged); })()";
 
 /// `dev` unless COVERAGE_MODE or `--mode` says `prod`.
 pub fn mode() -> String {
@@ -359,9 +403,24 @@ pub fn nonce_of(csp: &str, path: &str) -> String {
 }
 
 pub fn press_escape_until(session: &Session, base: &str, from: &str, to: &str) {
-    let script = "(() => { document.dispatchEvent(new KeyboardEvent('keydown', \
-                  { bubbles: true, key: 'Escape' })); return location.pathname; })()";
-    settle(session, base, script, from, to, "Escape");
+    press_keys_until(session, base, &["Escape"], from, to);
+}
+
+/// `press_escape_until` for a key sequence, dispatched in order within one
+/// evaluation — so when the last key's navigation lands, every key before it
+/// reached the same listener.
+pub fn press_keys_until(session: &Session, base: &str, keys: &[&str], from: &str, to: &str) {
+    let presses: String = keys
+        .iter()
+        .map(|key| {
+            format!(
+                "document.dispatchEvent(new KeyboardEvent('keydown', {{ bubbles: true, key: {} }})); ",
+                Value::String((*key).to_string())
+            )
+        })
+        .collect();
+    let script = format!("(() => {{ {presses}return location.pathname; }})()");
+    settle(session, base, &script, from, to, &keys.join("+"));
 }
 
 /// Drains `arm_rsc_tap`'s buffer to stdout, one `rsc` line per navigation

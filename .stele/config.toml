@@ -16,4 +16,4 @@
 # Excluding a dir here drops only its exhaustiveness requirement; the anchor scan
 # still sees it, so lm:wasm-output in scripts/ keeps resolving.
 [exhaustiveness]
-exclude = ["node_modules", "_build", "deps", "target", ".github", "crates", "public", "scripts", "e2e", "patches"]
+exclude = ["node_modules", "_build", "deps", "target", ".github", ".vscode", "crates", "public", "scripts", "e2e", "patches"]

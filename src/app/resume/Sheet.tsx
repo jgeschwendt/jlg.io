@@ -1,7 +1,7 @@
 import { Atkinson_Hyperlegible_Next as atkinsonHyperlegibleNext } from 'next/font/google';
 import type { JSX } from 'react';
 
-import { contacts, education, experience, region } from './Resume';
+import { contacts, education, experience, region } from './resume';
 
 const atkinson = atkinsonHyperlegibleNext({
   // Next has no fallback metrics for this font; opt out to keep builds clean.

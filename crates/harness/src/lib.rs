@@ -107,8 +107,8 @@ impl Session {
         field(&data, "result")
     }
 
-    /// A hard navigation: it discards the JS heap, and with it any
-    /// `window.__coverage__` accumulated since the last one.
+    /// A hard navigation: it discards the JS heap — `kit::COVERAGE_STASH` files
+    /// the outgoing document's `window.__coverage__` first, for `kit::harvest`.
     pub fn navigate(&self, url: &str) -> Result<(), Error> {
         self.send("navigate", json!({ "url": url })).map(|_| ())
     }

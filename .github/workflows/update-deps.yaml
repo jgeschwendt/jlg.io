@@ -66,7 +66,10 @@ jobs:
           # re-bump — restored after every update. Drop an entry when upstream
           # catches up (the dated reason says what to check); add one whenever
           # a red run ends in a pin-back on the branch.
-          holds=""
+          # oxlint + oxlint-tsgolint: @jlg/oxlint pins oxlint exactly (JS plugins
+          # sit outside its semver) and bun only warns on a peer mismatch; drop
+          # both when @jlg/oxlint bumps its pin (2026-10-09)
+          holds="oxlint@1.87.0 oxlint-tsgolint@7.0.2003"
 
           for hold in $holds; do
             pkg="${hold%@*}"

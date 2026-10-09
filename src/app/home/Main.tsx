@@ -2,10 +2,9 @@
 
 import { m, stagger } from 'motion/react';
 import Link from 'next/link';
-import { useEffect } from 'react';
-import type { JSX } from 'react';
-import { Statement } from './Statement';
+import { type JSX, useEffect } from 'react';
 import { At, File, GitHub } from '@/components/icons';
+import { statement } from './statement';
 
 const [HIDE, SHOW] = ['0', '1'];
 
@@ -88,7 +87,11 @@ export function Main(): JSX.Element {
               },
             }}
           >
-            <Statement />
+            {statement((word) => (
+              <Link className="font-bold" href="/" key={word}>
+                {word}
+              </Link>
+            ))}
           </m.p>
 
           <m.ul

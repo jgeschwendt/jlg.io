@@ -1,4 +1,4 @@
-import proxy, { contentSecurityPolicy } from '@/server/proxy';
+import proxy, { contentSecurityPolicy, coverageFault } from '@/server/proxy';
 
 export const config = {
   matcher: [
@@ -12,4 +12,8 @@ export const config = {
   ],
 };
 
-export default proxy([contentSecurityPolicy]);
+export default proxy(
+  process.env['COVERAGE'] === '1'
+    ? [contentSecurityPolicy, coverageFault]
+    : [contentSecurityPolicy],
+);
