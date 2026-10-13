@@ -13,10 +13,12 @@ hooks {
   // Check-only: a fix step rewrites and stages the whole file, so a partly
   // staged file would carry its unstaged hunks into the commit, and hk's only
   // guard is `git stash`, whose stack every worktree and session shares.
-  // `bun run fmt` fixes what the oxfmt step reports.
+  // `bun run fmt` fixes what the oxfmt step reports. Both steps read the working
+  // tree, not the index: a partly staged file is judged by its on-disk form, so
+  // CI's fmt check is the backstop there.
   ["pre-commit"] {
     steps {
-      // every type the CI fmt check gates, so none passes the commit and fails CI
+      // every type the CI fmt check gates
       ["oxfmt"] {
         glob = "*.{cjs,css,js,json,jsonc,jsx,md,mdx,mjs,toml,ts,tsx,yaml}"
         check = "bunx --bun oxfmt --no-error-on-unmatched-pattern --check {{files}}"
