@@ -2,7 +2,7 @@
 #
 # Exhaustiveness (§4.3) requires every top-level directory to fall in some
 # non-root node's territory. This graph is deliberately shallow — root (system)
-# + src (container) — because the remaining top-level dirs carry no local
+# + docs and src (containers) — because the remaining top-level dirs carry no local
 # knowledge a root claim doesn't already route to:
 #   .github  → CI; the TWO RUNTIMES and UNMATCHED-PATTERN hazards already cover it
 #   crates   → Rust/Bevy background source; the WASM-OUTPUT hazard covers its pipeline
