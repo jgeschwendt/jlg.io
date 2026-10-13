@@ -107,4 +107,4 @@ jobs:
                package.json diff, plus the line "Auto-merges on green; a red
                run is repaired on this branch by the `github-failures`
                routine."
-            5. `gh pr merge update-deps --auto --squash`
+            5. `gh pr merge update-deps --auto --rebase`
