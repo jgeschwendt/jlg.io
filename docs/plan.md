@@ -15,13 +15,15 @@ The site and its harness. `AGENTS.md` carries the map, invariants and hazards,
 
 ## Next
 
-1. Install the hooks in every clone: `hk install --mise --force`. `--force`
-   replaces the lefthook shim, which otherwise passes every commit silently now
-   that lefthook is gone from `node_modules`.
+1. Prune the `ci-cache`, `proxy-coverage` and `resume-rewrite` checkouts once
+   each branch is confirmed squash-landed; none carries uncommitted work.
 2. Land `/writing`: rebase the `blog` worktree's scaffold onto `main` under the
    100 % coverage gate. Its monetization needs owner actions first (GitHub
    Sponsors or a tip link, an Amazon Associates tag; AdSense rejected).
-3. Bump bun from 1.4.0 to 1.4.3 in `mise.toml` after a green coverage run on
+3. Install the hooks: `hk install --mise --force`, once — every checkout shares
+   the bare repo's hooks dir. Not before 1 and 2: the hook runs `mise x -- hk`,
+   which fails every commit in a checkout whose `mise.toml` lacks the hk pin.
+   Until then the lefthook shim prints "Can't find lefthook in PATH" and passes
+   every commit unchecked.
+4. Bump bun from 1.4.0 to 1.4.3 in `mise.toml` after a green coverage run on
    the new runtime (breath filed 2026-10-13).
-4. Prune the `ci-cache`, `proxy-coverage` and `resume-rewrite` checkouts once
-   each branch is confirmed squash-landed; none carries uncommitted work.
