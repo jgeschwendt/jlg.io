@@ -1,5 +1,6 @@
 amends "package://github.com/jdx/hk/releases/download/v2.5.0/hk@2.5.0#/Config.pkl"
-// `hk install --mise` wires these per clone; nothing installs them implicitly.
+// `hk install --mise --force` wires these once for every checkout of the repo
+// (worktrees share one hooks dir); --force replaces a hook hk did not write.
 //
 // --no-error-on-unmatched-pattern is load-bearing on both pre-commit steps: hk
 // selects files by glob, but oxfmt and oxlint then apply their own ignores, and
@@ -9,16 +10,16 @@ amends "package://github.com/jdx/hk/releases/download/v2.5.0/hk@2.5.0#/Config.pk
 // file"), aborting the commit.
 // ※ hk-unmatched
 hooks {
+  // Check-only: a fix step rewrites and stages the whole file, so a partly
+  // staged file would carry its unstaged hunks into the commit, and hk's only
+  // guard is `git stash`, whose stack every worktree and session shares.
+  // `bun run fmt` fixes what the oxfmt step reports.
   ["pre-commit"] {
-    fix = true
-    // No stash: the stash stack is shared across worktrees and sessions.
-    stash = "none"
     steps {
       // every type the CI fmt check gates, so none passes the commit and fails CI
       ["oxfmt"] {
         glob = "*.{cjs,css,js,json,jsonc,jsx,md,mdx,mjs,toml,ts,tsx,yaml}"
         check = "bunx --bun oxfmt --no-error-on-unmatched-pattern --check {{files}}"
-        fix = "bunx --bun oxfmt --no-error-on-unmatched-pattern {{files}}"
       }
       // No --report-unused-disable-directives: the flag would lower the config's
       // options.reportUnusedDisableDirectives from error to warn.
