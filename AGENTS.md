@@ -15,10 +15,10 @@ invariants:
   - claim: FORMAT POLICY — printWidth is deliberately absent (oxfmt default 100; the repo predates the base's former 80); singleQuote comes from the @jlg/oxfmt base via defineConfig
     anchor: ※ format-policy
 hazards:
-  - claim: LEFTHOOK FOOTGUN — oxlint (exit 1, 'No files found to lint') and oxfmt 0.62+ (exit 2, 'Expected at least one target file') both fail the commit when every staged file is ignored; --no-error-on-unmatched-pattern is load-bearing on both hooks in lefthook.toml
-    anchor: ※ lefthook-unmatched
-  - claim: TWO RUNTIMES — mise pins both bun and node, locally and in CI; repo-owned invocations must carry --bun/bunx --bun or they run on node, while third-party node-shebang bins (agent-browser, vercel and its builders) run on node; oxlint/oxfmt and @jlg/oxlint's JS plugins run on bun because package.json and lefthook launch them with --bun
+  - claim: TWO RUNTIMES — mise pins both bun and node, locally and in CI; repo-owned invocations must carry --bun/bunx --bun or they run on node, while third-party node-shebang bins (agent-browser, vercel and its builders) run on node; oxlint/oxfmt and @jlg/oxlint's JS plugins run on bun because package.json and hk.pkl launch them with --bun
     anchor: ※ config-runtime
+  - claim: UNMATCHED-PATTERN FOOTGUN — oxlint (exit 1, 'No files found to lint') and oxfmt 0.62+ (exit 2, 'Expected at least one target file') both fail the commit when every staged file is ignored; --no-error-on-unmatched-pattern is load-bearing on both pre-commit steps in hk.pkl
+    anchor: ※ hk-unmatched
   - claim: 'WASM OUTPUT — public/background is wasm-bindgen output, gitignored: deploy.yaml regenerates it with `bun run background:build` before `vercel build`, or restores it from a cache keyed on the crate sources and build script, and local dev runs the same command once for the background to render — never hand-edited or committed, ignored by both lint and fmt'
     anchor: ※ wasm-output
 ```
@@ -27,8 +27,8 @@ hazards:
 
 ## Hazards (4 active)
 
-- ⚠ `/`: TWO RUNTIMES — mise pins both bun and node, locally and in CI; repo-owned invocations must carry --bun/bunx --bun or they run on node, while third-party node-shebang bins (agent-browser, vercel and its builders) run on node; oxlint/oxfmt and @jlg/oxlint's JS plugins run on bun because package.json and lefthook launch them with --bun (→ ※ config-runtime)
-- ⚠ `/`: LEFTHOOK FOOTGUN — oxlint (exit 1, 'No files found to lint') and oxfmt 0.62+ (exit 2, 'Expected at least one target file') both fail the commit when every staged file is ignored; --no-error-on-unmatched-pattern is load-bearing on both hooks in lefthook.toml (→ ※ lefthook-unmatched)
+- ⚠ `/`: TWO RUNTIMES — mise pins both bun and node, locally and in CI; repo-owned invocations must carry --bun/bunx --bun or they run on node, while third-party node-shebang bins (agent-browser, vercel and its builders) run on node; oxlint/oxfmt and @jlg/oxlint's JS plugins run on bun because package.json and hk.pkl launch them with --bun (→ ※ config-runtime)
+- ⚠ `/`: UNMATCHED-PATTERN FOOTGUN — oxlint (exit 1, 'No files found to lint') and oxfmt 0.62+ (exit 2, 'Expected at least one target file') both fail the commit when every staged file is ignored; --no-error-on-unmatched-pattern is load-bearing on both pre-commit steps in hk.pkl (→ ※ hk-unmatched)
 - ⚠ `src`: PROXY SHORT-CIRCUIT — a proxy handler aborts the chain by THROWING a NextResponse (caught in createProxy and returned as-is); a normally-returned response is merged into the shared response, not short-circuited (→ ※ proxy-short-circuit)
 - ⚠ `/`: WASM OUTPUT — public/background is wasm-bindgen output, gitignored: deploy.yaml regenerates it with `bun run background:build` before `vercel build`, or restores it from a cache keyed on the crate sources and build script, and local dev runs the same command once for the background to render — never hand-edited or committed, ignored by both lint and fmt (→ ※ wasm-output)
 

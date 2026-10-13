@@ -158,7 +158,7 @@ export default defineConfig({
         'typescript/no-unsafe-argument': 'off',
         'typescript/no-unsafe-assignment': 'off',
         // The remaining unsafe-* pair fires only when the file is linted BY
-        // ITSELF (lefthook passes staged files explicitly): outside tsconfig's
+        // ITSELF (hk passes staged files explicitly): outside tsconfig's
         // include, a lone .cjs gets no project types and every `require` result
         // is error-typed. The whole-repo `bun run lint` never trips these.
         // (observed 2026-08-18 · a comment edit staged the file and the
