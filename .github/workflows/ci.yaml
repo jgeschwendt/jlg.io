@@ -6,6 +6,7 @@ on:
     branches:
       - main
   workflow_dispatch:
+  merge_group:
 
 # Never cancel an in-flight production deploy; PR runs supersede freely.
 concurrency:
@@ -106,7 +107,10 @@ jobs:
             coverage/
           retention-days: 7
 
+  # Not on merge_group: a queue entry has no preview to serve, and main's push
+  # deploys production after the merge. Not a required check for that reason.
   deploy:
+    if: github.event_name != 'merge_group'
     needs: check
     secrets: inherit
     uses: ./.github/workflows/deploy.yaml
