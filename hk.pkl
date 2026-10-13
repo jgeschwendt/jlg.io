@@ -1,0 +1,40 @@
+amends "package://github.com/jdx/hk/releases/download/v2.5.0/hk@2.5.0#/Config.pkl"
+// `hk install --mise` wires these per clone; nothing installs them implicitly.
+//
+// --no-error-on-unmatched-pattern is load-bearing on both pre-commit steps: hk
+// selects files by glob, but oxfmt and oxlint then apply their own ignores, and
+// when every selected file is ignored (a commit touching only .stele/ lock and
+// index files, or only oxfmt.config.ts / oxlint.config.ts) oxlint exits 1 ("No
+// files found to lint") and oxfmt 0.62+ exits 2 ("Expected at least one target
+// file"), aborting the commit.
+// ※ hk-unmatched
+hooks {
+  ["pre-commit"] {
+    fix = true
+    // No stash: the stash stack is shared across worktrees and sessions.
+    stash = "none"
+    steps {
+      // every type the CI fmt check gates, so none passes the commit and fails CI
+      ["oxfmt"] {
+        glob = "*.{cjs,css,js,json,jsonc,jsx,md,mdx,mjs,toml,ts,tsx,yaml}"
+        check = "bunx --bun oxfmt --no-error-on-unmatched-pattern --check {{files}}"
+        fix = "bunx --bun oxfmt --no-error-on-unmatched-pattern {{files}}"
+      }
+      // No --report-unused-disable-directives: the flag would lower the config's
+      // options.reportUnusedDisableDirectives from error to warn.
+      ["oxlint"] {
+        glob = "*.{cjs,js,jsx,mjs,ts,tsx}"
+        check = "bunx --bun oxlint --no-error-on-unmatched-pattern {{files}}"
+      }
+    }
+  }
+  // rules/stele.md's pre-push gate: CI's lint job, run locally before the push.
+  // The unset keeps git's hook-exported GIT_DIR & co. out of child processes.
+  ["pre-push"] {
+    steps {
+      ["gate"] {
+        check = "unset $(git rev-parse --local-env-vars); bun run fmt --check && bun run lint && bunx --bun tsc --noEmit && stele check && stele emit --check"
+      }
+    }
+  }
+}
