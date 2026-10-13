@@ -45,7 +45,7 @@
           "text": "TWO RUNTIMES — mise pins both bun and node, locally and in CI; repo-owned invocations must carry --bun/bunx --bun or they run on node, while third-party node-shebang bins (agent-browser, vercel and its builders) run on node; oxlint/oxfmt and @jlg/oxlint's JS plugins run on bun because package.json and hk.pkl launch them with --bun",
           "verified": {
             "digest": null,
-            "sha": "82d8296ff4d81407f47d663fd73bb309b42368be"
+            "sha": "593b9032befbf0ed250c77234fcc6b002d8a7497"
           }
         },
         {
@@ -57,7 +57,7 @@
           "text": "FORMAT POLICY — printWidth is deliberately absent (oxfmt default 100; the repo predates the base's former 80); singleQuote comes from the @jlg/oxfmt base via defineConfig",
           "verified": {
             "digest": "800201c0bcb8635271df72de53b7681de30a9c95fd732c40fe915eaf49c619ed",
-            "sha": "82d8296ff4d81407f47d663fd73bb309b42368be"
+            "sha": "593b9032befbf0ed250c77234fcc6b002d8a7497"
           }
         },
         {
@@ -69,7 +69,7 @@
           "text": "UNMATCHED-PATTERN FOOTGUN — oxlint (exit 1, 'No files found to lint') and oxfmt 0.62+ (exit 2, 'Expected at least one target file') both fail the commit when every staged file is ignored; --no-error-on-unmatched-pattern is load-bearing on both pre-commit steps in hk.pkl",
           "verified": {
             "digest": null,
-            "sha": "82d8296ff4d81407f47d663fd73bb309b42368be"
+            "sha": "593b9032befbf0ed250c77234fcc6b002d8a7497"
           }
         },
         {
@@ -81,7 +81,7 @@
           "text": "WASM OUTPUT — public/background is wasm-bindgen output, gitignored: deploy.yaml regenerates it with `bun run background:build` before `vercel build`, or restores it from a cache keyed on the crate sources and build script, and local dev runs the same command once for the background to render — never hand-edited or committed, ignored by both lint and fmt",
           "verified": {
             "digest": "f5a239e2ae9f1e43569e8052af97b08d28ca6b71f7588875a6ef23ef07714b28",
-            "sha": "82d8296ff4d81407f47d663fd73bb309b42368be"
+            "sha": "593b9032befbf0ed250c77234fcc6b002d8a7497"
           }
         }
       ],
@@ -95,6 +95,7 @@
         "tsc": "bunx --bun tsc --noEmit"
       },
       "contains": [
+        "docs",
         "src"
       ],
       "declared": {
@@ -109,6 +110,23 @@
       "kind": "system",
       "purpose": "Personal web profile — Next 16 App Router on Bun, deployed to Vercel, with a Rust/Bevy wasm animated background and a strict per-request CSP. No backend; the site IS the product."
     },
+    "docs": {
+      "budget": null,
+      "claims": [],
+      "commands": {},
+      "contains": [],
+      "declared": {
+        "allow": [],
+        "decided_by": [],
+        "depends": []
+      },
+      "extracted": {
+        "imports": []
+      },
+      "id": "docs",
+      "kind": "container",
+      "purpose": "plan.md — the active plan: hazards for working here and what is next, in order."
+    },
     "src": {
       "budget": null,
       "claims": [
@@ -121,7 +139,7 @@
           "text": "CSP DYNAMIC — every response carries a fresh per-request CSP nonce minted in the proxy; a build-time static shell cannot hold it, so cacheComponents stays OFF in next.config.js and these routes stay fully dynamic (no cache flag at all — nothing uses the `use cache` directive)",
           "verified": {
             "digest": "29a6c1811133e0f6c464e6b09eb98e6a936b9de3f72532384a914cb6425b2a5d",
-            "sha": "82d8296ff4d81407f47d663fd73bb309b42368be"
+            "sha": "593b9032befbf0ed250c77234fcc6b002d8a7497"
           }
         },
         {
@@ -133,7 +151,7 @@
           "text": "PROXY SHORT-CIRCUIT — a proxy handler aborts the chain by THROWING a NextResponse (caught in createProxy and returned as-is); a normally-returned response is merged into the shared response, not short-circuited",
           "verified": {
             "digest": "05f57d33883bceae372f0e3aea0f2c13c87a14ca084d06ed2c9b3dfa4a2aadf9",
-            "sha": "82d8296ff4d81407f47d663fd73bb309b42368be"
+            "sha": "593b9032befbf0ed250c77234fcc6b002d8a7497"
           }
         }
       ],
