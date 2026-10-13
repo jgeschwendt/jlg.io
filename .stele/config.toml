@@ -4,7 +4,7 @@
 # non-root node's territory. This graph is deliberately shallow — root (system)
 # + src (container) — because the remaining top-level dirs carry no local
 # knowledge a root claim doesn't already route to:
-#   .github  → CI; the BUN-ONLY RUNTIME and LEFTHOOK hazards already cover it
+#   .github  → CI; the TWO RUNTIMES and UNMATCHED-PATTERN hazards already cover it
 #   crates   → Rust/Bevy background source; the WASM-OUTPUT hazard covers its pipeline
 #   public   → static + gitignored generated output (public/background, built in deploy.yaml)
 #   scripts  → build tooling; the WASM-OUTPUT claim anchors into background-wasm.ts
