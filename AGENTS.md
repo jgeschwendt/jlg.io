@@ -34,9 +34,10 @@ hazards:
 
 ## Map
 
-| node | kind      | purpose                                                                                                                                           | unfold                                       |
-| ---- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
-| src  | container | Next App Router UI (app/ pages, components/) plus the proxy handler chain under server/proxy. Rendering is fully dynamic — see the CSP invariant. | `stele unfold src` · or read `src/AGENTS.md` |
+| node | kind      | purpose                                                                                                                                           | unfold                                         |
+| ---- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
+| docs | container | plan.md — the active plan: hazards for working here and what is next, in order.                                                                   | `stele unfold docs` · or read `docs/AGENTS.md` |
+| src  | container | Next App Router UI (app/ pages, components/) plus the proxy handler chain under server/proxy. Rendering is fully dynamic — see the CSP invariant. | `stele unfold src` · or read `src/AGENTS.md`   |
 
 ## Indexes
 
