@@ -49,9 +49,7 @@ fn main() {
     let remote = base_url();
     let local = remote.is_none();
     let mode = local.then(mode);
-    let base = remote
-        .clone()
-        .unwrap_or_else(|| format!("http://{HOST}:{PORT}"));
+    let base = remote.unwrap_or_else(|| format!("http://{HOST}:{PORT}"));
 
     // Both paths: `goto` files a failed navigation's autopsy here, and there is
     // nowhere else for it to land. Only the local path fills it with coverage.
@@ -110,8 +108,6 @@ fn main() {
 
     home_trips(&session, &base);
 
-    // Nothing to harvest off a deployment: the maps below exist only because
-    // the local server was built with COVERAGE=1.
     if local {
         written.push(harvest(&session, &output, "home"));
     }
@@ -141,9 +137,7 @@ fn main() {
         deployment(&root);
     }
 
-    if let Some(base) = &remote {
-        println!("\n[harness] remote target {base}: assertions only, no coverage");
-    } else {
+    if local {
         println!(
             "\n[harness] wrote {} file(s) to {}",
             written.len(),
@@ -152,6 +146,8 @@ fn main() {
         for (name, files) in &written {
             println!("  {name}: {files} source file(s)");
         }
+    } else {
+        println!("\n[harness] remote target {base}: assertions only, no coverage");
     }
     println!("[harness] {:.1}s", started.elapsed().as_secs_f64());
 }

@@ -135,11 +135,10 @@ pub fn get_head(port: u16, path: &str, headers: &[(&str, &str)]) -> Option<(u16,
     let mut head = Vec::new();
     let mut chunk = [0u8; 4096];
     while !head.windows(4).any(|w| w == b"\r\n\r\n") {
-        let read = stream.read(&mut chunk).ok()?;
-        if read == 0 {
-            break;
+        match stream.read(&mut chunk).ok()? {
+            0 => break,
+            read => head.extend_from_slice(&chunk[..read]),
         }
-        head.extend_from_slice(&chunk[..read]);
     }
     let head = String::from_utf8_lossy(&head);
     let head = head.split("\r\n\r\n").next()?.to_string();

@@ -142,10 +142,7 @@ impl Session {
     /// multiplexing to keep straight and no reason to hold a socket open.
     fn round_trip(&self, request: &Value) -> Result<Reply, Error> {
         let stream = UnixStream::connect(&self.socket)?;
-        let mut writer = &stream;
-        writer.write_all(serde_json::to_string(request).unwrap().as_bytes())?;
-        writer.write_all(b"\n")?;
-        writer.flush()?;
+        (&stream).write_all(format!("{request}\n").as_bytes())?;
 
         let mut line = String::new();
         BufReader::new(&stream).read_line(&mut line)?;
