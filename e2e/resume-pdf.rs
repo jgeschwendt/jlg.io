@@ -28,7 +28,7 @@ fn main() {
     let fonts = session
         .eval("document.fonts.ready.then(() => true)")
         .expect("wait for fonts");
-    assert_eq!(fonts, serde_json::Value::Bool(true), "fonts never settled");
+    assert_eq!(fonts, true, "fonts never settled");
 
     let out = root.join("public/resume.pdf");
     session

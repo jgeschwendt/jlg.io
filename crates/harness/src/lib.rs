@@ -101,10 +101,8 @@ impl Session {
     /// legal script here — but a bare top-level `await` is not, because the
     /// expression is evaluated, not run as a module.
     pub fn eval(&self, script: &str) -> Result<Value, Error> {
-        field(
-            &self.send("evaluate", json!({ "script": script }))?,
-            "result",
-        )
+        let data = self.send("evaluate", json!({ "script": script }))?;
+        field(&data, "result")
     }
 
     /// A hard navigation: it discards the JS heap — `kit::COVERAGE_STASH` files
@@ -157,11 +155,14 @@ impl Session {
     /// Retries transient socket faults, then re-bootstraps once if the daemon
     /// turns out to be gone (the daemon exits on idle, so a session that worked
     /// a moment ago can be unreachable on the next call).
-    fn send(&self, action: &str, params: Value) -> Result<Value, Error> {
-        let mut request = json!({ "action": action, "id": next_id() });
-        if let (Some(target), Value::Object(extra)) = (request.as_object_mut(), params) {
-            target.extend(extra);
-        }
+    fn send(&self, action: &str, mut request: Value) -> Result<Value, Error> {
+        request["action"] = action.into();
+        request["id"] = format!(
+            "{}-{}",
+            std::process::id(),
+            SEQ.fetch_add(1, Ordering::Relaxed)
+        )
+        .into();
 
         let mut respawned = false;
         let mut attempt = 1;
@@ -201,14 +202,6 @@ fn field(data: &Value, key: &str) -> Result<Value, Error> {
     data.get(key)
         .cloned()
         .ok_or_else(|| Error::Protocol(format!("missing data.{key} in {data}")))
-}
-
-fn next_id() -> String {
-    format!(
-        "{}-{}",
-        std::process::id(),
-        SEQ.fetch_add(1, Ordering::Relaxed)
-    )
 }
 
 fn socket_path(name: &str) -> PathBuf {
