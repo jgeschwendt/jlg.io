@@ -90,8 +90,6 @@ impl Bypass {
                 // `Page.setBypassCSP` is only honoured on a domain-enabled page.
                 ("Page.enable", json!({})),
                 ("Page.setBypassCSP", json!({ "enabled": true })),
-                // The same per-target hook carries the client-coverage stash, so
-                // every document the run loads keeps its counters past unload.
                 (
                     "Page.addScriptToEvaluateOnNewDocument",
                     json!({ "source": crate::kit::COVERAGE_STASH }),
@@ -140,7 +138,7 @@ impl Bypass {
             let reply: Value =
                 serde_json::from_str(&text).map_err(|e| format!("{method}: decode: {e}"))?;
 
-            if reply["id"].as_u64() != Some(id) {
+            if reply["id"] != id {
                 continue;
             }
             if let Some(error) = reply.get("error") {
