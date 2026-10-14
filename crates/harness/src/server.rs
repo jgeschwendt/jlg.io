@@ -31,10 +31,12 @@ pub fn repo_root() -> PathBuf {
 
 pub struct Server {
     child: Child,
-    port: u16,
 }
 
 impl Server {
+    /// Spawns the server and blocks until `/` answers 200. Turbopack compiles
+    /// routes lazily, so a cold dev server can take minutes before the first
+    /// response. Poll rather than sleep on a guess.
     pub fn start(
         program: &str,
         args: &[&str],
@@ -42,8 +44,7 @@ impl Server {
         root: &Path,
         port: u16,
     ) -> Self {
-        let mut command = Command::new(program);
-        command
+        let child = Command::new(program)
             .args(args)
             .current_dir(root)
             // Its own process group: `next` starts helper processes, and
@@ -53,31 +54,20 @@ impl Server {
             // them, and a swallowed stdout is where a silent failure hides.
             // (since 2026-08-18 · the __next_error__ hunt found stdout nulled)
             .stdout(Stdio::inherit())
-            .stderr(Stdio::inherit());
-        for (key, value) in envs {
-            command.env(key, value);
-        }
-        let child = command
+            .stderr(Stdio::inherit())
+            .envs(envs.iter().copied())
             .spawn()
             .expect("spawn next — run this from a repo with node_modules installed");
+        let server = Server { child };
 
-        Server { child, port }
-    }
-
-    /// Turbopack compiles routes lazily, so a cold dev server can take minutes
-    /// before the first response. Poll rather than sleep on a guess.
-    pub fn wait_ready(&self) {
         let deadline = Instant::now() + READY_TIMEOUT;
         while Instant::now() < deadline {
-            if get_status(self.port, "/") == Some(200) {
-                return;
+            if matches!(get_head(port, "/", &[]), Some((200, _))) {
+                return server;
             }
             std::thread::sleep(Duration::from_millis(500));
         }
-        panic!(
-            "next never answered on {HOST}:{} within {READY_TIMEOUT:?}",
-            self.port
-        );
+        panic!("next never answered on {HOST}:{port} within {READY_TIMEOUT:?}");
     }
 }
 
@@ -115,21 +105,15 @@ impl Drop for Server {
     }
 }
 
-/// A hand-rolled readiness probe. One request, one status line, no HTTP client
-/// in the dependency set — everything else the binaries need from the network
-/// they get through the browser. One `read`, never read-to-EOF: bun's runtime
+/// One request, read only as far as the end of the response head — status
+/// plus the raw header block, lowercased names and all as sent — with no HTTP
+/// client in the dependency set: everything else the binaries need from the
+/// network they get through the browser. Never read-to-EOF: bun's runtime
 /// serves the whole response and then holds the socket open despite
 /// `Connection: close`, so waiting for EOF times out against every
 /// `bun --bun next` server while node's closes promptly.
 /// (observed 2026-08-18 · resume-pdf's `next start` answered instantly but
-/// wait_ready timed out at 300s reading to EOF)
-pub fn get_status(port: u16, path: &str) -> Option<u16> {
-    get_head(port, path, &[]).map(|(status, _)| status)
-}
-
-/// One request, read only as far as the end of the response head — status
-/// plus the raw header block, lowercased names and all as sent. The body is
-/// never awaited, for the same reason `get_status` never reads to EOF.
+/// the readiness wait timed out at 300s reading to EOF)
 pub fn get_head(port: u16, path: &str, headers: &[(&str, &str)]) -> Option<(u16, String)> {
     let mut stream = TcpStream::connect((HOST, port)).ok()?;
     stream

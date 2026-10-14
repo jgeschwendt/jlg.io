@@ -53,7 +53,6 @@ impl From<std::io::Error> for Error {
 struct Reply {
     #[serde(default)]
     data: Value,
-    #[serde(default)]
     error: Option<String>,
     success: bool,
 }
@@ -88,8 +87,7 @@ impl Session {
     /// The browser-level CDP endpoint, which is what `Target.*` and a flat
     /// per-target attach need — a page-level endpoint cannot reach either.
     pub fn cdp_url(&self) -> Result<String, Error> {
-        let data = self.send("cdp_url", json!({}))?;
-        string(&data, "cdpUrl")
+        string(&self.send("cdp_url", json!({}))?, "cdpUrl")
     }
 
     /// Tears down the entire daemon, not just this page: the socket and pid
@@ -103,8 +101,10 @@ impl Session {
     /// legal script here — but a bare top-level `await` is not, because the
     /// expression is evaluated, not run as a module.
     pub fn eval(&self, script: &str) -> Result<Value, Error> {
-        let data = self.send("evaluate", json!({ "script": script }))?;
-        field(&data, "result")
+        field(
+            &self.send("evaluate", json!({ "script": script }))?,
+            "result",
+        )
     }
 
     /// A hard navigation: it discards the JS heap — `kit::COVERAGE_STASH` files
@@ -121,46 +121,8 @@ impl Session {
         self.send("pdf", json!({ "path": path })).map(|_| ())
     }
 
-    /// Retries transient socket faults, then re-bootstraps once if the daemon
-    /// turns out to be gone (the daemon exits on idle, so a session that worked
-    /// a moment ago can be unreachable on the next call).
-    pub fn send(&self, action: &str, params: Value) -> Result<Value, Error> {
-        let mut request = json!({ "action": action, "id": next_id() });
-        if let (Some(target), Value::Object(extra)) = (request.as_object_mut(), params) {
-            target.extend(extra);
-        }
-
-        let mut respawned = false;
-        let mut attempt = 1;
-        loop {
-            match self.round_trip(&request) {
-                Ok(reply) if reply.success => return Ok(reply.data),
-                Ok(reply) => {
-                    return Err(Error::Protocol(
-                        reply.error.unwrap_or_else(|| format!("{action} failed")),
-                    ));
-                }
-                Err(e) if unreachable(&e) && !respawned => {
-                    respawned = true;
-                    self.bootstrap()?;
-                }
-                Err(e) if transient(&e) && attempt < MAX_ATTEMPTS => {
-                    std::thread::sleep(RETRY_STEP * attempt);
-                    attempt += 1;
-                }
-                Err(e) => return Err(e),
-            }
-        }
-    }
-
     pub fn title(&self) -> Result<String, Error> {
-        let data = self.send("title", json!({}))?;
-        string(&data, "title")
-    }
-
-    pub fn url(&self) -> Result<String, Error> {
-        let data = self.send("url", json!({}))?;
-        string(&data, "url")
+        string(&self.send("title", json!({}))?, "title")
     }
 
     /// `open about:blank` is the cheapest command that forces the daemon and
@@ -191,12 +153,44 @@ impl Session {
         BufReader::new(&stream).read_line(&mut line)?;
         serde_json::from_str(&line).map_err(|e| Error::Protocol(format!("{e}: {line:?}")))
     }
+
+    /// Retries transient socket faults, then re-bootstraps once if the daemon
+    /// turns out to be gone (the daemon exits on idle, so a session that worked
+    /// a moment ago can be unreachable on the next call).
+    fn send(&self, action: &str, params: Value) -> Result<Value, Error> {
+        let mut request = json!({ "action": action, "id": next_id() });
+        if let (Some(target), Value::Object(extra)) = (request.as_object_mut(), params) {
+            target.extend(extra);
+        }
+
+        let mut respawned = false;
+        let mut attempt = 1;
+        loop {
+            match self.round_trip(&request) {
+                Ok(reply) if reply.success => return Ok(reply.data),
+                Ok(reply) => {
+                    return Err(Error::Protocol(
+                        reply.error.unwrap_or_else(|| format!("{action} failed")),
+                    ));
+                }
+                Err(e) if unreachable(&e) && !respawned => {
+                    respawned = true;
+                    self.bootstrap()?;
+                }
+                Err(e) if transient(&e) && attempt < MAX_ATTEMPTS => {
+                    std::thread::sleep(RETRY_STEP * attempt);
+                    attempt += 1;
+                }
+                Err(e) => return Err(e),
+            }
+        }
+    }
 }
 
 /// `agent-browser` is a bun global install (`bun add -g`), on PATH via
-/// `~/.bun/bin` — its node-shebang bin resolves to bun through the `node`
-/// symlink both machines and CI carry. `AGENT_BROWSER_BIN` is the escape
-/// hatch for running the binary from somewhere else.
+/// `~/.bun/bin` — and its node-shebang bin runs on the mise-pinned node, not
+/// bun. `AGENT_BROWSER_BIN` is the escape hatch for running the binary from
+/// somewhere else.
 fn binary() -> String {
     std::env::var("AGENT_BROWSER_BIN").unwrap_or_else(|_| "agent-browser".to_string())
 }
@@ -241,16 +235,17 @@ fn string(data: &Value, key: &str) -> Result<String, Error> {
 /// is an empty read: the daemon accepted the connection and closed it without
 /// answering, which it does while it is still coming up.
 fn transient(e: &Error) -> bool {
-    let Error::Io(io) = e else {
-        return matches!(e, Error::Protocol(m) if m.contains("line 1 column 0"));
-    };
-    matches!(
-        io.kind(),
-        std::io::ErrorKind::BrokenPipe
-            | std::io::ErrorKind::ConnectionReset
-            | std::io::ErrorKind::UnexpectedEof
-            | std::io::ErrorKind::WouldBlock
-    ) || io.raw_os_error() == Some(35)
+    match e {
+        Error::Daemon(_) => false,
+        Error::Io(io) => matches!(
+            io.kind(),
+            std::io::ErrorKind::BrokenPipe
+                | std::io::ErrorKind::ConnectionReset
+                | std::io::ErrorKind::UnexpectedEof
+                | std::io::ErrorKind::WouldBlock
+        ),
+        Error::Protocol(m) => m.contains("line 1 column 0"),
+    }
 }
 
 /// Nobody is listening: either the socket file is gone, or it is a stale one

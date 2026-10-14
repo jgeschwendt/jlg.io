@@ -14,6 +14,51 @@ use serde_json::Value;
 use std::path::Path;
 use std::time::{Duration, Instant};
 
+// Zeroes every counter in `live` — one source for the stash and the harvest,
+// which must agree on it or a hit is reported twice.
+macro_rules! zero_live {
+    () => {
+        "for (const file of Object.values(live)) { \
+         for (const id in file.s) file.s[id] = 0; for (const id in file.f) file.f[id] = 0; \
+         for (const id in file.b) file.b[id] = file.b[id].map(() => 0); }"
+    };
+}
+
+/// Registered on every page target (`cdp::Bypass::arm`) so a document's client
+/// counters outlive it. A full page load — `goto`, or a `<Link>` click that
+/// degrades into one under the hydration race — discards the JS heap and with
+/// it `window.__coverage__`; on `pagehide` this files the map in
+/// `sessionStorage`, which survives a same-origin load, and zeroes the live
+/// counters so a back-forward-cache restore does not count them twice.
+/// (observed 2026-10-08 · a race-degraded Close click lost `Main.tsx`'s
+/// return-visit branch; the run before it, race-free, had covered it)
+pub const COVERAGE_STASH: &str = concat!(
+    "addEventListener('pagehide', () => { \
+     const live = window.__coverage__; if (!live) return; \
+     const stash = JSON.parse(sessionStorage.getItem('__harness_coverage') ?? '[]'); \
+     stash.push(live); sessionStorage.setItem('__harness_coverage', JSON.stringify(stash)); ",
+    zero_live!(),
+    " });"
+);
+
+const HARVEST: &str = concat!(
+    "(() => { \
+     const maps = JSON.parse(sessionStorage.getItem('__harness_coverage') ?? '[]'); \
+     sessionStorage.removeItem('__harness_coverage'); \
+     const live = window.__coverage__; \
+     if (live) maps.push(JSON.parse(JSON.stringify(live))); \
+     const merged = {}; \
+     for (const map of maps) for (const [path, file] of Object.entries(map)) { \
+       const into = merged[path]; \
+       if (!into) { merged[path] = file; continue; } \
+       for (const id in file.s) into.s[id] += file.s[id]; \
+       for (const id in file.f) into.f[id] += file.f[id]; \
+       for (const id in file.b) into.b[id] = into.b[id].map((n, arm) => n + file.b[id][arm]); } \
+     if (live) ",
+    zero_live!(),
+    " return JSON.stringify(merged); })()"
+);
+
 // Reads the tap's buffer out of `sessionStorage`, empties it, and reports how
 // the CURRENT document was entered — after a full-load fallback that is the new
 // document, whose navigation type ("navigate" for a link the router let through
@@ -22,8 +67,8 @@ const RSC_DRAIN: &str = "(() => { const KEY = '__harness_rsc'; let log = []; \
      try { log = JSON.parse(sessionStorage.getItem(KEY) || '[]'); } catch (e) {} \
      try { sessionStorage.removeItem(KEY); } catch (e) {} \
      const nav = performance.getEntriesByType('navigation')[0]; \
-     return JSON.stringify({ entries: log, navigation: nav ? nav.type : null, \
-       tapped: Boolean(window.__harness_rsc_tapped) }); })()";
+     return { entries: log, navigation: nav ? nav.type : null, \
+       tapped: Boolean(window.__harness_rsc_tapped) }; })()";
 
 // `sessionStorage`, not a `window` property, is the whole point: it is the one
 // place a record written before a full page load can still be read after it,
@@ -82,6 +127,8 @@ const RSC_TAP: &str = "(() => { \
 // nothing at all. Retry the click-and-check as a unit.
 const SPA_TIMEOUT: Duration = Duration::from_secs(30);
 
+#[derive(serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct FetchProbe {
     pub body: String,
     pub cache_control: String,
@@ -121,34 +168,16 @@ pub fn attribute(session: &Session, selector: &str, name: &str) -> String {
 /// reloads the document would discard the heap — and the counters — exactly
 /// like an unhydrated anchor would.
 pub fn back_until(session: &Session, path: &str) {
-    session
-        .eval("window.__harness = true")
-        .expect("mark the document");
-    arm_rsc_tap(session);
+    mark(session);
     session.back().expect("history back");
-
-    let deadline = Instant::now() + SPA_TIMEOUT;
-    loop {
-        let at = session.eval("location.pathname").expect("read location");
-        if at.as_str() == Some(path) {
-            break;
-        }
-        assert!(
-            Instant::now() < deadline,
-            "history back never reached {path} (still at {at})"
-        );
-        std::thread::sleep(Duration::from_millis(250));
-    }
-
-    let client_side =
-        session.eval("window.__harness === true").expect("sentinel") == Value::Bool(true);
-    if !client_side {
+    poll(session, "location.pathname", "read location", 250, |at| {
+        *at == path
+    })
+    .unwrap_or_else(|at| panic!("history back never reached {path} (still at {at})"));
+    if session.eval("window.__harness === true").expect("sentinel") != true {
         print_rsc_log(session, &format!("history back to {path}, full page load"));
+        panic!("history back reached {path} by a full page load, not the router");
     }
-    assert!(
-        client_side,
-        "history back reached {path} by a full page load, not the router"
-    );
 }
 
 /// The origin a run drives instead of one it started itself: `--base <url>` or
@@ -158,24 +187,7 @@ pub fn back_until(session: &Session, path: &str) {
 /// business, not this module's. One trailing `/` comes off so `{base}/path`
 /// composes the same way either answer arrives.
 pub fn base_url() -> Option<String> {
-    let mut args = std::env::args().skip(1);
-    let mut base = std::env::var("HARNESS_BASE").ok();
-    while let Some(arg) = args.next() {
-        match arg.as_str() {
-            "--base" => base = args.next().or(base),
-            other => {
-                if let Some(value) = other.strip_prefix("--base=") {
-                    base = Some(value.to_string());
-                }
-            }
-        }
-    }
-    base.map(|mut url| {
-        if url.ends_with('/') {
-            url.pop();
-        }
-        url
-    })
+    flag("base", "HARNESS_BASE").map(|url| url.strip_suffix('/').unwrap_or(&url).to_string())
 }
 
 /// Clicks `selector` until the location settles on `to`. `HTMLElement.click`
@@ -215,45 +227,36 @@ pub fn dump(session: &Session, context: &str) {
 /// One same-origin fetch, reported whole. `evaluate` awaits the promise and
 /// returns by value, so the status, the headers a suite asserts, and the body
 /// come back in a single round trip — and a same-origin `Response` hides
-/// nothing but `Set-Cookie`.
-pub fn fetch_probe(session: &Session, path: &str) -> FetchProbe {
-    fetch_probe_with(session, path, &[])
-}
-
-/// `fetch_probe` with request headers — for routes whose behavior a header
-/// selects. Names and values are embedded as JSON string literals.
-pub fn fetch_probe_with(session: &Session, path: &str, headers: &[(&str, &str)]) -> FetchProbe {
-    let headers = Value::Object(
-        headers
-            .iter()
-            .map(|(name, value)| ((*name).to_string(), Value::String((*value).to_string())))
-            .collect(),
-    );
+/// nothing but `Set-Cookie`. `headers` are for routes whose behavior a request
+/// header selects, embedded as JSON string literals.
+pub fn fetch_probe(session: &Session, path: &str, headers: &[(&str, &str)]) -> FetchProbe {
+    let headers: Value = headers.iter().copied().collect();
     let script = format!(
-        "fetch('{path}', {{ cache: 'no-store', headers: {headers} }}).then(async (r) => JSON.stringify({{ \
+        "fetch('{path}', {{ cache: 'no-store', headers: {headers} }}).then(async (r) => ({{ \
            body: await r.text(), \
            cacheControl: r.headers.get('cache-control') ?? '', \
            contentType: r.headers.get('content-type') ?? '', \
            csp: r.headers.get('content-security-policy') ?? '', \
            status: r.status }}))"
     );
-    let raw = session.eval(&script).expect("fetch probe");
-    let raw = raw.as_str().expect("probe reply is a JSON string");
-    let value: Value = serde_json::from_str(raw).unwrap_or_else(|e| panic!("{path} probe: {e}"));
+    serde_json::from_value(session.eval(&script).expect("fetch probe"))
+        .unwrap_or_else(|e| panic!("{path} probe: {e}"))
+}
 
-    FetchProbe {
-        body: value["body"].as_str().unwrap_or_default().to_string(),
-        cache_control: value["cacheControl"]
-            .as_str()
-            .unwrap_or_default()
-            .to_string(),
-        content_type: value["contentType"]
-            .as_str()
-            .unwrap_or_default()
-            .to_string(),
-        csp: value["csp"].as_str().unwrap_or_default().to_string(),
-        status: u16::try_from(value["status"].as_u64().unwrap_or(0)).unwrap_or(0),
+/// The last `--{name} <value>` or `--{name}=<value>` on the command line, else
+/// the `env` variable.
+fn flag(name: &str, env: &str) -> Option<String> {
+    let (bare, prefix) = (format!("--{name}"), format!("--{name}="));
+    let mut args = std::env::args().skip(1);
+    let mut value = std::env::var(env).ok();
+    while let Some(arg) = args.next() {
+        if arg == bare {
+            value = args.next().or(value);
+        } else if let Some(inline) = arg.strip_prefix(&prefix) {
+            value = Some(inline.to_string());
+        }
     }
+    value
 }
 
 /// A hard navigation that trusts nothing: not the daemon's load wait (against
@@ -271,41 +274,34 @@ pub fn goto(session: &Session, url: &str) {
 
     for attempt in 1..=ATTEMPTS {
         session.navigate(url).expect("navigate");
+        poll(
+            session,
+            "({ href: location.href, ready: document.readyState })",
+            "probe navigation",
+            100,
+            |state| state["href"] == url && state["ready"] == "complete",
+        )
+        .unwrap_or_else(|state| panic!("never settled on {url}: {state}"));
 
-        let deadline = Instant::now() + SPA_TIMEOUT;
-        loop {
-            let state = session
-                .eval("JSON.stringify({ href: location.href, ready: document.readyState })")
-                .expect("probe navigation");
-            let state = state.as_str().unwrap_or_default();
-            if state.contains(&format!("\"href\":\"{url}\""))
-                && state.contains("\"ready\":\"complete\"")
-            {
-                break;
-            }
-            assert!(Instant::now() < deadline, "never settled on {url}: {state}");
-            std::thread::sleep(Duration::from_millis(100));
-        }
-
-        let shell = session
-            .eval("document.documentElement.id === '__next_error__'")
-            .expect("probe error shell");
-        if shell != Value::Bool(true) {
-            // Armed here, not only at the interactions, so the app's own
-            // prefetches are caught: a `<Link>` in view fetches its RSC payload
-            // long before any click, and a prefetch that came back wrong is the
-            // likeliest reason a later click degrades to a full page load.
-            arm_rsc_tap(session);
+        // The tap is armed here, not only at the interactions, so the app's own
+        // prefetches are caught: a `<Link>` in view fetches its RSC payload
+        // long before any click, and a prefetch that came back wrong is the
+        // likeliest reason a later click degrades to a full page load. Only
+        // when no shell answered — `||` short-circuits past it.
+        let shell =
+            format!("document.documentElement.id === '__next_error__' || ({RSC_TAP}, false)");
+        if session.eval(&shell).expect("probe error shell") != true {
             return;
         }
 
-        dump(session, &format!("error shell on {url}, attempt {attempt}"));
-        print_rsc_log(session, &format!("error shell on {url}, attempt {attempt}"));
+        let context = format!("error shell on {url}, attempt {attempt}");
+        dump(session, &context);
+        print_rsc_log(session, &context);
         // The navigated document and a fresh fetch of the same URL can tell
         // different stories (PR #570: fetch healthy, navigation crashed), so
         // report both sides and keep the whole body in .nyc_output, which the
         // CI job uploads as an artifact on failure.
-        let probe = fetch_probe(session, url);
+        let probe = fetch_probe(session, url, &[]);
         let refetch_shell = probe.body.contains("__next_error__");
         let head = probe.body.chars().take(200).collect::<String>();
         println!(
@@ -324,22 +320,6 @@ pub fn goto(session: &Session, url: &str) {
     panic!("{url} served the __next_error__ shell across {ATTEMPTS} attempts");
 }
 
-/// Registered on every page target (`cdp::Bypass::arm`) so a document's client
-/// counters outlive it. A full page load — `goto`, or a `<Link>` click that
-/// degrades into one under the hydration race — discards the JS heap and with
-/// it `window.__coverage__`; on `pagehide` this files the map in
-/// `sessionStorage`, which survives a same-origin load, and zeroes the live
-/// counters so a back-forward-cache restore does not count them twice.
-/// (observed 2026-10-08 · a race-degraded Close click lost `Main.tsx`'s
-/// return-visit branch; the run before it, race-free, had covered it)
-pub const COVERAGE_STASH: &str = "addEventListener('pagehide', () => { \
-  const live = window.__coverage__; if (!live) return; \
-  const stash = JSON.parse(sessionStorage.getItem('__harness_coverage') ?? '[]'); \
-  stash.push(live); sessionStorage.setItem('__harness_coverage', JSON.stringify(stash)); \
-  for (const file of Object.values(live)) { \
-    for (const id in file.s) file.s[id] = 0; for (const id in file.f) file.f[id] = 0; \
-    for (const id in file.b) file.b[id] = file.b[id].map(() => 0); } });";
-
 /// Every client counter since the last harvest — the live map plus whatever
 /// `COVERAGE_STASH` filed from documents a load replaced — summed into one map
 /// and written under `.nyc_output`. The stash is cleared and the live counters
@@ -350,37 +330,17 @@ pub fn harvest(session: &Session, output: &Path, label: &str) -> (String, usize)
     write_map(output, &format!("client-harness-{label}"), raw, true)
 }
 
-const HARVEST: &str = "(() => { \
-  const maps = JSON.parse(sessionStorage.getItem('__harness_coverage') ?? '[]'); \
-  sessionStorage.removeItem('__harness_coverage'); \
-  const live = window.__coverage__; \
-  if (live) maps.push(JSON.parse(JSON.stringify(live))); \
-  const merged = {}; \
-  for (const map of maps) for (const [path, file] of Object.entries(map)) { \
-    const into = merged[path]; \
-    if (!into) { merged[path] = file; continue; } \
-    for (const id in file.s) into.s[id] += file.s[id]; \
-    for (const id in file.f) into.f[id] += file.f[id]; \
-    for (const id in file.b) into.b[id] = into.b[id].map((n, arm) => n + file.b[id][arm]); } \
-  if (live) for (const file of Object.values(live)) { \
-    for (const id in file.s) file.s[id] = 0; for (const id in file.f) file.f[id] = 0; \
-    for (const id in file.b) file.b[id] = file.b[id].map(() => 0); } \
-  return JSON.stringify(merged); })()";
+/// Sets the `settle`/`back_until` sentinel and arms the RSC tap in one round
+/// trip.
+fn mark(session: &Session) {
+    session
+        .eval(&format!("(window.__harness = true, {RSC_TAP})"))
+        .expect("mark the document");
+}
 
-/// `dev` unless COVERAGE_MODE or `--mode` says `prod`.
+/// `--mode`, else COVERAGE_MODE, else `dev`; anything but `dev`/`prod` panics.
 pub fn mode() -> String {
-    let mut args = std::env::args().skip(1);
-    let mut mode = std::env::var("COVERAGE_MODE").unwrap_or_else(|_| "dev".to_string());
-    while let Some(arg) = args.next() {
-        match arg.as_str() {
-            "--mode" => mode = args.next().unwrap_or(mode),
-            other => {
-                if let Some(value) = other.strip_prefix("--mode=") {
-                    mode = value.to_string();
-                }
-            }
-        }
-    }
+    let mode = flag("mode", "COVERAGE_MODE").unwrap_or_else(|| "dev".to_string());
     assert!(
         matches!(mode.as_str(), "dev" | "prod"),
         "mode must be dev or prod, got {mode:?}"
@@ -391,31 +351,48 @@ pub fn mode() -> String {
 /// The `'nonce-…'` value out of a policy's script-src. Base64ish by
 /// construction, so everything up to the closing quote is the nonce.
 pub fn nonce_of(csp: &str, path: &str) -> String {
-    let start = csp
-        .find("'nonce-")
-        .unwrap_or_else(|| panic!("{path}: no nonce in CSP: {csp:?}"))
-        + "'nonce-".len();
-    let rest = &csp[start..];
-    let end = rest
-        .find('\'')
+    let (_, rest) = csp
+        .split_once("'nonce-")
+        .unwrap_or_else(|| panic!("{path}: no nonce in CSP: {csp:?}"));
+    let (nonce, _) = rest
+        .split_once('\'')
         .unwrap_or_else(|| panic!("{path}: unterminated nonce in CSP: {csp:?}"));
-    rest[..end].to_string()
+    nonce.to_string()
 }
 
-pub fn press_escape_until(session: &Session, base: &str, from: &str, to: &str) {
-    press_keys_until(session, base, &["Escape"], from, to);
+/// Evaluates `script` every `interval_ms` until `done` accepts its value, or
+/// `SPA_TIMEOUT` runs out — then hands the last value back for the caller's
+/// panic.
+fn poll(
+    session: &Session,
+    script: &str,
+    probe: &str,
+    interval_ms: u64,
+    done: impl Fn(&Value) -> bool,
+) -> Result<(), Value> {
+    let deadline = Instant::now() + SPA_TIMEOUT;
+    loop {
+        let value = session.eval(script).expect(probe);
+        if done(&value) {
+            return Ok(());
+        }
+        if Instant::now() >= deadline {
+            return Err(value);
+        }
+        std::thread::sleep(Duration::from_millis(interval_ms));
+    }
 }
 
-/// `press_escape_until` for a key sequence, dispatched in order within one
-/// evaluation — so when the last key's navigation lands, every key before it
-/// reached the same listener.
+/// Dispatches `keys` as document-level keydowns until the location settles on
+/// `to`, in order within one evaluation — so when the last key's navigation
+/// lands, every key before it reached the same listener.
 pub fn press_keys_until(session: &Session, base: &str, keys: &[&str], from: &str, to: &str) {
     let presses: String = keys
         .iter()
         .map(|key| {
             format!(
                 "document.dispatchEvent(new KeyboardEvent('keydown', {{ bubbles: true, key: {} }})); ",
-                Value::String((*key).to_string())
+                Value::from(*key)
             )
         })
         .collect();
@@ -428,15 +405,14 @@ pub fn press_keys_until(session: &Session, base: &str, keys: &[&str], from: &str
 /// asserts nothing, never panics on a missing tap, and empties the buffer so
 /// the next report carries only what happened since.
 pub fn print_rsc_log(session: &Session, context: &str) {
-    let raw = match session.eval(RSC_DRAIN) {
-        Ok(value) => value.as_str().unwrap_or_default().to_string(),
-        Err(e) => {
-            println!("[harness] rsc log ({context}): unavailable: {e}");
-            return;
-        }
+    let report = match session.eval(RSC_DRAIN) {
+        Ok(report) => report,
+        Err(e) => return println!("[harness] rsc log ({context}): unavailable: {e}"),
     };
-    let report: Value = serde_json::from_str(&raw).unwrap_or(Value::Null);
-    let entries = report["entries"].as_array().cloned().unwrap_or_default();
+    let entries = report["entries"]
+        .as_array()
+        .map(Vec::as_slice)
+        .unwrap_or_default();
     println!(
         "[harness] rsc log ({context}): {} navigation fetch(es), navigation type {}, tapped {}",
         entries.len(),
@@ -449,11 +425,15 @@ pub fn print_rsc_log(session: &Session, context: &str) {
             println!("[harness]   rsc {path} rejected: {error}");
             continue;
         }
-        let nextjs = entry["nextjs"]
+        let nextjs = &entry["nextjs"];
+        let nextjs = if nextjs
             .as_object()
-            .filter(|headers| !headers.is_empty())
-            .map(|headers| format!(" x-nextjs {}", Value::Object(headers.clone())))
-            .unwrap_or_default();
+            .is_some_and(|headers| !headers.is_empty())
+        {
+            format!(" x-nextjs {nextjs}")
+        } else {
+            String::new()
+        };
         println!(
             "[harness]   rsc {path} status {} type {} content-type {:?} \
              x-vercel-id {:?} x-vercel-cache {:?} x-matched-path {:?}{nextjs}",
@@ -472,7 +452,7 @@ pub fn print_rsc_log(session: &Session, context: &str) {
 /// before the reply comes back and the run needs no HTTP client of its own.
 /// Asserts the `/api/coverage` contract on the way: 200, never cached.
 pub fn server_coverage(session: &Session, output: &Path) -> (String, usize) {
-    let probe = fetch_probe(session, "/api/coverage");
+    let probe = fetch_probe(session, "/api/coverage", &[]);
     assert_eq!(probe.status, 200, "/api/coverage status");
     assert!(
         probe.cache_control.contains("no-store"),
@@ -502,13 +482,14 @@ pub fn server_coverage(session: &Session, output: &Path) -> (String, usize) {
 /// and the router answers a payload it does not recognize with a full page load
 /// — three attempts inside one second were not enough to outlast it (run
 /// 34307954043, 40s after the deploy; a re-run minutes later against the same
-/// URL passed with zero retries). So remote gets 5 attempts and a 1s-per-
-/// attempt backoff to let the edge settle. A local `next start` has no edge and
-/// no propagation, only the Turbopack race the original bound was sized for, so
-/// it stays at 3 — a real client-side-navigation regression must not need a
-/// six-second wall-clock budget to be called a failure. Neither bound changes
-/// what counts as success: an arrival by full page load is never success, and
-/// the coverage from the previous page is gone either way.
+/// URL passed with zero retries). Both targets sleep `attempt` seconds between
+/// attempts to let an edge settle; remote gets 5 attempts (1+2+3+4s of
+/// backoff). A local `next start` has no edge and no propagation, only the
+/// Turbopack race the original bound was sized for, so it stays at 3 (1+2s) —
+/// a real client-side-navigation regression must not wait out remote's
+/// ten-second backoff to be called a failure. Neither bound changes what counts
+/// as success: an arrival by full page load is never success, and the coverage
+/// from the previous page is gone either way.
 ///
 /// `HARNESS_DEBUG_RSC=1` prints the tap's log on success too, which is how one
 /// confirms the tap sees healthy navigations and not only broken ones.
@@ -518,25 +499,13 @@ pub fn settle(session: &Session, base: &str, script: &str, from: &str, to: &str,
     let debug = std::env::var_os("HARNESS_DEBUG_RSC").is_some_and(|v| !v.is_empty());
 
     for attempt in 1..=attempts {
-        session
-            .eval("window.__harness = true")
-            .expect("mark the document");
-        arm_rsc_tap(session);
+        mark(session);
+        poll(session, script, "client-side navigation", 250, |at| {
+            *at == to
+        })
+        .unwrap_or_else(|at| panic!("{what} never reached {to} (still at {at})"));
 
-        let deadline = Instant::now() + SPA_TIMEOUT;
-        loop {
-            let at = session.eval(script).expect("client-side navigation");
-            if at.as_str() == Some(to) {
-                break;
-            }
-            assert!(
-                Instant::now() < deadline,
-                "{what} never reached {to} (still at {at})"
-            );
-            std::thread::sleep(Duration::from_millis(250));
-        }
-
-        if session.eval("window.__harness === true").expect("sentinel") == Value::Bool(true) {
+        if session.eval("window.__harness === true").expect("sentinel") == true {
             if debug {
                 print_rsc_log(session, &format!("{what} reached {to} client-side"));
             }
@@ -565,9 +534,12 @@ pub fn settle(session: &Session, base: &str, script: &str, from: &str, to: &str,
     );
 }
 
-pub fn strings(session: &Session, script: &str) -> Vec<String> {
+/// Every `selector` match's `textContent`, trimmed.
+pub fn strings(session: &Session, selector: &str) -> Vec<String> {
     session
-        .eval(script)
+        .eval(&format!(
+            "Array.from(document.querySelectorAll('{selector}'), (e) => e.textContent)"
+        ))
         .expect("read strings")
         .as_array()
         .expect("script returned an array")
@@ -607,18 +579,10 @@ pub fn wait_hydrated(session: &Session, selector: &str) {
         "(() => {{ const el = document.querySelector('{selector}'); return Boolean(el && \
          Object.keys(el).some((k) => k.startsWith('__reactFiber'))); }})()"
     );
-    let deadline = Instant::now() + SPA_TIMEOUT;
-    loop {
-        let hydrated = session.eval(&script).expect("probe hydration");
-        if hydrated == Value::Bool(true) {
-            return;
-        }
-        assert!(
-            Instant::now() < deadline,
-            "{selector} never hydrated — no React fiber attached"
-        );
-        std::thread::sleep(Duration::from_millis(250));
-    }
+    poll(session, &script, "probe hydration", 250, |hydrated| {
+        *hydrated == true
+    })
+    .unwrap_or_else(|_| panic!("{selector} never hydrated — no React fiber attached"));
 }
 
 /// `tolerate_empty` is for the client maps: a route that ships no Client

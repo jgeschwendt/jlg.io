@@ -1,7 +1,5 @@
-//! Prints `/resume` to `public/resume.pdf` off a production `next start`. The
-//! daemon's `pdf` action is CDP `Page.printToPDF`, whose defaults are already
-//! the two options this print needs: `printBackground` on, and CDP's default
-//! paper size is Letter (8.5×11in).
+//! Prints `/resume` to `public/resume.pdf` off a production `next start`, with
+//! `Session::pdf`'s defaults.
 
 use harness::Session;
 use harness::server::{HOST, Server, repo_root};
@@ -14,9 +12,6 @@ const SESSION: &str = "jlg-resume-pdf";
 fn main() {
     let root = repo_root();
 
-    // `bun --bun next` is safe here — the instrumented-module SIGILL that keeps
-    // the coverage runner on plain `next` needs COVERAGE=1 to exist, and this
-    // server is never instrumented.
     let server = Server::start(
         "bun",
         &["--bun", "next", "start", "--port", &PORT.to_string()],
@@ -24,7 +19,6 @@ fn main() {
         &root,
         PORT,
     );
-    server.wait_ready();
 
     let session = Session::ensure(SESSION).expect("agent-browser session");
     harness::kit::goto(&session, &format!("http://{HOST}:{PORT}/resume"));
