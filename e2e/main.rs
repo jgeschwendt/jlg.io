@@ -84,7 +84,7 @@ fn main() {
     // path has nothing between it and a URL somebody typed. One status check
     // first, so an unreachable or protected deployment fails saying so instead
     // of failing eight assertions later on a missing <h1>. It is an in-page
-    // fetch because that is the only HTTP client this binary has — hence the
+    // fetch because `get_head` speaks plain HTTP to localhost only — hence the
     // navigation, which `home` performs again in a moment and which costs
     // nothing.
     if !local {
