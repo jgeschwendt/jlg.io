@@ -70,9 +70,20 @@ const RSC_DRAIN: &str = "(() => { const KEY = '__harness_rsc'; let log = []; \
      return { entries: log, navigation: nav ? nav.type : null, \
        tapped: Boolean(window.__harness_rsc_tapped) }; })()";
 
-// `sessionStorage`, not a `window` property, is the whole point: it is the one
-// place a record written before a full page load can still be read after it,
-// and it is per-origin-per-tab, so a run never reads another's entries.
+// Wraps `window.fetch` for the rest of the document's life so an App Router
+// navigation fetch leaves evidence that OUTLIVES the page. A `<Link>` click
+// degrades to a full page load when the RSC fetch for the target does not come
+// back as an RSC payload — a non-`text/x-component` content type, an error
+// page, a cross-origin redirect, a build/deployment-id mismatch — and the
+// reload that follows wipes the page before anything can be asked about it.
+// The record goes to `sessionStorage`, not a `window` property — the one place
+// a record written before a full page load can still be read after it, so
+// `print_rsc_log` reads it out of the NEW document; and it is
+// per-origin-per-tab, so a run never reads another's entries. Same-origin
+// responses hide no headers, so the Vercel routing trail (`x-vercel-id`,
+// `x-vercel-cache`, `x-matched-path`, any `x-nextjs-*`) comes back alongside
+// the status. Idempotent per document via `window.__harness_rsc_tapped`;
+// diagnostics only, and a rejected fetch is re-thrown untouched.
 const RSC_TAP: &str = "(() => { \
      if (window.__harness_rsc_tapped) return false; \
      window.__harness_rsc_tapped = true; \
@@ -137,22 +148,6 @@ pub struct FetchProbe {
     pub status: u16,
 }
 
-/// Wraps `window.fetch` for the rest of the document's life so an App Router
-/// navigation fetch leaves evidence that OUTLIVES the page. A `<Link>` click
-/// degrades to a full page load when the RSC fetch for the target does not come
-/// back as an RSC payload — a non-`text/x-component` content type, an error
-/// page, a cross-origin redirect, a build/deployment-id mismatch — and the
-/// reload that follows wipes the page before anything can be asked about it.
-/// The record goes to `sessionStorage`, which survives a same-origin reload, so
-/// `print_rsc_log` can read it out of the NEW document. Same-origin responses
-/// hide no headers, so the Vercel routing trail (`x-vercel-id`,
-/// `x-vercel-cache`, `x-matched-path`, any `x-nextjs-*`) comes back alongside
-/// the status. Idempotent per document via `window.__harness_rsc_tapped`;
-/// diagnostics only, and a rejected fetch is re-thrown untouched.
-pub fn arm_rsc_tap(session: &Session) {
-    session.eval(RSC_TAP).expect("arm the RSC tap");
-}
-
 /// Reads an element's attribute, panicking when the element is missing.
 pub fn attribute(session: &Session, selector: &str, name: &str) -> String {
     let script = format!("document.querySelector('{selector}')?.getAttribute('{name}') ?? null");
@@ -195,19 +190,8 @@ pub fn base_url() -> Option<String> {
 /// next/link's `preventDefault` still fires on — so this is a genuine
 /// client-side navigation, not a disguised `location.assign`.
 pub fn click_until(session: &Session, base: &str, selector: &str, from: &str, to: &str) {
-    let script = format!(
-        "(() => {{ const el = document.querySelector('{selector}'); \
-         if (el) el.click(); return location.pathname; }})()"
-    );
-    settle(session, base, &script, from, to, selector);
-}
-
-pub fn count(session: &Session, selector: &str) -> u64 {
-    session
-        .eval(&format!("document.querySelectorAll('{selector}').length"))
-        .expect("count elements")
-        .as_u64()
-        .expect("count is a number")
+    let action = format!("document.querySelector('{selector}')?.click(); ");
+    settle(session, base, &action, from, to, selector);
 }
 
 /// What the browser is actually looking at, for a failing assertion's autopsy:
@@ -396,11 +380,10 @@ pub fn press_keys_until(session: &Session, base: &str, keys: &[&str], from: &str
             )
         })
         .collect();
-    let script = format!("(() => {{ {presses}return location.pathname; }})()");
-    settle(session, base, &script, from, to, &keys.join("+"));
+    settle(session, base, &presses, from, to, &keys.join("+"));
 }
 
-/// Drains `arm_rsc_tap`'s buffer to stdout, one `rsc` line per navigation
+/// Drains `RSC_TAP`'s buffer to stdout, one `rsc` line per navigation
 /// fetch, plus how the current document was entered. Diagnostics only — it
 /// asserts nothing, never panics on a missing tap, and empties the buffer so
 /// the next report carries only what happened since.
@@ -425,14 +408,9 @@ pub fn print_rsc_log(session: &Session, context: &str) {
             println!("[harness]   rsc {path} rejected: {error}");
             continue;
         }
-        let nextjs = &entry["nextjs"];
-        let nextjs = if nextjs
-            .as_object()
-            .is_some_and(|headers| !headers.is_empty())
-        {
-            format!(" x-nextjs {nextjs}")
-        } else {
-            String::new()
+        let nextjs = match &entry["nextjs"] {
+            nextjs @ Value::Object(map) if !map.is_empty() => format!(" x-nextjs {nextjs}"),
+            _ => String::new(),
         };
         println!(
             "[harness]   rsc {path} status {} type {} content-type {:?} \
@@ -462,7 +440,7 @@ pub fn server_coverage(session: &Session, output: &Path) -> (String, usize) {
     write_map(output, "server-harness", &probe.body, false)
 }
 
-/// Repeats `script` until it reports `to`, then proves the move was
+/// Repeats `action` until the location reports `to`, then proves the move was
 /// client-side. The sentinel is a plain property of the JS heap, so it survives
 /// a router push and dies with a full page load — the same thing that would
 /// silently discard every counter accumulated since the last harvest. Without
@@ -493,14 +471,15 @@ pub fn server_coverage(session: &Session, output: &Path) -> (String, usize) {
 ///
 /// `HARNESS_DEBUG_RSC=1` prints the tap's log on success too, which is how one
 /// confirms the tap sees healthy navigations and not only broken ones.
-pub fn settle(session: &Session, base: &str, script: &str, from: &str, to: &str, what: &str) {
+pub fn settle(session: &Session, base: &str, action: &str, from: &str, to: &str, what: &str) {
     let local = base.contains("localhost") || base.contains("127.0.0.1");
     let attempts: u32 = if local { 3 } else { 5 };
     let debug = std::env::var_os("HARNESS_DEBUG_RSC").is_some_and(|v| !v.is_empty());
+    let script = format!("(() => {{ {action}return location.pathname; }})()");
 
     for attempt in 1..=attempts {
         mark(session);
-        poll(session, script, "client-side navigation", 250, |at| {
+        poll(session, &script, "client-side navigation", 250, |at| {
             *at == to
         })
         .unwrap_or_else(|at| panic!("{what} never reached {to} (still at {at})"));
@@ -579,10 +558,8 @@ pub fn wait_hydrated(session: &Session, selector: &str) {
         "(() => {{ const el = document.querySelector('{selector}'); return Boolean(el && \
          Object.keys(el).some((k) => k.startsWith('__reactFiber'))); }})()"
     );
-    poll(session, &script, "probe hydration", 250, |hydrated| {
-        *hydrated == true
-    })
-    .unwrap_or_else(|_| panic!("{selector} never hydrated — no React fiber attached"));
+    poll(session, &script, "probe hydration", 250, |v| *v == true)
+        .unwrap_or_else(|_| panic!("{selector} never hydrated — no React fiber attached"));
 }
 
 /// `tolerate_empty` is for the client maps: a route that ships no Client

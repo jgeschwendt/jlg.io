@@ -25,14 +25,15 @@
 //! live here.
 
 use harness::kit::{
-    attribute, back_until, base_url, click_until, count, dump, fetch_probe, goto, harvest, mode,
-    nonce_of, press_keys_until, server_coverage, strings, text, wait_hydrated,
+    attribute, back_until, base_url, click_until, dump, fetch_probe, goto, harvest, mode, nonce_of,
+    press_keys_until, server_coverage, strings, text, wait_hydrated,
 };
 use harness::server::{HOST, Server, get_head, header, repo_root};
 use harness::{Session, cdp::Bypass};
 use std::path::Path;
 use std::time::Instant;
 
+const NAME: &str = "Joshua L Geschwendt";
 // Not resume-pdf's 4311, and not a port anything else on the machine runs on:
 // a stray server from another runner answering this one's requests would
 // produce a report of the wrong build.
@@ -167,11 +168,7 @@ fn home(session: &Session, base: &str) {
         panic!("unexpected title on /: {title:?}");
     }
 
-    assert_eq!(
-        text(session, "h1"),
-        "Joshua L Geschwendt",
-        "unexpected h1 on /"
-    );
+    assert_eq!(text(session, "h1"), NAME, "unexpected h1 on /");
 
     for (label, href) in [
         ("Email", "mailto:joshua@geschwendt.com"),
@@ -203,7 +200,7 @@ fn home(session: &Session, base: &str) {
 
     // The monogram is the only <svg> `main` renders directly.
     assert!(
-        count(session, "main svg path") > 0,
+        !strings(session, "main svg path").is_empty(),
         "no monogram <svg> path in main"
     );
 
@@ -308,11 +305,7 @@ fn home_trips(session: &Session, base: &str) {
     wait_hydrated(session, "a[aria-label=\"Resume\"]");
     click_until(session, base, "a[aria-label=\"Resume\"]", "/", "/resume");
     back_until(session, "/");
-    assert_eq!(
-        text(session, "h1"),
-        "Joshua L Geschwendt",
-        "h1 gone after history back"
-    );
+    assert_eq!(text(session, "h1"), NAME, "h1 gone after history back");
     click_until(session, base, "a[aria-label=\"Resume\"]", "/", "/resume");
     click_until(
         session,
@@ -333,11 +326,7 @@ fn resume(session: &Session, base: &str) {
         "Joshua L Geschwendt—Résumé",
         "unexpected title on /resume"
     );
-    assert_eq!(
-        text(session, "h1"),
-        "Joshua L Geschwendt",
-        "unexpected h1 on /resume"
-    );
+    assert_eq!(text(session, "h1"), NAME, "unexpected h1 on /resume");
 
     let headings = strings(session, "h2");
     for section in ["Contact", "Education", "Experience"] {
@@ -357,7 +346,7 @@ fn resume(session: &Session, base: &str) {
 
     // One <h3> per role in the experience <ol>, each with its own "Stack:"
     // line — counting all three shapes asserts the array rendered whole.
-    let roles = count(session, "ol > li");
+    let roles = strings(session, "ol > li").len() as u64;
     assert!(roles > 1, "expected more than one role, found {roles}");
     assert_eq!(entries.len() as u64, roles, "one <h3> per role");
     let stacks = session
@@ -370,7 +359,7 @@ fn resume(session: &Session, base: &str) {
         .expect("count is a number");
     assert_eq!(stacks, roles, "one Stack: line per role");
     assert_eq!(
-        count(session, "footer a[href^=\"mailto:\"]"),
+        strings(session, "footer a[href^=\"mailto:\"]").len(),
         1,
         "no mailto link in the résumé footer"
     );
