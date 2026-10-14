@@ -25,8 +25,8 @@
 //! live here.
 
 use harness::kit::{
-    attribute, back_until, base_url, click_until, count, dump, fetch_probe, fetch_probe_with, goto,
-    harvest, mode, nonce_of, press_keys_until, server_coverage, strings, text, wait_hydrated,
+    attribute, back_until, base_url, click_until, count, dump, fetch_probe, goto, harvest, mode,
+    nonce_of, press_keys_until, server_coverage, strings, text, wait_hydrated,
 };
 use harness::server::{HOST, Server, get_head, header, repo_root};
 use harness::{Session, cdp::Bypass};
@@ -46,6 +46,8 @@ fn main() {
     let started = Instant::now();
     let root = repo_root();
     let remote = base_url();
+    let local = remote.is_none();
+    let mode = local.then(mode);
     let base = remote
         .clone()
         .unwrap_or_else(|| format!("http://{HOST}:{PORT}"));
@@ -55,8 +57,7 @@ fn main() {
     let output = root.join(".nyc_output");
     std::fs::create_dir_all(&output).expect("create .nyc_output");
 
-    let server = remote.is_none().then(|| {
-        let mode = mode();
+    let server = mode.as_deref().map(|mode| {
         println!("[harness] {mode} server on {base}");
         // `bun --bun next`, the repo convention. bun 1.3.14 segfaulted at
         // process exit with instrumented modules loaded on Linux (SIGILL,
@@ -64,7 +65,7 @@ fn main() {
         // bin's shebang; the 1.4.0 pin cleared it and the server runs on bun
         // again.
         let command = if mode == "prod" { "start" } else { "dev" };
-        let server = Server::start(
+        Server::start(
             "bun",
             &["--bun", "next", command, "--port", &PORT.to_string()],
             // COVERAGE arms the SWC instrumentation (dev) and opens
@@ -73,33 +74,27 @@ fn main() {
             &[("COVERAGE", "1"), ("HARNESS_SERVER_DEBUG", "1")],
             &root,
             PORT,
-        );
-        server.wait_ready();
-        server
+        )
     });
 
-    let session = Session::ensure(if remote.is_some() {
-        REMOTE_SESSION
-    } else {
-        SESSION
-    })
-    .expect("agent-browser session");
+    let session = Session::ensure(if local { SESSION } else { REMOTE_SESSION })
+        .expect("agent-browser session");
     let bypass = Bypass::arm(&session.cdp_url().expect("cdp_url")).expect("arm CSP bypass");
-    println!("[harness] CSP enforcement disabled for this browser session");
 
-    // The local path has `wait_ready` for this; the remote path has nothing
-    // between it and a URL somebody typed. One status check first, so an
-    // unreachable or protected deployment fails saying so instead of failing
-    // eight assertions later on a missing <h1>. It is an in-page fetch because
-    // that is the only HTTP client this binary has — hence the navigation, which
-    // `home` performs again in a moment and which costs nothing.
-    if remote.is_some() {
+    // The local path has `Server::start`'s readiness wait for this; the remote
+    // path has nothing between it and a URL somebody typed. One status check
+    // first, so an unreachable or protected deployment fails saying so instead
+    // of failing eight assertions later on a missing <h1>. It is an in-page
+    // fetch because that is the only HTTP client this binary has — hence the
+    // navigation, which `home` performs again in a moment and which costs
+    // nothing.
+    if !local {
         goto(&session, &format!("{base}/"));
-        let probe = fetch_probe(&session, "/");
+        let probe = fetch_probe(&session, "/", &[]);
         assert_eq!(probe.status, 200, "{base}/ did not answer 200");
     }
 
-    let mut written: Vec<(String, usize)> = Vec::new();
+    let mut written = Vec::new();
 
     home(&session, &base);
 
@@ -116,21 +111,19 @@ fn main() {
 
     // Nothing to harvest off a deployment: the maps below exist only because
     // the local server was built with COVERAGE=1.
-    let coverage = remote.is_none();
-
-    if coverage {
+    if local {
         written.push(harvest(&session, &output, "home"));
     }
 
     resume(&session, &base);
-    if coverage {
+    if local {
         written.push(harvest(&session, &output, "resume"));
     }
 
     not_found(&session, &base);
-    proxy_faults(&session, remote.is_none());
+    proxy_faults(&session, local);
     prefetch(&session);
-    if coverage {
+    if local {
         written.push(harvest(&session, &output, "not-found"));
         written.push(server_coverage(&session, &output));
     }
@@ -143,7 +136,7 @@ fn main() {
 
     // After the main server is gone, so the two never contend: `dev` mode has
     // no build to start a second server over.
-    if remote.is_none() && mode() == "prod" {
+    if mode.as_deref() == Some("prod") {
         deployment(&root);
     }
 
@@ -202,12 +195,9 @@ fn home(session: &Session, base: &str) {
         );
     }
 
-    // `statement` (copy.ts) marks two words, and Main.tsx links them —
+    // `statement` (statement.ts) marks two words, and Main.tsx links them —
     // the years figure and "AI".
-    let inline = strings(
-        session,
-        "Array.from(document.querySelectorAll('main p a'), (a) => a.textContent)",
-    );
+    let inline = strings(session, "main p a");
     assert_eq!(inline.len(), 2, "expected two inline statement links");
     assert_eq!(inline[1], "AI", "second inline link is not AI: {inline:?}");
 
@@ -226,100 +216,11 @@ fn home(session: &Session, base: &str) {
     );
 }
 
-/// The client-side trips `/` ⇄ `/resume` — the only part of the run that cannot
-/// happen without hydration, which is what proves the client bundle actually
-/// executed rather than merely downloaded. Three return legs: history back
-/// first — `Main` keeps `hasPlayed` at module scope, so the entrance must not
-/// replay and the content has to be there either way — then the close control.
-fn home_trips(session: &Session, base: &str) {
-    wait_hydrated(session, "a[aria-label=\"Resume\"]");
-    click_until(session, base, "a[aria-label=\"Resume\"]", "/", "/resume");
-    back_until(session, "/");
-    assert_eq!(
-        text(session, "h1"),
-        "Joshua L Geschwendt",
-        "h1 gone after history back"
-    );
-    click_until(session, base, "a[aria-label=\"Resume\"]", "/", "/resume");
-    click_until(
-        session,
-        base,
-        "a[aria-label=\"Close résumé\"]",
-        "/resume",
-        "/",
-    );
-}
-
-/// `/resume` reached by a hard navigation, which is a different render path
-/// from the client-side one `home_trips` already exercised.
-fn resume(session: &Session, base: &str) {
-    goto(session, &format!("{base}/resume"));
-
-    assert_eq!(
-        session.title().expect("title"),
-        "Joshua L Geschwendt—Résumé",
-        "unexpected title on /resume"
-    );
-    assert_eq!(
-        text(session, "h1"),
-        "Joshua L Geschwendt",
-        "unexpected h1 on /resume"
-    );
-
-    let headings = strings(
-        session,
-        "Array.from(document.querySelectorAll('h2'), (h) => h.textContent)",
-    );
-    for section in ["Contact", "Education", "Experience"] {
-        assert!(
-            headings.iter().any(|h| h == section),
-            "no <h2> {section:?} on /resume: {headings:?}"
-        );
-    }
-
-    // The oldest entry is the one the `flex-col-reverse` ordering puts last, so
-    // asserting it covers the whole array having rendered.
-    let entries = strings(
-        session,
-        "Array.from(document.querySelectorAll('h3'), (h) => h.textContent)",
-    );
-    assert!(
-        entries.iter().any(|h| h.contains("Springthrough")),
-        "no Springthrough <h3> on /resume: {entries:?}"
-    );
-
-    // One <h3> per role in the experience <ol>, each with its own "Stack:"
-    // line — counting all three shapes asserts the array rendered whole.
-    let roles = count(session, "ol > li");
-    assert!(roles > 1, "expected more than one role, found {roles}");
-    assert_eq!(count(session, "h3"), roles, "one <h3> per role");
-    let stacks = session
-        .eval(
-            "Array.from(document.querySelectorAll('main *')).filter((el) => \
-             el.children.length === 0 && el.textContent.trim() === 'Stack:').length",
-        )
-        .expect("count Stack: labels")
-        .as_u64()
-        .expect("count is a number");
-    assert_eq!(stacks, roles, "one Stack: line per role");
-    assert_eq!(
-        count(session, "footer a[href^=\"mailto:\"]"),
-        1,
-        "no mailto link in the résumé footer"
-    );
-
-    // Reachable by JS only: `Close` registers a document-level keydown listener
-    // in an effect and calls `router.push`, so a bundle that never hydrated
-    // swallows this key press. Enter goes first through the same listener —
-    // a key it must ignore.
-    press_keys_until(session, base, &["Enter", "Escape"], "/resume", "/");
-}
-
 /// `/robots.txt` is generated by `src/app/robots.ts`, a route with no client
 /// bundle at all — read over fetch from an app page, which also exposes the
 /// status and content type a navigation would swallow.
 fn robots(session: &Session) {
-    let probe = fetch_probe(session, "/robots.txt");
+    let probe = fetch_probe(session, "/robots.txt", &[]);
     assert_eq!(probe.status, 200, "robots.txt status");
     assert!(
         probe.content_type.contains("text/plain"),
@@ -342,7 +243,7 @@ fn robots(session: &Session) {
 /// what browser enforcement would have caught, and this run disables
 /// enforcement (see `harness::cdp`), so the assertion is the replacement.
 fn content_security_policy(session: &Session, path: &str) {
-    let probe = fetch_probe(session, path);
+    let probe = fetch_probe(session, path, &[]);
     assert_eq!(probe.status, 200, "{path} status");
 
     for directive in [
@@ -389,7 +290,7 @@ fn content_security_policy(session: &Session, path: &str) {
     );
 
     // Minted per request, so two loads of the same route must not share one.
-    let again = fetch_probe(session, path);
+    let again = fetch_probe(session, path, &[]);
     assert_ne!(
         nonce_of(&again.csp, path),
         nonce,
@@ -397,31 +298,142 @@ fn content_security_policy(session: &Session, path: &str) {
     );
 }
 
+/// The client-side trips `/` ⇄ `/resume` — the only part of the run that cannot
+/// happen without hydration, which is what proves the client bundle actually
+/// executed rather than merely downloaded. Two return legs here: history back
+/// first — `Main` keeps `hasPlayed` at module scope, so the entrance must not
+/// replay and the content has to be there either way — then the close control;
+/// the third, Escape, is `resume`'s.
+fn home_trips(session: &Session, base: &str) {
+    wait_hydrated(session, "a[aria-label=\"Resume\"]");
+    click_until(session, base, "a[aria-label=\"Resume\"]", "/", "/resume");
+    back_until(session, "/");
+    assert_eq!(
+        text(session, "h1"),
+        "Joshua L Geschwendt",
+        "h1 gone after history back"
+    );
+    click_until(session, base, "a[aria-label=\"Resume\"]", "/", "/resume");
+    click_until(
+        session,
+        base,
+        "a[aria-label=\"Close résumé\"]",
+        "/resume",
+        "/",
+    );
+}
+
+/// `/resume` reached by a hard navigation, which is a different render path
+/// from the client-side one `home_trips` already exercised.
+fn resume(session: &Session, base: &str) {
+    goto(session, &format!("{base}/resume"));
+
+    assert_eq!(
+        session.title().expect("title"),
+        "Joshua L Geschwendt—Résumé",
+        "unexpected title on /resume"
+    );
+    assert_eq!(
+        text(session, "h1"),
+        "Joshua L Geschwendt",
+        "unexpected h1 on /resume"
+    );
+
+    let headings = strings(session, "h2");
+    for section in ["Contact", "Education", "Experience"] {
+        assert!(
+            headings.iter().any(|h| h == section),
+            "no <h2> {section:?} on /resume: {headings:?}"
+        );
+    }
+
+    // The oldest entry is the one the `flex-col-reverse` ordering puts last, so
+    // asserting it covers the whole array having rendered.
+    let entries = strings(session, "h3");
+    assert!(
+        entries.iter().any(|h| h.contains("Springthrough")),
+        "no Springthrough <h3> on /resume: {entries:?}"
+    );
+
+    // One <h3> per role in the experience <ol>, each with its own "Stack:"
+    // line — counting all three shapes asserts the array rendered whole.
+    let roles = count(session, "ol > li");
+    assert!(roles > 1, "expected more than one role, found {roles}");
+    assert_eq!(entries.len() as u64, roles, "one <h3> per role");
+    let stacks = session
+        .eval(
+            "Array.from(document.querySelectorAll('main *')).filter((el) => \
+             el.children.length === 0 && el.textContent.trim() === 'Stack:').length",
+        )
+        .expect("count Stack: labels")
+        .as_u64()
+        .expect("count is a number");
+    assert_eq!(stacks, roles, "one Stack: line per role");
+    assert_eq!(
+        count(session, "footer a[href^=\"mailto:\"]"),
+        1,
+        "no mailto link in the résumé footer"
+    );
+
+    // Reachable by JS only: `Close` registers a document-level keydown listener
+    // in an effect and calls `router.push`, so a bundle that never hydrated
+    // swallows this key press. Enter goes first through the same listener —
+    // a key it must ignore.
+    press_keys_until(session, base, &["Enter", "Escape"], "/resume", "/");
+}
+
 /// The 404 path, which renders Next's own not-found page rather than anything
 /// in `src/app`. The status comes from a fetch, the rendered body from a real
 /// navigation — the fetch alone would not exercise the client render.
+fn not_found(session: &Session, base: &str) {
+    let probe = fetch_probe(session, "/no-such-page", &[]);
+    assert_eq!(probe.status, 404, "unknown path status");
+
+    goto(session, &format!("{base}/no-such-page"));
+
+    let body = text(session, "body");
+    assert!(
+        body.contains("could not be found"),
+        "unexpected 404 body: {body:?}"
+    );
+}
+
 /// `createProxy`'s failure paths, through `src/server/proxy/coverage-fault.ts`.
 /// The local server is a COVERAGE=1 build, which carries the fault handler: a
 /// thrown NextResponse comes back untouched, anything else thrown becomes a
 /// 500. A deployment is built without the flag, so there the header must be
 /// inert — the proof the handler never ships.
 fn proxy_faults(session: &Session, armed: bool) {
-    let short_circuit = fetch_probe_with(session, "/", &[("x-coverage-fault", "response")]);
-    let error = fetch_probe_with(session, "/", &[("x-coverage-fault", "error")]);
+    for (fault, status, body) in [
+        ("response", 418, "short-circuit"),
+        ("error", 500, "Internal Server Error"),
+    ] {
+        let probe = fetch_probe(session, "/", &[("x-coverage-fault", fault)]);
+        if armed {
+            assert_eq!(probe.status, status, "{fault} fault status");
+            assert_eq!(probe.body, body, "{fault} fault body");
+        } else {
+            assert_eq!(
+                probe.status, 200,
+                "fault header must be inert when deployed"
+            );
+        }
+    }
+}
 
-    if armed {
-        assert_eq!(short_circuit.status, 418, "short-circuit status");
-        assert_eq!(short_circuit.body, "short-circuit", "short-circuit body");
-        assert_eq!(error.status, 500, "thrown-error status");
-        assert_eq!(error.body, "Internal Server Error", "thrown-error body");
-    } else {
-        assert_eq!(
-            short_circuit.status, 200,
-            "fault header must be inert when deployed"
-        );
-        assert_eq!(
-            error.status, 200,
-            "fault header must be inert when deployed"
+/// `src/proxy.ts`'s matcher skips prefetches — `next/link`'s RSC prefetch and a
+/// browser's `Purpose: prefetch` document fetch — so neither carries a CSP,
+/// and the page renders without a nonce. A regression either way (CSP on
+/// prefetches, or skipped proxy on plain requests) fails here or in
+/// `content_security_policy`.
+fn prefetch(session: &Session) {
+    for pair in [("next-router-prefetch", "1"), ("purpose", "prefetch")] {
+        let probe = fetch_probe(session, "/", &[pair]);
+        assert_eq!(probe.status, 200, "{pair:?} prefetch status");
+        assert!(
+            probe.csp.is_empty(),
+            "{pair:?} prefetch carried a CSP: {:?}",
+            probe.csp
         );
     }
 }
@@ -429,11 +441,12 @@ fn proxy_faults(session: &Session, armed: bool) {
 /// A second `next start` over the same build, configured like a Vercel preview:
 /// `VERCEL_ENV=preview`, and COVERAGE off — so `src/proxy.ts` leaves the fault
 /// handler out and `/api/coverage` is closed, exactly as deployed. Its counters
-/// land through `COVERAGE_FLUSH`, which arms only the bunfig preloads' exit
-/// flush. No browser: three response heads say everything asserted here.
+/// land through `COVERAGE_FLUSH`, which arms the two bunfig coverage preloads —
+/// the shared counter record and the exit flush — and nothing else COVERAGE
+/// would. No browser: three response heads say everything asserted here.
 fn deployment(root: &Path) {
     let port = PORT + 1;
-    let server = Server::start(
+    let _server = Server::start(
         "bun",
         &["--bun", "next", "start", "--port", &port.to_string()],
         &[
@@ -444,7 +457,6 @@ fn deployment(root: &Path) {
         root,
         port,
     );
-    server.wait_ready();
 
     let (status, head) = get_head(port, "/", &[]).expect("GET / on the preview server");
     assert_eq!(status, 200, "preview-shaped / status");
@@ -473,34 +485,4 @@ fn deployment(root: &Path) {
 
     let (status, _) = get_head(port, "/api/coverage", &[]).expect("GET /api/coverage");
     assert_eq!(status, 404, "/api/coverage must be closed without COVERAGE");
-}
-
-/// `src/proxy.ts`'s matcher skips prefetches — `next/link`'s RSC prefetch and a
-/// browser's `Purpose: prefetch` document fetch — so neither carries a CSP,
-/// and the page renders without a nonce. A regression either way (CSP on
-/// prefetches, or skipped proxy on plain requests) fails here or in
-/// `content_security_policy`.
-fn prefetch(session: &Session) {
-    for header in [("next-router-prefetch", "1"), ("purpose", "prefetch")] {
-        let probe = fetch_probe_with(session, "/", &[header]);
-        assert_eq!(probe.status, 200, "{header:?} prefetch status");
-        assert!(
-            probe.csp.is_empty(),
-            "{header:?} prefetch carried a CSP: {:?}",
-            probe.csp
-        );
-    }
-}
-
-fn not_found(session: &Session, base: &str) {
-    let probe = fetch_probe(session, "/no-such-page");
-    assert_eq!(probe.status, 404, "unknown path status");
-
-    goto(session, &format!("{base}/no-such-page"));
-
-    let body = text(session, "body");
-    assert!(
-        body.contains("could not be found"),
-        "unexpected 404 body: {body:?}"
-    );
 }

@@ -85,23 +85,20 @@ impl Bypass {
             )?;
             let session = attached["sessionId"]
                 .as_str()
-                .ok_or("attachToTarget returned no sessionId")?
-                .to_string();
-
-            // `Page.setBypassCSP` is only honoured on a domain-enabled page.
-            bypass.command("Page.enable", json!({}), Some(&session))?;
-            bypass.command(
-                "Page.setBypassCSP",
-                json!({ "enabled": true }),
-                Some(&session),
-            )?;
-            // The same per-target hook carries the client-coverage stash, so
-            // every document the run loads keeps its counters past unload.
-            bypass.command(
-                "Page.addScriptToEvaluateOnNewDocument",
-                json!({ "source": crate::kit::COVERAGE_STASH }),
-                Some(&session),
-            )?;
+                .ok_or("attachToTarget returned no sessionId")?;
+            for (method, params) in [
+                // `Page.setBypassCSP` is only honoured on a domain-enabled page.
+                ("Page.enable", json!({})),
+                ("Page.setBypassCSP", json!({ "enabled": true })),
+                // The same per-target hook carries the client-coverage stash, so
+                // every document the run loads keeps its counters past unload.
+                (
+                    "Page.addScriptToEvaluateOnNewDocument",
+                    json!({ "source": crate::kit::COVERAGE_STASH }),
+                ),
+            ] {
+                bypass.command(method, params, Some(session))?;
+            }
         }
         println!(
             "[harness] CSP bypass and coverage stash armed on {} page target(s)",

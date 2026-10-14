@@ -41,7 +41,7 @@ jobs:
   # build: instrumented `next build`, every route asserted over `next start`,
   # the 100% coverage gate. Prod on purpose — it is the artifact that deploys,
   # it includes the build workers' counters, and it exercises the CSP bypass
-  # where it is load-bearing (dev grants 'unsafe-eval'). coverage.yml runs the
+  # where it is load-bearing (dev grants 'unsafe-eval'). coverage.yaml runs the
   # same chain on main to publish the report to Pages.
   harness:
     runs-on: ubuntu-latest
