@@ -37,7 +37,7 @@
   },
   "devDependencies": {
     "@jlg/oxfmt": "0.1.1",
-    "@jlg/oxlint": "0.1.3",
+    "@jlg/oxlint": "0.1.1",
     "@jlg/tsconfig": "0.1.1",
     "@tailwindcss/postcss": "4.3.3",
     "@types/istanbul-lib-coverage": "2.0.6",
