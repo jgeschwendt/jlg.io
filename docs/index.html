@@ -112,47 +112,56 @@
           <h2 class="h2">Plan</h2>
         </header>
         <h3 class="h3">Next</h3>
-        <p class="docs-note">The only plan, in order; a landing that changes it edits it here.</p>
+        <p class="docs-note">
+          The only plan, in order; a landing that changes it edits it here. The shift brief carries
+          the first 600 characters of the list, so detail lives in the notes below it.
+        </p>
         <ol class="stack" id="next">
+          <li data-next="hooks">
+            hk hooks are live (2026-10-19): delete the bare repo's stale lefthook
+            <code class="code">prepare-commit-msg</code> shim. Pre-hk checkouts fail every commit:
+            rebase or <code class="code">HK=0</code>.
+          </li>
           <li data-next="prune">
-            Prune the <code class="code">ci-cache</code>,
-            <code class="code">proxy-coverage</code> and
-            <code class="code">resume-rewrite</code> checkouts once each branch is confirmed
-            squash-landed; none carries uncommitted work.
+            Prune <code class="code">ci-cache</code>, <code class="code">proxy-coverage</code>,
+            <code class="code">resume-rewrite</code> once each is confirmed squash-landed.
           </li>
           <li data-next="writing">
-            <strong>Land <code class="code">/writing</code></strong
-            >: rebase the <code class="code">blog</code> worktree's scaffold onto
-            <code class="code">main</code> under the 100 % coverage gate. Its monetization needs
-            owner actions first (GitHub Sponsors or a tip link, an Amazon Associates tag; AdSense
-            rejected).
+            Land <code class="code">/writing</code>: rebase <code class="code">blog</code>'s
+            scaffold onto <code class="code">main</code> under the 100 % gate.
           </li>
-          <li data-next="hooks">
-            <strong>Install the hooks</strong>: <code class="code">hk install --mise --force</code>,
-            once — every checkout shares the bare repo's hooks dir. Not before 1 and 2, nor while
-            grove's pool slots (<code class="code">~/.grove/roots/jgeschwendt/jlg.io/pool/</code>)
-            sit at a pre-hk commit: the hook runs <code class="code">mise x -- hk</code>, which
-            fails every commit in a checkout whose <code class="code">mise.toml</code> lacks the hk
-            pin. Until then the lefthook shim prints "Can't find lefthook in PATH" and passes every
-            commit unchecked.
-          </li>
-          <li data-next="bun">
-            Bump bun from 1.4.0 to 1.4.3 in <code class="code">mise.toml</code> after a green
-            coverage run on the new runtime (breath filed 2026-10-13).
-          </li>
+          <li data-next="bun">bun 1.4.0 → 1.4.3 after a green coverage run.</li>
           <li data-next="harness">
-            Two harness defects found reading, never reproduced (<code class="code"
-              >/gigadebug</code
-            >
-            each): <code class="code">kit::goto</code> writes its shell autopsy to a cwd-relative
+            <code class="code">/gigadebug</code> two harness suspects (notes).
+          </li>
+        </ol>
+        <ul class="stack" role="list">
+          <li>
+            <strong>hooks</strong>: the bare repo is
+            <code class="code">~/.grove/roots/jgeschwendt/jlg.io/bare</code>; its pre-commit and
+            pre-push run <code class="code">mise x -- hk</code>, which fails in any checkout whose
+            <code class="code">mise.toml</code> lacks the hk pin — today
+            <code class="code">blog</code>, <code class="code">ci-cache</code>,
+            <code class="code">proxy-coverage</code>, <code class="code">resume-rewrite</code> and
+            pre-hk pool slots.
+          </li>
+          <li><strong>prune</strong>: none of the three carries uncommitted work.</li>
+          <li>
+            <strong>writing</strong>: monetization needs owner actions first (GitHub Sponsors or a
+            tip link, an Amazon Associates tag; AdSense rejected).
+          </li>
+          <li><strong>bun</strong>: breath filed 2026-10-13.</li>
+          <li>
+            <strong>harness</strong>: found reading, never reproduced.
+            <code class="code">kit::goto</code> writes its shell autopsy to a cwd-relative
             <code class="code">.nyc_output/</code>, lost when the binary runs from anywhere but the
-            repo root (and always from <code class="code">resume-pdf</code>, which never creates
-            it); <code class="code">kit::settle</code>'s retry returns to
+            repo root (always from <code class="code">resume-pdf</code>, which never creates it);
+            <code class="code">kit::settle</code>'s retry returns to
             <code class="code">from</code> with a bare <code class="code">navigate</code>, which
             goto's own doc says can return mid-swap, so <code class="code">wait_hydrated</code> may
             pass on the outgoing document.
           </li>
-        </ol>
+        </ul>
       </section>
 
       <nav class="row link-row" aria-label="links">
