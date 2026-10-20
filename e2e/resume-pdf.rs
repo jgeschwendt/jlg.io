@@ -12,13 +12,7 @@ const SESSION: &str = "jlg-resume-pdf";
 fn main() {
     let root = repo_root();
 
-    let server = Server::start(
-        "bun",
-        &["--bun", "next", "start", "--port", &PORT.to_string()],
-        &[],
-        &root,
-        PORT,
-    );
+    let server = Server::start("start", &[], PORT);
 
     let session = Session::ensure(SESSION).expect("agent-browser session");
     harness::kit::goto(&session, &format!("http://{HOST}:{PORT}/resume"));

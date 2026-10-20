@@ -32,7 +32,7 @@ macro_rules! zero_live {
 /// counters so a back-forward-cache restore does not count them twice.
 /// (observed 2026-10-08 · a race-degraded Close click lost `Main.tsx`'s
 /// return-visit branch; the run before it, race-free, had covered it)
-pub const COVERAGE_STASH: &str = concat!(
+pub(crate) const COVERAGE_STASH: &str = concat!(
     "addEventListener('pagehide', () => { \
      const live = window.__coverage__; if (!live) return; \
      const stash = JSON.parse(sessionStorage.getItem('__harness_coverage') ?? '[]'); \
@@ -387,7 +387,7 @@ pub fn press_keys_until(session: &Session, base: &str, keys: &[&str], from: &str
 /// fetch, plus how the current document was entered. Diagnostics only — it
 /// asserts nothing, never panics on a missing tap, and empties the buffer so
 /// the next report carries only what happened since.
-pub fn print_rsc_log(session: &Session, context: &str) {
+fn print_rsc_log(session: &Session, context: &str) {
     let report = match session.eval(RSC_DRAIN) {
         Ok(report) => report,
         Err(e) => return println!("[harness] rsc log ({context}): unavailable: {e}"),
@@ -471,10 +471,9 @@ pub fn server_coverage(session: &Session, output: &Path) -> (String, usize) {
 ///
 /// `HARNESS_DEBUG_RSC=1` prints the tap's log on success too, which is how one
 /// confirms the tap sees healthy navigations and not only broken ones.
-pub fn settle(session: &Session, base: &str, action: &str, from: &str, to: &str, what: &str) {
+fn settle(session: &Session, base: &str, action: &str, from: &str, to: &str, what: &str) {
     let local = base.contains("localhost") || base.contains("127.0.0.1");
     let attempts: u32 = if local { 3 } else { 5 };
-    let debug = std::env::var_os("HARNESS_DEBUG_RSC").is_some_and(|v| !v.is_empty());
     let script = format!("(() => {{ {action}return location.pathname; }})()");
 
     for attempt in 1..=attempts {
@@ -485,7 +484,7 @@ pub fn settle(session: &Session, base: &str, action: &str, from: &str, to: &str,
         .unwrap_or_else(|at| panic!("{what} never reached {to} (still at {at})"));
 
         if session.eval("window.__harness === true").expect("sentinel") == true {
-            if debug {
+            if std::env::var_os("HARNESS_DEBUG_RSC").is_some_and(|v| !v.is_empty()) {
                 print_rsc_log(session, &format!("{what} reached {to} client-side"));
             }
             return;
@@ -566,19 +565,17 @@ pub fn wait_hydrated(session: &Session, selector: &str) {
 /// Components legitimately has none, and failing there would make the harness
 /// brittle about which routes happen to be interactive. An empty *server* map
 /// means the instrumentation is dead, which must be loud.
-pub fn write_map(output: &Path, name: &str, raw: &str, tolerate_empty: bool) -> (String, usize) {
+fn write_map(output: &Path, name: &str, raw: &str, tolerate_empty: bool) -> (String, usize) {
     let map: Value = serde_json::from_str(raw).unwrap_or_else(|e| panic!("{name}: {e}"));
     let files = map.as_object().map_or(0, serde_json::Map::len);
-
-    assert!(
-        files > 0 || tolerate_empty,
-        "{name}: coverage map is empty — is COVERAGE=1 reaching the server?"
-    );
-
-    if files > 0 {
+    if files == 0 {
+        assert!(
+            tolerate_empty,
+            "{name}: coverage map is empty — is COVERAGE=1 reaching the server?"
+        );
+    } else {
         let path = output.join(format!("coverage-{name}.json"));
         std::fs::write(&path, raw).unwrap_or_else(|e| panic!("write {}: {e}", path.display()));
     }
-
     (name.to_string(), files)
 }

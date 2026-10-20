@@ -34,19 +34,18 @@ pub struct Server {
 }
 
 impl Server {
-    /// Spawns the server and blocks until `/` answers 200. Turbopack compiles
-    /// routes lazily, so a cold dev server can take minutes before the first
-    /// response. Poll rather than sleep on a guess.
-    pub fn start(
-        program: &str,
-        args: &[&str],
-        envs: &[(&str, &str)],
-        root: &Path,
-        port: u16,
-    ) -> Self {
-        let child = Command::new(program)
-            .args(args)
-            .current_dir(root)
+    /// Spawns `next <command>` on `port` from the repo root and blocks until `/`
+    /// answers 200. Turbopack compiles routes lazily, so a cold dev server can
+    /// take minutes before the first response. Poll rather than sleep on a guess.
+    pub fn start(command: &str, envs: &[(&str, &str)], port: u16) -> Self {
+        // `bun --bun next`, the repo convention. bun 1.3.14 segfaulted at
+        // process exit with instrumented modules loaded on Linux (SIGILL,
+        // coverage run 31955271334), which pinned this spawn to node via the
+        // bin's shebang; the 1.4.0 pin cleared it and the server runs on bun
+        // again.
+        let child = Command::new("bun")
+            .args(["--bun", "next", command, "--port", &port.to_string()])
+            .current_dir(repo_root())
             // Its own process group: `next` starts helper processes, and
             // killing only the process we spawned would leave the port held.
             .process_group(0)

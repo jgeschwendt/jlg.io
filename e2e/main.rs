@@ -30,7 +30,6 @@ use harness::kit::{
 };
 use harness::server::{HOST, Server, get_head, header, repo_root};
 use harness::{Session, cdp::Bypass};
-use std::path::Path;
 use std::time::Instant;
 
 const NAME: &str = "Joshua L Geschwendt";
@@ -58,20 +57,13 @@ fn main() {
 
     let server = mode.as_deref().map(|mode| {
         println!("[harness] {mode} server on {base}");
-        // `bun --bun next`, the repo convention. bun 1.3.14 segfaulted at
-        // process exit with instrumented modules loaded on Linux (SIGILL,
-        // coverage run 31955271334), which pinned this spawn to node via the
-        // bin's shebang; the 1.4.0 pin cleared it and the server runs on bun
-        // again.
         let command = if mode == "prod" { "start" } else { "dev" };
+        // COVERAGE arms the SWC instrumentation (dev) and opens `/api/coverage`;
+        // HARNESS_SERVER_DEBUG arms the bunfig-preloaded debug hook that
+        // surfaces async errors a streamed render swallows.
         Server::start(
-            "bun",
-            &["--bun", "next", command, "--port", &PORT.to_string()],
-            // COVERAGE arms the SWC instrumentation (dev) and opens
-            // `/api/coverage`; HARNESS_SERVER_DEBUG arms the bunfig-preloaded
-            // debug hook that surfaces async errors a streamed render swallows.
+            command,
             &[("COVERAGE", "1"), ("HARNESS_SERVER_DEBUG", "1")],
-            &root,
             PORT,
         )
     });
@@ -134,7 +126,7 @@ fn main() {
     // After the main server is gone, so the two never contend: `dev` mode has
     // no build to start a second server over.
     if mode.as_deref() == Some("prod") {
-        deployment(&root);
+        deployment();
     }
 
     if local {
@@ -429,17 +421,15 @@ fn prefetch(session: &Session) {
 /// land through `COVERAGE_FLUSH`, which arms the two bunfig coverage preloads —
 /// the shared counter record and the exit flush — and nothing else COVERAGE
 /// would. No browser: three response heads say everything asserted here.
-fn deployment(root: &Path) {
+fn deployment() {
     let port = PORT + 1;
     let _server = Server::start(
-        "bun",
-        &["--bun", "next", "start", "--port", &port.to_string()],
+        "start",
         &[
             ("COVERAGE", "0"),
             ("COVERAGE_FLUSH", "1"),
             ("VERCEL_ENV", "preview"),
         ],
-        root,
         port,
     );
 
