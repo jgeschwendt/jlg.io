@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en" class="ui">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>jlg.io — design</title>
+    <link rel="stylesheet" href="https://gigantic.dev/ui/ui.css" />
+    <link rel="stylesheet" href="https://gigantic.dev/ui/docs.css" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23345c7a'/%3E%3Ccircle cx='8' cy='8' r='4.5' fill='none' stroke='white' stroke-width='1.2'/%3E%3Ccircle cx='8' cy='8' r='1.3' fill='white'/%3E%3C/svg%3E"
+    />
+  </head>
+  <body data-page="design">
+    <svg xmlns="http://www.w3.org/2000/svg" style="display: none" aria-hidden="true">
+      <!-- Phosphor Icons (regular), MIT (c) 2023 Phosphor Icons — via jgeschwendt/ui icons/ -->
+      <symbol id="ph-circle-half" viewBox="0 0 256 256" fill="currentColor">
+        <path
+          d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm8,16.37a86.4,86.4,0,0,1,16,3V212.67a86.4,86.4,0,0,1-16,3Zm32,9.26a87.81,87.81,0,0,1,16,10.54V195.83a87.81,87.81,0,0,1-16,10.54ZM40,128a88.11,88.11,0,0,1,80-87.63V215.63A88.11,88.11,0,0,1,40,128Zm160,50.54V77.46a87.82,87.82,0,0,1,0,101.08Z"
+        />
+      </symbol>
+      <symbol id="ph-moon" viewBox="0 0 256 256" fill="currentColor">
+        <path
+          d="M233.54,142.23a8,8,0,0,0-8-2,88.08,88.08,0,0,1-109.8-109.8,8,8,0,0,0-10-10,104.84,104.84,0,0,0-52.91,37A104,104,0,0,0,136,224a103.09,103.09,0,0,0,62.52-20.88,104.84,104.84,0,0,0,37-52.91A8,8,0,0,0,233.54,142.23ZM188.9,190.34A88,88,0,0,1,65.66,67.11a89,89,0,0,1,31.4-26A106,106,0,0,0,96,56,104.11,104.11,0,0,0,200,160a106,106,0,0,0,14.92-1.06A89,89,0,0,1,188.9,190.34Z"
+        />
+      </symbol>
+      <symbol id="ph-sun" viewBox="0 0 256 256" fill="currentColor">
+        <path
+          d="M120,40V16a8,8,0,0,1,16,0V40a8,8,0,0,1-16,0Zm72,88a64,64,0,1,1-64-64A64.07,64.07,0,0,1,192,128Zm-16,0a48,48,0,1,0-48,48A48.05,48.05,0,0,0,176,128ZM58.34,69.66A8,8,0,0,0,69.66,58.34l-16-16A8,8,0,0,0,42.34,53.66Zm0,116.68-16,16a8,8,0,0,0,11.32,11.32l16-16a8,8,0,0,0-11.32-11.32ZM192,72a8,8,0,0,0,5.66-2.34l16-16a8,8,0,0,0-11.32-11.32l-16,16A8,8,0,0,0,192,72Zm5.66,114.34a8,8,0,0,0-11.32,11.32l16,16a8,8,0,0,0,11.32-11.32ZM48,128a8,8,0,0,0-8-8H16a8,8,0,0,0,0,16H40A8,8,0,0,0,48,128Zm80,80a8,8,0,0,0-8,8v24a8,8,0,0,0,16,0V216A8,8,0,0,0,128,208Zm112-88H216a8,8,0,0,0,0,16h24a8,8,0,0,0,0-16Z"
+        />
+      </symbol>
+      <symbol
+        id="jlg-mark"
+        viewBox="0 0 256 256"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="16"
+      >
+        <circle cx="128" cy="128" r="88" />
+        <circle cx="128" cy="128" r="20" fill="currentColor" stroke="none" />
+      </symbol>
+    </svg>
+
+    <header class="appbar">
+      <h1 class="appbar-title">
+        <svg class="icon" aria-hidden="true"><use href="#jlg-mark" /></svg>
+        jlg.io <small>· design</small>
+      </h1>
+      <span class="spacer"></span>
+      <div class="segmented" role="group" aria-label="theme">
+        <button type="button" data-theme-set="light" aria-pressed="false" title="light">
+          <svg class="icon icon-sm" aria-hidden="true"><use href="#ph-sun" /></svg>light
+        </button>
+        <button type="button" data-theme-set="auto" aria-pressed="true" title="follow the system">
+          <svg class="icon icon-sm" aria-hidden="true"><use href="#ph-circle-half" /></svg>auto
+        </button>
+        <button type="button" data-theme-set="dark" aria-pressed="false" title="dark">
+          <svg class="icon icon-sm" aria-hidden="true"><use href="#ph-moon" /></svg>dark
+        </button>
+      </div>
+    </header>
+
+    <main class="docs-shell" data-container>
+      <header class="stack">
+        <p class="eyebrow">personal web profile</p>
+        <p class="lead docs-lead">
+          The site and its harness. <code class="code">AGENTS.md</code> carries the map, invariants
+          and hazards, <code class="code">README.md</code> the contract; this page is what is open.
+        </p>
+        <nav class="row docs-toc" aria-label="sections">
+          <a class="pill" href="#hazards">hazards</a>
+          <a class="pill" href="#plan">plan</a>
+        </nav>
+      </header>
+
+      <section class="docs-section" id="hazards" data-component="hazards">
+        <header>
+          <h2 class="h2">Hazards</h2>
+        </header>
+        <!-- figures: none yet -->
+        <ul class="stack" role="list">
+          <li data-hazard="bun-tmpdir">
+            In a shift sandbox, bun cannot write its default tempdir:
+            <code class="code">bun install</code> and <code class="code">bun remove</code> need
+            <code class="code">BUN_TMPDIR=$TMPDIR BUN_INSTALL_CACHE_DIR=$TMPDIR/bun-cache</code>.
+          </li>
+          <li data-hazard="hk-install">
+            <code class="code">hk install</code> writes <code class="code">.git/hooks</code>, which
+            a shift sandbox refuses; the owner installs per clone.
+          </li>
+          <li data-hazard="blog">
+            The <code class="code">blog</code> worktree holds the uncommitted
+            <code class="code">/writing</code> scaffold (17 paths:
+            <code class="code">src/app/writing/</code>, <code class="code">src/content/</code>, MDX
+            wiring, sitemap) on a branch whose tip predates the harness. Never clean or remove it.
+          </li>
+          <li data-hazard="next-build">
+            <code class="code">next build</code>, and with it
+            <code class="code">bun run coverage</code>, cannot run in a shift sandbox: Turbopack's
+            postcss loader binds a loopback port (EPERM, even under
+            <code class="code">shift-test</code>).
+            <code class="code">NEXT_FONT_GOOGLE_MOCKED_RESPONSES</code> gets past the offline Google
+            Fonts fetch but not the bind. The coverage gate is CI's; locally only
+            <code class="code">cargo fmt</code>/<code class="code">clippy</code> on
+            <code class="code">crates/harness</code> and <code class="code">e2e</code> run.
+          </li>
+        </ul>
+      </section>
+
+      <section class="docs-section" id="plan" data-component="plan">
+        <header>
+          <h2 class="h2">Plan</h2>
+        </header>
+        <h3 class="h3">Next</h3>
+        <p class="docs-note">The only plan, in order; a landing that changes it edits it here.</p>
+        <ol class="stack" id="next">
+          <li data-next="prune">
+            Prune the <code class="code">ci-cache</code>,
+            <code class="code">proxy-coverage</code> and
+            <code class="code">resume-rewrite</code> checkouts once each branch is confirmed
+            squash-landed; none carries uncommitted work.
+          </li>
+          <li data-next="writing">
+            <strong>Land <code class="code">/writing</code></strong
+            >: rebase the <code class="code">blog</code> worktree's scaffold onto
+            <code class="code">main</code> under the 100 % coverage gate. Its monetization needs
+            owner actions first (GitHub Sponsors or a tip link, an Amazon Associates tag; AdSense
+            rejected).
+          </li>
+          <li data-next="hooks">
+            <strong>Install the hooks</strong>: <code class="code">hk install --mise --force</code>,
+            once — every checkout shares the bare repo's hooks dir. Not before 1 and 2, nor while
+            grove's pool slots (<code class="code">~/.grove/roots/jgeschwendt/jlg.io/pool/</code>)
+            sit at a pre-hk commit: the hook runs <code class="code">mise x -- hk</code>, which
+            fails every commit in a checkout whose <code class="code">mise.toml</code> lacks the hk
+            pin. Until then the lefthook shim prints "Can't find lefthook in PATH" and passes every
+            commit unchecked.
+          </li>
+          <li data-next="bun">
+            Bump bun from 1.4.0 to 1.4.3 in <code class="code">mise.toml</code> after a green
+            coverage run on the new runtime (breath filed 2026-10-13).
+          </li>
+          <li data-next="harness">
+            Two harness defects found reading, never reproduced (<code class="code"
+              >/gigadebug</code
+            >
+            each): <code class="code">kit::goto</code> writes its shell autopsy to a cwd-relative
+            <code class="code">.nyc_output/</code>, lost when the binary runs from anywhere but the
+            repo root (and always from <code class="code">resume-pdf</code>, which never creates
+            it); <code class="code">kit::settle</code>'s retry returns to
+            <code class="code">from</code> with a bare <code class="code">navigate</code>, which
+            goto's own doc says can return mid-swap, so <code class="code">wait_hydrated</code> may
+            pass on the outgoing document.
+          </li>
+        </ol>
+      </section>
+
+      <nav class="row link-row" aria-label="links">
+        <a class="pill" href="https://github.com/jgeschwendt/jlg.io">repo · jgeschwendt/jlg.io</a>
+      </nav>
+    </main>
+    <script>
+      /* The theme contract, verbatim from jgeschwendt/ui docs.js — same localStorage
+   key, so a theme chosen on the ui pages is the theme this one opens in. */
+      const THEME_KEY = 'ui-theme';
+      function applyTheme(mode) {
+        const root = document.documentElement;
+        if (mode === 'auto') {
+          root.removeAttribute('data-theme');
+          localStorage.removeItem(THEME_KEY);
+        } else {
+          root.dataset.theme = mode;
+          localStorage.setItem(THEME_KEY, mode);
+        }
+        for (const b of document.querySelectorAll('[data-theme-set]')) {
+          b.setAttribute('aria-pressed', String(b.dataset.themeSet === mode));
+        }
+      }
+      for (const b of document.querySelectorAll('[data-theme-set]')) {
+        b.addEventListener('click', () => applyTheme(b.dataset.themeSet));
+      }
+      applyTheme(localStorage.getItem(THEME_KEY) || 'auto');
+    </script>
+  </body>
+</html>

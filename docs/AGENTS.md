@@ -2,7 +2,7 @@
 
 ```stele
 kind: container
-purpose: "plan.md — the active plan: hazards for working here and what is next, in order."
+purpose: "index.html — the design page: hazards for working here and the plan (ol#next), in order."
 ```
 
 <!-- @stele -->
