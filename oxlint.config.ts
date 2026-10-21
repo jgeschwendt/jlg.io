@@ -4,7 +4,7 @@ export default defineConfig({
   ignorePatterns: ['public/background', '.next', 'next-env.d.ts'],
   overrides: [
     {
-      files: ['src/components/IconSet.tsx'],
+      files: ['src/ui/IconSet.tsx'],
       rules: {
         'import/group-exports': 'off',
         'no-magic-numbers': 'off',

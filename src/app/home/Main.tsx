@@ -3,7 +3,7 @@
 import { type Transition, type Variants, m, stagger } from 'motion/react';
 import Link from 'next/link';
 import { type JSX, useEffect } from 'react';
-import { At, File, GitHub } from '@/components/icons';
+import { At, File, GitHub } from '@/ui/icons';
 import { statement } from './statement';
 
 const [HIDE, SHOW] = ['0', '1'];
