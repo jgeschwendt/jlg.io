@@ -1,6 +1,6 @@
 import { ReasonPhrases, StatusCodes } from 'http-status-codes';
 import { type NextRequest, NextResponse } from 'next/server';
-import { log } from '@/logger/logger';
+import { log } from '@/lib/logger';
 
 const createProxy =
   (

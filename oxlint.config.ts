@@ -1,31 +1,10 @@
 import { defineConfig } from '@jlg/oxlint';
 
 export default defineConfig({
-  ignorePatterns: [
-    '**/*.d.ts',
-    '.next',
-    'next-env.d.ts',
-    // tooling config, not app code: the base's tooling override still leaves
-    // app rules (sort-keys over rule maps, no-magic-numbers, no-nodejs-modules)
-    // firing on them (probed 2026-10-20) — excluded, as the former JSON configs were
-    'oxfmt.config.ts',
-    'oxlint.config.ts',
-    'public/background',
-  ],
-  rules: {
-    // Next names its chunks itself; a webpackChunkName comment adds nothing
-    'import-js/dynamic-import-chunkname': 'off',
-    // jlg.io's 2025 flat config (ab6970c^:eslint.config.js): natural key order,
-    // and `props` is not an abbreviation worth expanding
-    'sort-keys': ['error', 'asc', { natural: true }],
-    // The authored eslint.config.js disabled prefer-readonly-parameter-types
-    // for all ts/tsx; base ships it at warn. Off here to match. (2026-07-20)
-    'typescript/prefer-readonly-parameter-types': 'off',
-    'unicorn-js/name-replacements': ['error', { allowList: { props: true } }],
-  },
+  ignorePatterns: ['public/background', '.next', 'next-env.d.ts'],
   overrides: [
     {
-      files: ['src/components/icons/Icons.tsx'],
+      files: ['src/components/IconSet.tsx'],
       rules: {
         'import/group-exports': 'off',
         'no-magic-numbers': 'off',
@@ -95,6 +74,15 @@ export default defineConfig({
     {
       files: ['**/*.ts', '**/*.tsx'],
       rules: {
+        // top-level `import type` when every specifier is a type; inline
+        // `{ type Foo, bar }` when a value rides along (the base default,
+        // prefer-top-level, forces a second import line for that case); here,
+        // not top-level, because the base's TS override turns it off
+        'import/consistent-type-specifier-style': [
+          'error',
+          'prefer-top-level-if-only-type-imports',
+        ],
+        'import/no-unassigned-import': ['warn', { allow: ['@/app/global.css'] }],
         // the package subpaths this app imports by design, as eslint.config.js allowed them
         'import-js/no-internal-modules': [
           'warn',
@@ -110,15 +98,6 @@ export default defineConfig({
             ],
           },
         ],
-        // top-level `import type` when every specifier is a type; inline
-        // `{ type Foo, bar }` when a value rides along (the base default,
-        // prefer-top-level, forces a second import line for that case); here,
-        // not top-level, because the base's TS override turns it off
-        'import/consistent-type-specifier-style': [
-          'error',
-          'prefer-top-level-if-only-type-imports',
-        ],
-        'import/no-unassigned-import': ['warn', { allow: ['@/app/global.css'] }],
         // as eslint.config.js scoped it: .js files keep the base's max of 10
         'max-statements': 'off',
       },
@@ -183,4 +162,10 @@ export default defineConfig({
       },
     },
   ],
+  rules: {
+    'typescript/prefer-readonly-parameter-types': 'off',
+    'unicorn-js/name-replacements': ['error', { allowList: { props: true } }],
+    // named entry points (components/icons.ts) are the house import surface
+    'unicorn-js/no-barrel-files': 'off',
+  },
 });

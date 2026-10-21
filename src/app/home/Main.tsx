@@ -3,7 +3,7 @@
 import { type Transition, type Variants, m, stagger } from 'motion/react';
 import Link from 'next/link';
 import { type JSX, useEffect } from 'react';
-import { At, File, GitHub } from '@/components/icons/Icons';
+import { At, File, GitHub } from '@/components/icons';
 import { statement } from './statement';
 
 const [HIDE, SHOW] = ['0', '1'];
@@ -57,9 +57,8 @@ const item: Variants = {
   },
 };
 
-// Module scope so the entrance plays once per session, not again on every return navigation.
+// module scope so the entrance plays once per session, not on every return navigation.
 let hasPlayed = false;
-
 export function Main(): JSX.Element {
   useEffect(() => {
     hasPlayed = true;
