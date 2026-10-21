@@ -285,9 +285,11 @@ pub fn goto(session: &Session, url: &str) {
             probe.csp.len(),
             probe.body.len()
         );
+        // Created here too: resume-pdf never makes the directory itself.
+        let dir = crate::server::repo_root().join(".nyc_output");
+        let _ = std::fs::create_dir_all(&dir);
         let _ = std::fs::write(
-            crate::server::repo_root()
-                .join(format!(".nyc_output/debug-shell-attempt{attempt}.html")),
+            dir.join(format!("debug-shell-attempt{attempt}.html")),
             &probe.body,
         );
         std::thread::sleep(Duration::from_millis(500));

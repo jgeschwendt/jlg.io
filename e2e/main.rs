@@ -303,7 +303,7 @@ fn resume(session: &Session, base: &str) {
     }
 
     // experience[0], the oldest entry, is first in the DOM — `flex-col-reverse`
-    // only shows it last. The role counts below prove the array rendered whole.
+    // only shows it last.
     let entries = strings(session, "h3");
     assert!(
         entries
@@ -313,7 +313,8 @@ fn resume(session: &Session, base: &str) {
     );
 
     // One <h3> per role in the experience <ol>, each with its own "Stack:"
-    // line — counting all three shapes asserts the array rendered whole.
+    // line — counting all three shapes asserts every rendered role is whole,
+    // not how many roles `resume.ts` holds.
     let roles = strings(session, "ol > li").len();
     assert!(roles > 1, "expected more than one role, found {roles}");
     assert_eq!(entries.len(), roles, "one <h3> per role");
