@@ -5,6 +5,8 @@
 // while the response ships Next's __next_error__ shell. The guard matters —
 // these handlers replace bun's default die-on-uncaught, which no ordinary
 // dev/build process should lose.
+'use strict';
+
 if (process.env.HARNESS_SERVER_DEBUG === '1') {
   process.on('uncaughtException', (error) => {
     console.error('[harness-debug] uncaughtException:', error);
