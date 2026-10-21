@@ -59,6 +59,9 @@ const HARVEST: &str = concat!(
     " return JSON.stringify(merged); })()"
 );
 
+// Every `poll`'s deadline.
+const POLL_TIMEOUT: Duration = Duration::from_secs(30);
+
 // Reads the tap's buffer out of `sessionStorage`, empties it, and reports how
 // the CURRENT document was entered — after a full-load fallback that is the new
 // document, whose navigation type ("navigate" for a link the router let through
@@ -133,11 +136,6 @@ const RSC_TAP: &str = "(() => { \
      }; \
      return true; })()";
 
-// Hydration is a race, not an event we can wait on: next/link's handler is
-// attached before the router can act, so a click can land in the gap and do
-// nothing at all. Retry the click-and-check as a unit.
-const SPA_TIMEOUT: Duration = Duration::from_secs(30);
-
 #[derive(serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct FetchProbe {
@@ -150,9 +148,10 @@ pub struct FetchProbe {
 
 /// Reads an element's attribute, panicking when the element is missing.
 pub fn attribute(session: &Session, selector: &str, name: &str) -> String {
-    let script = format!("document.querySelector('{selector}')?.getAttribute('{name}') ?? null");
     session
-        .eval(&script)
+        .eval(&format!(
+            "document.querySelector('{selector}')?.getAttribute('{name}') ?? null"
+        ))
         .expect("read attribute")
         .as_str()
         .unwrap_or_else(|| panic!("no {selector} with a {name} attribute"))
@@ -165,11 +164,15 @@ pub fn attribute(session: &Session, selector: &str, name: &str) -> String {
 pub fn back_until(session: &Session, path: &str) {
     mark(session);
     session.back().expect("history back");
-    poll(session, "location.pathname", "read location", 250, |at| {
-        *at == path
-    })
-    .unwrap_or_else(|at| panic!("history back never reached {path} (still at {at})"));
-    if session.eval("window.__harness === true").expect("sentinel") != true {
+    let state = poll(
+        session,
+        "[location.pathname, window.__harness === true]",
+        "read location",
+        250,
+        |at| at[0] == path,
+    )
+    .unwrap_or_else(|at| panic!("history back never reached {path} (still at {})", at[0]));
+    if state[1] != true {
         print_rsc_log(session, &format!("history back to {path}, full page load"));
         panic!("history back reached {path} by a full page load, not the router");
     }
@@ -177,10 +180,8 @@ pub fn back_until(session: &Session, path: &str) {
 
 /// The origin a run drives instead of one it started itself: `--base <url>` or
 /// `--base=<url>` on the command line, else `HARNESS_BASE`. `None` is the
-/// default and means the suite owns its own `Server` — a deployment has no
-/// instrumentation to collect, so what a caller does with `Some` is its own
-/// business, not this module's. One trailing `/` comes off so `{base}/path`
-/// composes the same way either answer arrives.
+/// default and means the suite owns its own `Server`. One trailing `/` comes
+/// off so `{base}/path` composes the same way either answer arrives.
 pub fn base_url() -> Option<String> {
     flag("base", "HARNESS_BASE").map(|url| url.strip_suffix('/').unwrap_or(&url).to_string())
 }
@@ -272,9 +273,13 @@ pub fn goto(session: &Session, url: &str) {
         // long before any click, and a prefetch that came back wrong is the
         // likeliest reason a later click degrades to a full page load. Only
         // when no shell answered — `||` short-circuits past it.
-        let shell =
-            format!("document.documentElement.id === '__next_error__' || ({RSC_TAP}, false)");
-        if session.eval(&shell).expect("probe error shell") != true {
+        if session
+            .eval(&format!(
+                "document.documentElement.id === '__next_error__' || ({RSC_TAP}, false)"
+            ))
+            .expect("probe error shell")
+            != true
+        {
             return;
         }
 
@@ -295,7 +300,8 @@ pub fn goto(session: &Session, url: &str) {
             probe.body.len()
         );
         let _ = std::fs::write(
-            format!(".nyc_output/debug-shell-attempt{attempt}.html"),
+            crate::server::repo_root()
+                .join(format!(".nyc_output/debug-shell-attempt{attempt}.html")),
             &probe.body,
         );
         std::thread::sleep(Duration::from_millis(500));
@@ -306,12 +312,12 @@ pub fn goto(session: &Session, url: &str) {
 
 /// Every client counter since the last harvest — the live map plus whatever
 /// `COVERAGE_STASH` filed from documents a load replaced — summed into one map
-/// and written under `.nyc_output`. The stash is cleared and the live counters
+/// and written under `output`. The stash is cleared and the live counters
 /// zeroed, so no hit is ever reported twice.
 pub fn harvest(session: &Session, output: &Path, label: &str) -> (String, usize) {
     let raw = session.eval(HARVEST).expect("read window.__coverage__");
     let raw = raw.as_str().expect("coverage map is a JSON string");
-    write_map(output, &format!("client-harness-{label}"), raw, true)
+    write_map(output, &format!("client-harness-{label}"), raw)
 }
 
 /// Sets the `settle`/`back_until` sentinel and arms the RSC tap in one round
@@ -345,20 +351,20 @@ pub fn nonce_of(csp: &str, path: &str) -> String {
 }
 
 /// Evaluates `script` every `interval_ms` until `done` accepts its value, or
-/// `SPA_TIMEOUT` runs out — then hands the last value back for the caller's
-/// panic.
+/// `POLL_TIMEOUT` runs out — then hands the last value back for the caller's
+/// panic. The accepted value comes back as `Ok`.
 fn poll(
     session: &Session,
     script: &str,
-    probe: &str,
+    what: &str,
     interval_ms: u64,
     done: impl Fn(&Value) -> bool,
-) -> Result<(), Value> {
-    let deadline = Instant::now() + SPA_TIMEOUT;
+) -> Result<Value, Value> {
+    let deadline = Instant::now() + POLL_TIMEOUT;
     loop {
-        let value = session.eval(script).expect(probe);
+        let value = session.eval(script).expect(what);
         if done(&value) {
-            return Ok(());
+            return Ok(value);
         }
         if Instant::now() >= deadline {
             return Err(value);
@@ -383,10 +389,10 @@ pub fn press_keys_until(session: &Session, base: &str, keys: &[&str], from: &str
     settle(session, base, &presses, from, to, &keys.join("+"));
 }
 
-/// Drains `RSC_TAP`'s buffer to stdout, one `rsc` line per navigation
-/// fetch, plus how the current document was entered. Diagnostics only — it
-/// asserts nothing, never panics on a missing tap, and empties the buffer so
-/// the next report carries only what happened since.
+/// Drains `RSC_TAP`'s buffer to stdout, one `rsc` line per RSC fetch,
+/// prefetches included, plus how the current document was entered. Diagnostics
+/// only — it asserts nothing, never panics on a missing tap, and empties the
+/// buffer so the next report carries only what happened since.
 fn print_rsc_log(session: &Session, context: &str) {
     let report = match session.eval(RSC_DRAIN) {
         Ok(report) => report,
@@ -437,7 +443,13 @@ pub fn server_coverage(session: &Session, output: &Path) -> (String, usize) {
         "/api/coverage cache-control: {:?}",
         probe.cache_control
     );
-    write_map(output, "server-harness", &probe.body, false)
+    let (name, files) = write_map(output, "server-harness", &probe.body);
+    // An empty server map means the instrumentation is dead, which must be loud.
+    assert!(
+        files > 0,
+        "{name}: coverage map is empty — is COVERAGE=1 reaching the server?"
+    );
+    (name, files)
 }
 
 /// Repeats `action` until the location reports `to`, then proves the move was
@@ -472,18 +484,19 @@ pub fn server_coverage(session: &Session, output: &Path) -> (String, usize) {
 /// `HARNESS_DEBUG_RSC=1` prints the tap's log on success too, which is how one
 /// confirms the tap sees healthy navigations and not only broken ones.
 fn settle(session: &Session, base: &str, action: &str, from: &str, to: &str, what: &str) {
-    let local = base.contains("localhost") || base.contains("127.0.0.1");
+    let local = base.contains(crate::server::HOST);
     let attempts: u32 = if local { 3 } else { 5 };
-    let script = format!("(() => {{ {action}return location.pathname; }})()");
+    let script =
+        format!("(() => {{ {action}return [location.pathname, window.__harness === true]; }})()");
 
     for attempt in 1..=attempts {
         mark(session);
-        poll(session, &script, "client-side navigation", 250, |at| {
-            *at == to
+        let state = poll(session, &script, "client-side navigation", 250, |at| {
+            at[0] == to
         })
-        .unwrap_or_else(|at| panic!("{what} never reached {to} (still at {at})"));
+        .unwrap_or_else(|at| panic!("{what} never reached {to} (still at {})", at[0]));
 
-        if session.eval("window.__harness === true").expect("sentinel") == true {
+        if state[1] == true {
             if std::env::var_os("HARNESS_DEBUG_RSC").is_some_and(|v| !v.is_empty()) {
                 print_rsc_log(session, &format!("{what} reached {to} client-side"));
             }
@@ -500,9 +513,7 @@ fn settle(session: &Session, base: &str, action: &str, from: &str, to: &str, wha
             break;
         }
         std::thread::sleep(Duration::from_secs(u64::from(attempt)));
-        session
-            .navigate(&format!("{base}{from}"))
-            .expect("return to the interaction's origin");
+        goto(session, &format!("{base}{from}"));
         wait_hydrated(session, "a");
     }
 
@@ -512,7 +523,10 @@ fn settle(session: &Session, base: &str, action: &str, from: &str, to: &str, wha
     );
 }
 
-/// Every `selector` match's `textContent`, trimmed.
+/// Every `selector` match's `textContent`, trimmed. `textContent`, not
+/// `innerText`: a page animating in from `opacity: 0` makes `innerText` — which
+/// is layout-aware — return nothing for content the entrance has not revealed
+/// yet.
 pub fn strings(session: &Session, selector: &str) -> Vec<String> {
     session
         .eval(&format!(
@@ -526,18 +540,12 @@ pub fn strings(session: &Session, selector: &str) -> Vec<String> {
         .collect()
 }
 
-/// `textContent`, not `innerText`: a page animating in from `opacity: 0` makes
-/// `innerText` — which is layout-aware — return nothing for content the
-/// entrance has not revealed yet.
+/// The first of `strings`, panicking when nothing matches.
 pub fn text(session: &Session, selector: &str) -> String {
-    let script = format!("document.querySelector('{selector}')?.textContent ?? null");
-    session
-        .eval(&script)
-        .expect("read text")
-        .as_str()
+    strings(session, selector)
+        .into_iter()
+        .next()
         .unwrap_or_else(|| panic!("no element matching {selector}"))
-        .trim()
-        .to_string()
 }
 
 /// Blocks until `selector`'s element is itself hydrated. An anchor clicked
@@ -557,23 +565,17 @@ pub fn wait_hydrated(session: &Session, selector: &str) {
         "(() => {{ const el = document.querySelector('{selector}'); return Boolean(el && \
          Object.keys(el).some((k) => k.startsWith('__reactFiber'))); }})()"
     );
-    poll(session, &script, "probe hydration", 250, |v| *v == true)
+    poll(session, &script, "probe hydration", 250, |v| v == true)
         .unwrap_or_else(|_| panic!("{selector} never hydrated — no React fiber attached"));
 }
 
-/// `tolerate_empty` is for the client maps: a route that ships no Client
-/// Components legitimately has none, and failing there would make the harness
-/// brittle about which routes happen to be interactive. An empty *server* map
-/// means the instrumentation is dead, which must be loud.
-fn write_map(output: &Path, name: &str, raw: &str, tolerate_empty: bool) -> (String, usize) {
+/// Writes `raw` only when it maps at least one file. Empty is legitimate for a
+/// client map — a route that ships no Client Components has none — so whether
+/// empty is a failure is the caller's call (`server_coverage` makes it one).
+fn write_map(output: &Path, name: &str, raw: &str) -> (String, usize) {
     let map: Value = serde_json::from_str(raw).unwrap_or_else(|e| panic!("{name}: {e}"));
     let files = map.as_object().map_or(0, serde_json::Map::len);
-    if files == 0 {
-        assert!(
-            tolerate_empty,
-            "{name}: coverage map is empty — is COVERAGE=1 reaching the server?"
-        );
-    } else {
+    if files > 0 {
         let path = output.join(format!("coverage-{name}.json"));
         std::fs::write(&path, raw).unwrap_or_else(|e| panic!("write {}: {e}", path.display()));
     }
