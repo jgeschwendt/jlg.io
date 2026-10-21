@@ -10,8 +10,8 @@
 //!
 //! Remote (`--base <url>`) points the same route functions at a deployment and
 //! starts no server. A deployment is a plain production build: it carries no
-//! `window.__coverage__` and its `/api/coverage` is closed, so the run harvests
-//! nothing and reports only that every assertion held. That makes it the
+//! `window.__coverage__` and its `/api/coverage` is closed, so the run writes
+//! no coverage and reports only that every assertion held. That makes it the
 //! post-deploy check the local run cannot be — the assertions run against the
 //! artifact that is actually serving traffic, CDN, proxy and all.
 //!
@@ -20,9 +20,6 @@
 //! publish the report to Pages. The remote path is `ci.yaml`'s `preview` job,
 //! which runs on a pull request only, against the preview deployment that same
 //! run produced.
-//!
-//! The driving machinery lives in `harness::kit`; only this app's assertions
-//! live here.
 
 use harness::kit::{
     attribute, back_until, base_url, click_until, dump, fetch_probe, goto, harvest, mode, nonce_of,
@@ -72,19 +69,6 @@ fn main() {
         .expect("agent-browser session");
     let bypass = Bypass::arm(&session.cdp_url().expect("cdp_url")).expect("arm CSP bypass");
 
-    // The local path has `Server::start`'s readiness wait for this; the remote
-    // path has nothing between it and a URL somebody typed. One status check
-    // first, so an unreachable or protected deployment fails saying so instead
-    // of failing eight assertions later on a missing <h1>. It is an in-page
-    // fetch because `get_head` speaks plain HTTP to localhost only — hence the
-    // navigation, which `home` performs again in a moment and which costs
-    // nothing.
-    if !local {
-        goto(&session, &format!("{base}/"));
-        let probe = fetch_probe(&session, "/", &[]);
-        assert_eq!(probe.status, 200, "{base}/ did not answer 200");
-    }
-
     let mut written = Vec::new();
 
     home(&session, &base);
@@ -99,21 +83,16 @@ fn main() {
     content_security_policy(&session, "/resume");
 
     home_trips(&session, &base);
-
-    if local {
-        written.push(harvest(&session, &output, "home"));
-    }
+    written.push(harvest(&session, &output, "home"));
 
     resume(&session, &base);
-    if local {
-        written.push(harvest(&session, &output, "resume"));
-    }
+    written.push(harvest(&session, &output, "resume"));
 
     not_found(&session, &base);
     proxy_faults(&session, local);
     prefetch(&session);
+    written.push(harvest(&session, &output, "not-found"));
     if local {
-        written.push(harvest(&session, &output, "not-found"));
         written.push(server_coverage(&session, &output));
     }
 
@@ -149,6 +128,12 @@ fn main() {
 /// probes have warmed `/resume`.
 fn home(session: &Session, base: &str) {
     goto(session, &format!("{base}/"));
+    // An unreachable or protected deployment fails here, before any h1/title check.
+    assert_eq!(
+        fetch_probe(session, "/", &[]).status,
+        200,
+        "{base}/ did not answer 200"
+    );
 
     let title = session.title().expect("title");
     if title != "Joshua L Geschwendt—Software Engineer" {
@@ -334,9 +319,9 @@ fn resume(session: &Session, base: &str) {
 
     // One <h3> per role in the experience <ol>, each with its own "Stack:"
     // line — counting all three shapes asserts the array rendered whole.
-    let roles = strings(session, "ol > li").len() as u64;
+    let roles = strings(session, "ol > li").len();
     assert!(roles > 1, "expected more than one role, found {roles}");
-    assert_eq!(entries.len() as u64, roles, "one <h3> per role");
+    assert_eq!(entries.len(), roles, "one <h3> per role");
     let stacks = session
         .eval(
             "Array.from(document.querySelectorAll('main *')).filter((el) => \
@@ -345,7 +330,7 @@ fn resume(session: &Session, base: &str) {
         .expect("count Stack: labels")
         .as_u64()
         .expect("count is a number");
-    assert_eq!(stacks, roles, "one Stack: line per role");
+    assert_eq!(stacks, roles as u64, "one Stack: line per role");
     assert_eq!(
         strings(session, "footer a[href^=\"mailto:\"]").len(),
         1,
@@ -450,8 +435,13 @@ fn deployment() {
             "preview CSP is missing {directive:?}: {csp:?}"
         );
     }
+    let script = csp
+        .split(';')
+        .map(str::trim)
+        .find_map(|directive| directive.strip_prefix("script-src "))
+        .unwrap_or_else(|| panic!("preview CSP has no script-src: {csp:?}"));
     assert!(
-        csp.contains("https://vercel.live;") && !csp.contains("'strict-dynamic'"),
+        script.ends_with(" https://vercel.live") && !csp.contains("'strict-dynamic'"),
         "preview script-src must allow vercel.live instead of 'strict-dynamic': {csp:?}"
     );
 
