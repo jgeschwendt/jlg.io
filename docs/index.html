@@ -86,7 +86,15 @@
           </li>
           <li data-hazard="hk-install">
             <code class="code">hk install</code> writes <code class="code">.git/hooks</code>, which
-            a shift sandbox refuses; the owner installs per clone.
+            a shift sandbox refuses; the owner installs per clone. The bare repo (<code class="code"
+              >~/.grove/roots/jgeschwendt/jlg.io/bare</code
+            >) runs <code class="code">mise x -- hk</code> pre-commit and pre-push, which fails in
+            any checkout whose <code class="code">mise.toml</code> lacks the hk pin (<code
+              class="code"
+              >blog</code
+            >, <code class="code">ci-cache</code>, <code class="code">proxy-coverage</code>,
+            <code class="code">resume-rewrite</code>, pre-hk pool slots): rebase or
+            <code class="code">HK=0</code>.
           </li>
           <li data-hazard="blog">
             The <code class="code">blog</code> worktree holds the uncommitted
@@ -117,11 +125,6 @@
           the first 600 characters of the list, so detail lives in the notes below it.
         </p>
         <ol class="stack" id="next">
-          <li data-next="hooks">
-            hk hooks are live (2026-10-19): delete the bare repo's stale lefthook
-            <code class="code">prepare-commit-msg</code> shim. Pre-hk checkouts fail every commit:
-            rebase or <code class="code">HK=0</code>.
-          </li>
           <li data-next="prune">
             Prune <code class="code">ci-cache</code>, <code class="code">proxy-coverage</code>,
             <code class="code">resume-rewrite</code> once each is confirmed squash-landed.
@@ -130,27 +133,16 @@
             Land <code class="code">/writing</code>: rebase <code class="code">blog</code>'s
             scaffold onto <code class="code">main</code> under the 100 % gate.
           </li>
-          <li data-next="bun">bun 1.4.0 → 1.4.3 after a green coverage run.</li>
           <li data-next="harness">
             <code class="code">/gigadebug</code> two harness suspects (notes).
           </li>
         </ol>
         <ul class="stack" role="list">
-          <li>
-            <strong>hooks</strong>: the bare repo is
-            <code class="code">~/.grove/roots/jgeschwendt/jlg.io/bare</code>; its pre-commit and
-            pre-push run <code class="code">mise x -- hk</code>, which fails in any checkout whose
-            <code class="code">mise.toml</code> lacks the hk pin — today
-            <code class="code">blog</code>, <code class="code">ci-cache</code>,
-            <code class="code">proxy-coverage</code>, <code class="code">resume-rewrite</code> and
-            pre-hk pool slots.
-          </li>
           <li><strong>prune</strong>: none of the three carries uncommitted work.</li>
           <li>
             <strong>writing</strong>: monetization needs owner actions first (GitHub Sponsors or a
             tip link, an Amazon Associates tag; AdSense rejected).
           </li>
-          <li><strong>bun</strong>: breath filed 2026-10-13.</li>
           <li>
             <strong>harness</strong>: found reading, never reproduced.
             <code class="code">kit::goto</code> writes its shell autopsy to a cwd-relative
