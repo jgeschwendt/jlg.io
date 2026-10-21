@@ -10,8 +10,6 @@ const PORT: u16 = 4311;
 const SESSION: &str = "jlg-resume-pdf";
 
 fn main() {
-    let root = repo_root();
-
     let server = Server::start("start", &[], PORT);
 
     let session = Session::ensure(SESSION).expect("agent-browser session");
@@ -19,12 +17,15 @@ fn main() {
 
     // The PDF embeds whatever glyphs are loaded at print time; an unresolved
     // webfont silently falls back in the output.
-    let fonts = session
-        .eval("document.fonts.ready.then(() => true)")
-        .expect("wait for fonts");
-    assert_eq!(fonts, true, "fonts never settled");
+    assert_eq!(
+        session
+            .eval("document.fonts.ready.then(() => true)")
+            .expect("wait for fonts"),
+        true,
+        "fonts never settled"
+    );
 
-    let out = root.join("public/resume.pdf");
+    let out = repo_root().join("public/resume.pdf");
     session
         .pdf(out.to_str().expect("utf-8 path"))
         .expect("print pdf");

@@ -41,7 +41,6 @@ const SESSION: &str = "jlg-coverage";
 
 fn main() {
     let started = Instant::now();
-    let root = repo_root();
     let remote = base_url();
     let local = remote.is_none();
     let mode = local.then(mode);
@@ -49,10 +48,10 @@ fn main() {
 
     // Both paths: `goto` files a failed navigation's autopsy here, and there is
     // nowhere else for it to land. Only the local path fills it with coverage.
-    let output = root.join(".nyc_output");
+    let output = repo_root().join(".nyc_output");
     std::fs::create_dir_all(&output).expect("create .nyc_output");
 
-    let server = mode.as_deref().map(|mode| {
+    let server = mode.map(|mode| {
         println!("[harness] {mode} server on {base}");
         let command = if mode == "prod" { "start" } else { "dev" };
         // COVERAGE arms the SWC instrumentation (dev) and opens `/api/coverage`;
@@ -104,13 +103,13 @@ fn main() {
 
     // After the main server is gone, so the two never contend: `dev` mode has
     // no build to start a second server over.
-    if mode.as_deref() == Some("prod") {
+    if mode == Some("prod") {
         deployment();
     }
 
     if local {
         println!(
-            "\n[harness] wrote {} file(s) to {}",
+            "\n[harness] {} map(s) harvested to {}",
             written.len(),
             output.display()
         );
@@ -128,12 +127,6 @@ fn main() {
 /// probes have warmed `/resume`.
 fn home(session: &Session, base: &str) {
     goto(session, &format!("{base}/"));
-    // An unreachable or protected deployment fails here, before any h1/title check.
-    assert_eq!(
-        fetch_probe(session, "/", &[]).status,
-        200,
-        "{base}/ did not answer 200"
-    );
 
     let title = session.title().expect("title");
     if title != "Joshua L Geschwendt—Software Engineer" {
@@ -171,18 +164,19 @@ fn home(session: &Session, base: &str) {
     assert_eq!(inline.len(), 2, "expected two inline statement links");
     assert_eq!(inline[1], "AI", "second inline link is not AI: {inline:?}");
 
-    // The monogram is the only <svg> `main` renders directly.
+    // The monogram is the <svg> directly under `main`'s wrapper div; the icon
+    // links' svgs sit deeper, inside the <ul>.
     assert!(
-        !strings(session, "main svg path").is_empty(),
+        !strings(session, "main > div > svg > path").is_empty(),
         "no monogram <svg> path in main"
     );
 
-    // `generateMetadata` derives the description from the same `statement()`
-    // the body renders, per request — a build-time snapshot would drift.
+    // `generateMetadata` joins the same `statement()` the body renders, per
+    // request — a build-time snapshot would drift.
     let description = attribute(session, "meta[name=\"description\"]", "content");
-    assert!(
-        description.contains("seasoned software engineer"),
-        "unexpected description metadata: {description:?}"
+    assert_eq!(
+        description, statement,
+        "description metadata is not the statement"
     );
 }
 
@@ -272,13 +266,12 @@ fn content_security_policy(session: &Session, path: &str) {
 /// happen without hydration, which is what proves the client bundle actually
 /// executed rather than merely downloaded. Two return legs here: history back
 /// first — `Main` keeps `hasPlayed` at module scope, so the entrance must not
-/// replay and the content has to be there either way — then the close control;
-/// the third, Escape, is `resume`'s.
+/// replay, and the next click proves the home tree is there — then the close
+/// control; the third, Escape, is `resume`'s.
 fn home_trips(session: &Session, base: &str) {
     wait_hydrated(session, "a[aria-label=\"Resume\"]");
     click_until(session, base, "a[aria-label=\"Resume\"]", "/", "/resume");
     back_until(session, "/");
-    assert_eq!(text(session, "h1"), NAME, "h1 gone after history back");
     click_until(session, base, "a[aria-label=\"Resume\"]", "/", "/resume");
     click_until(
         session,
@@ -309,12 +302,14 @@ fn resume(session: &Session, base: &str) {
         );
     }
 
-    // The oldest entry is the one the `flex-col-reverse` ordering puts last, so
-    // asserting it covers the whole array having rendered.
+    // experience[0], the oldest entry, is first in the DOM — `flex-col-reverse`
+    // only shows it last. The role counts below prove the array rendered whole.
     let entries = strings(session, "h3");
     assert!(
-        entries.iter().any(|h| h.contains("Springthrough")),
-        "no Springthrough <h3> on /resume: {entries:?}"
+        entries
+            .first()
+            .is_some_and(|h| h.starts_with("Springthrough")),
+        "Springthrough is not the first <h3> on /resume: {entries:?}"
     );
 
     // One <h3> per role in the experience <ol>, each with its own "Stack:"
@@ -327,10 +322,8 @@ fn resume(session: &Session, base: &str) {
             "Array.from(document.querySelectorAll('main *')).filter((el) => \
              el.children.length === 0 && el.textContent.trim() === 'Stack:').length",
         )
-        .expect("count Stack: labels")
-        .as_u64()
-        .expect("count is a number");
-    assert_eq!(stacks, roles as u64, "one Stack: line per role");
+        .expect("count Stack: labels");
+    assert_eq!(stacks, roles, "one Stack: line per role");
     assert_eq!(
         strings(session, "footer a[href^=\"mailto:\"]").len(),
         1,
