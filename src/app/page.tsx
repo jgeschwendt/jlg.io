@@ -3,7 +3,8 @@ import type { Metadata } from 'next';
 import { headers } from 'next/headers';
 import { connection } from 'next/server';
 import type { JSX } from 'react';
-import { Main, statement } from './home';
+import { Main } from './home/Main';
+import { statement } from './home/statement';
 
 export const generateMetadata = async (): Promise<Metadata> => {
   await connection();

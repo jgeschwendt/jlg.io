@@ -1,4 +1,4 @@
-import { log } from '@/logger';
+import { log } from '@/lib/logger';
 
 export function register(): void {
   log('server ready', {

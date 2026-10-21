@@ -1,124 +1,10 @@
 import { defineConfig } from '@jlg/oxlint';
-import type { OxlintConfig } from 'oxlint';
-
-/**
- * `@next/eslint-plugin-next`'s core-web-vitals severities (16.2.9): these 13 at
- * warn, the other 8 at error. oxlint files every nextjs rule under correctness,
- * which the base sets to error.
- */
-const nextCoreWebVitals: OxlintConfig['rules'] = Object.fromEntries(
-  [
-    'google-font-display',
-    'google-font-preconnect',
-    'next-script-for-ga',
-    'no-async-client-component',
-    'no-before-interactive-script-outside-document',
-    'no-css-tags',
-    'no-head-element',
-    'no-img-element',
-    'no-page-custom-font',
-    'no-styled-jsx-in-document',
-    'no-title-in-document-head',
-    'no-typos',
-    'no-unwanted-polyfillio',
-  ].map((rule) => [`nextjs/${rule}`, 'warn'] as const),
-);
-
-/**
- * The jsx-a11y set eslint-config-next applied through `next/core-web-vitals`
- * (12.0.7 → 14.2.14, 2021-12 → 2025-01), all at warn. Enabling the plugin puts
- * its other rules (all correctness but anchor-ambiguous-text) under the base's
- * categories, so each is named off.
- */
-const jsxA11y: OxlintConfig['rules'] = {
-  ...Object.fromEntries(
-    [
-      'anchor-ambiguous-text',
-      'anchor-has-content',
-      'anchor-is-valid',
-      'aria-activedescendant-has-tabindex',
-      'aria-role',
-      'autocomplete-valid',
-      'click-events-have-key-events',
-      'control-has-associated-label',
-      'heading-has-content',
-      'html-has-lang',
-      'iframe-has-title',
-      'img-redundant-alt',
-      'interactive-supports-focus',
-      'label-has-associated-control',
-      'lang',
-      'media-has-caption',
-      'mouse-events-have-key-events',
-      'no-access-key',
-      'no-aria-hidden-on-focusable',
-      'no-autofocus',
-      'no-distracting-elements',
-      'no-interactive-element-to-noninteractive-role',
-      'no-noninteractive-element-interactions',
-      'no-noninteractive-element-to-interactive-role',
-      'no-noninteractive-tabindex',
-      'no-redundant-roles',
-      'no-static-element-interactions',
-      'prefer-tag-over-role',
-      'scope',
-      'tabindex-no-positive',
-    ].map((rule) => [`jsx-a11y/${rule}`, 'off'] as const),
-  ),
-  'jsx-a11y/alt-text': ['warn', { elements: ['img'], img: ['Image'] }],
-  'jsx-a11y/aria-props': 'warn',
-  'jsx-a11y/aria-proptypes': 'warn',
-  'jsx-a11y/aria-unsupported-elements': 'warn',
-  'jsx-a11y/role-has-required-aria-props': 'warn',
-  'jsx-a11y/role-supports-aria-props': 'warn',
-};
 
 export default defineConfig({
-  ignorePatterns: [
-    '**/*.d.ts',
-    '.next',
-    'next-env.d.ts',
-    // The oxlint/oxfmt TS configs default-export a config object (oxfmt's spreads
-    // the imported base), so they trip app-oriented base rules (no-default-export,
-    // no-anonymous-default-export, no-rest-spread-properties). They are tooling
-    // config, not app code — excluded from lint, as the former JSON configs were.
-    'oxfmt.config.ts',
-    'oxlint.config.ts',
-    'public/background',
-  ],
-  // reportUnusedDisableDirectives: eslint.config.js's 'error', on every surface
-  // (editor included); a bare `--report-unused-disable-directives` on the CLI
-  // overrides it down to warn (verified 2026-10-09 · probe, oxlint 1.87)
-  options: { reportUnusedDisableDirectives: 'error', typeAware: true },
-  plugins: ['eslint', 'import', 'jsx-a11y', 'nextjs', 'oxc', 'react', 'typescript', 'unicorn'],
-  rules: {
-    ...jsxA11y,
-    ...nextCoreWebVitals,
-    // top-level `import type` when every specifier is a type; inline
-    // `{ type Foo, bar }` when a value rides along (the base default,
-    // prefer-top-level, forces a second import line for that case)
-    'import/consistent-type-specifier-style': ['error', 'prefer-top-level-if-only-type-imports'],
-    'no-async-await': 'off',
-    // require-await conflicts with the base's type-aware
-    // `typescript/promise-function-async`, which wants a promise-returning
-    // function to BE async even when it never awaits (e.g. a `.then` callback
-    // that forwards a promise). Keep the author's async style; disable the
-    // core rule that fights it. (2026-07-20)
-    'require-await': 'off',
-    // jlg.io's 2025 flat config (ab6970c^:eslint.config.js): natural key order,
-    // and `props` is not an abbreviation worth expanding
-    'sort-keys': ['error', 'asc', { natural: true }],
-    'unicorn-js/prevent-abbreviations': ['error', { allowList: { props: true } }],
-    // The authored eslint.config.js disabled prefer-readonly-parameter-types
-    // for all ts/tsx; base ships it at warn. Off here to match. (2026-07-20)
-    'typescript/prefer-readonly-parameter-types': 'off',
-    // react/jsx-filename-extension: base flags JSX in .tsx files (wants .jsx),
-    // nonsensical for a TS project — every component file trips it. (2026-07-20)
-    'react/jsx-filename-extension': 'off',
-  },
+  ignorePatterns: ['public/background', '.next', 'next-env.d.ts'],
   overrides: [
     {
-      files: ['src/components/icons/Icons.tsx'],
+      files: ['src/ui/IconSet.tsx'],
       rules: {
         'import/group-exports': 'off',
         'no-magic-numbers': 'off',
@@ -166,6 +52,8 @@ export default defineConfig({
         'typescript/no-unsafe-call': 'off',
         'typescript/no-unsafe-member-access': 'off',
         'typescript/strict-boolean-expressions': 'off',
+        // the preload's job is to publish `globalThis.__coverage__`
+        'unicorn-js/no-global-object-property-assignment': 'off',
       },
     },
     {
@@ -186,8 +74,15 @@ export default defineConfig({
     {
       files: ['**/*.ts', '**/*.tsx'],
       rules: {
-        // as eslint.config.js scoped it: .js files keep the base's max of 10
-        'max-statements': 'off',
+        // top-level `import type` when every specifier is a type; inline
+        // `{ type Foo, bar }` when a value rides along (the base default,
+        // prefer-top-level, forces a second import line for that case); here,
+        // not top-level, because the base's TS override turns it off
+        'import/consistent-type-specifier-style': [
+          'error',
+          'prefer-top-level-if-only-type-imports',
+        ],
+        'import/no-unassigned-import': ['warn', { allow: ['@/app/global.css'] }],
         // the package subpaths this app imports by design, as eslint.config.js allowed them
         'import-js/no-internal-modules': [
           'warn',
@@ -203,7 +98,8 @@ export default defineConfig({
             ],
           },
         ],
-        'import/no-unassigned-import': ['warn', { allow: ['@/app/global.css'] }],
+        // as eslint.config.js scoped it: .js files keep the base's max of 10
+        'max-statements': 'off',
       },
     },
     {
@@ -266,4 +162,10 @@ export default defineConfig({
       },
     },
   ],
+  rules: {
+    'typescript/prefer-readonly-parameter-types': 'off',
+    'unicorn-js/name-replacements': ['error', { allowList: { props: true } }],
+    // named entry points (components/icons.ts) are the house import surface
+    'unicorn-js/no-barrel-files': 'off',
+  },
 });

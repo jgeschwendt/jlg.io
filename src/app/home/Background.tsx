@@ -16,7 +16,7 @@ export function Background(): JSX.Element {
 
     if (
       wrapper !== null &&
-      !globalThis.matchMedia('(prefers-reduced-motion: reduce)').matches &&
+      !matchMedia('(prefers-reduced-motion: reduce)').matches &&
       document.createElement('canvas').getContext('webgl2') !== null
     ) {
       if (state.canvas === undefined) {

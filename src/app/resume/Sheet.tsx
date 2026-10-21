@@ -1,6 +1,5 @@
 import { Atkinson_Hyperlegible_Next as atkinsonHyperlegibleNext } from 'next/font/google';
 import type { JSX } from 'react';
-
 import { contacts, education, experience, region } from './resume';
 
 const atkinson = atkinsonHyperlegibleNext({
@@ -37,7 +36,7 @@ export function Sheet(): JSX.Element {
                   <h3 className="text-[0.8125rem] font-medium text-black/87">
                     {company}
                     <span className="text-[0.75rem] font-light text-black/66">
-                      {`\u2002·\u2002${title}`}
+                      {`\u{2002}·\u{2002}${title}`}
                     </span>
                   </h3>
                   <span className="text-[0.75rem] whitespace-nowrap text-black/55">
@@ -53,7 +52,7 @@ export function Sheet(): JSX.Element {
                 )}
                 <div className="text-[0.75rem]">
                   <span className="font-normal text-black/87">{'Stack:'}</span>
-                  {`\u2002${technologies.join('\u2002·\u2002')}`}
+                  {`\u{2002}${technologies.join('\u{2002}·\u{2002}')}`}
                 </div>
               </li>
             ))}
@@ -70,7 +69,7 @@ export function Sheet(): JSX.Element {
                 <div className="space-y-1.5" key={degree}>
                   <div>
                     <span className="font-normal text-black/87">{degree}</span>
-                    <i>{`\u2002·\u2002${specialization}`}</i>
+                    <i>{`\u{2002}·\u{2002}${specialization}`}</i>
                   </div>
                   <div>{`${institution}, ${college}`}</div>
                   <div>{location}</div>

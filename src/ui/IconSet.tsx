@@ -1,16 +1,20 @@
-import type { JSX } from 'react';
+import { type JSX, useMemo } from 'react';
 
 // Phosphor Icons (MIT, https://phosphoricons.com), drawn on a 256-unit grid.
 function PhosphorIcon({
   path,
   size = '1em',
 }: Readonly<{ path: string; size?: string }>): JSX.Element {
+  const style = useMemo(
+    () => ({ fill: 'currentColor', maxHeight: size, maxWidth: size, width: '100%' }),
+    [size],
+  );
   return (
     <svg
       aria-hidden
       fill="currentColor"
       role="img"
-      style={{ fill: 'currentColor', maxHeight: size, maxWidth: size, width: '100%' }}
+      style={style}
       viewBox="0 0 256 256"
       xmlns="http://www.w3.org/2000/svg"
     >

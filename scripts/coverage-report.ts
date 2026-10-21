@@ -13,7 +13,9 @@ const REPORT_DIR = path.join(CWD, 'coverage');
 const entries = await readdir(NYC_OUTPUT).catch(() => {
   throw new Error(`No coverage input: ${NYC_OUTPUT} does not exist.`);
 });
-const files = entries.filter((entry) => entry.endsWith('.json')).toSorted();
+const files = entries
+  .filter((entry) => entry.endsWith('.json'))
+  .toSorted((left, right) => left.localeCompare(right));
 
 if (files.length === 0) {
   throw new Error(`No coverage input: ${NYC_OUTPUT} contains no *.json files.`);
@@ -68,7 +70,7 @@ for (const file of map.files()) {
   const { data } = map.fileCoverageFor(file);
   const markers = source.split('\n').flatMap((line, index) => {
     const text = line.trim();
-    return text.startsWith(SKIP) ? [{ line: index + 1, reason: text.slice(SKIP.length) }] : [];
+    return text.startsWith(SKIP) ? { line: index + 1, reason: text.slice(SKIP.length) } : [];
   });
 
   for (const marker of markers) {
@@ -131,10 +133,7 @@ if (skipped.length > 0) {
 }
 console.log(`HTML report: ${path.join(REPORT_DIR, 'index.html')}`);
 
-// Enforced minimums, local and CI alike. A report is not evidence on its own:
-// instrumentation that quietly stops reaching half the app still renders a
-// perfectly well-formed report, just of less. Only a gate turns the number into
-// a claim.
+// Enforced minimums, local and CI alike. A report is not evidence on its own: instrumentation that quietly stops reaching half the app still renders a perfectly well-formed report, just of less. Only a gate turns the number into a claim.
 //
 // 100 is the mark, and the gate holds it: every metric measures 100 under
 // `bun run coverage` (the e2e suite's deployment-shaped pass reaches the CSP
