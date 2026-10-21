@@ -73,10 +73,10 @@ const RSC_DRAIN: &str = "(() => { const KEY = '__harness_rsc'; let log = []; \
      return { entries: log, navigation: nav ? nav.type : null, \
        tapped: Boolean(window.__harness_rsc_tapped) }; })()";
 
-// Wraps `window.fetch` for the rest of the document's life so an App Router
-// navigation fetch leaves evidence that OUTLIVES the page. A `<Link>` click
-// degrades to a full page load when the RSC fetch for the target does not come
-// back as an RSC payload — a non-`text/x-component` content type, an error
+// Wraps `window.fetch` for the rest of the document's life so every App Router
+// RSC fetch, prefetches included, leaves evidence that OUTLIVES the page. A
+// `<Link>` click degrades to a full page load when the RSC fetch for the target
+// does not come back as an RSC payload — a non-`text/x-component` content type, an error
 // page, a cross-origin redirect, a build/deployment-id mismatch — and the
 // reload that follows wipes the page before anything can be asked about it.
 // The record goes to `sessionStorage`, not a `window` property — the one place
@@ -97,25 +97,13 @@ const RSC_TAP: &str = "(() => { \
        log.push(entry); \
        sessionStorage.setItem(KEY, JSON.stringify(log.slice(-LIMIT))); \
      } catch (e) {} }; \
-     const rscHeader = (input, init) => { \
-       const headers = (init && init.headers) \
-         || (input && typeof input === 'object' ? input.headers : null); \
-       if (!headers) return false; \
-       try { \
-         if (typeof headers.get === 'function') return headers.get('RSC') === '1'; \
-         if (Array.isArray(headers)) \
-           return headers.some((pair) => String(pair[0]).toLowerCase() === 'rsc'); \
-         return Object.keys(headers).some((key) => key.toLowerCase() === 'rsc'); \
-       } catch (e) { return false; } \
-     }; \
      const original = window.fetch; \
-     window.fetch = function (input, init) { \
-       const url = typeof input === 'string' ? input : (input && input.url) || String(input); \
-       const watched = String(url).includes('_rsc=') || rscHeader(input, init); \
+     window.fetch = function (input) { \
+       const url = String((input && input.url) || input); \
        const pending = original.apply(this, arguments); \
-       if (!watched) return pending; \
-       let path = String(url); \
-       try { const parsed = new URL(String(url), location.href); \
+       if (!url.includes('_rsc')) return pending; \
+       let path = url; \
+       try { const parsed = new URL(url, location.href); \
          path = parsed.pathname + parsed.search; } catch (e) {} \
        const at = Date.now(); \
        return pending.then((response) => { \
@@ -125,12 +113,12 @@ const RSC_TAP: &str = "(() => { \
          const header = (name) => { \
            try { return response.headers.get(name) || ''; } catch (e) { return ''; } }; \
          record({ at, contentType: header('content-type'), nextjs, path, \
-           status: response.status, type: response.type, url: String(url), \
+           status: response.status, type: response.type, url, \
            xMatchedPath: header('x-matched-path'), xVercelCache: header('x-vercel-cache'), \
            xVercelId: header('x-vercel-id') }); \
          return response; \
        }, (error) => { \
-         record({ at, error: String(error), path, url: String(url) }); \
+         record({ at, error: String(error), path, url }); \
          throw error; \
        }); \
      }; \
@@ -286,10 +274,8 @@ pub fn goto(session: &Session, url: &str) {
         let context = format!("error shell on {url}, attempt {attempt}");
         dump(session, &context);
         print_rsc_log(session, &context);
-        // The navigated document and a fresh fetch of the same URL can tell
-        // different stories (PR #570: fetch healthy, navigation crashed), so
-        // report both sides and keep the whole body in .nyc_output, which the
-        // CI job uploads as an artifact on failure.
+        // Both sides of the story, the whole refetched body kept in
+        // .nyc_output, which CI uploads on failure.
         let probe = fetch_probe(session, url, &[]);
         let refetch_shell = probe.body.contains("__next_error__");
         let head = probe.body.chars().take(200).collect::<String>();
@@ -312,8 +298,8 @@ pub fn goto(session: &Session, url: &str) {
 
 /// Every client counter since the last harvest — the live map plus whatever
 /// `COVERAGE_STASH` filed from documents a load replaced — summed into one map
-/// and written under `output`. The stash is cleared and the live counters
-/// zeroed, so no hit is ever reported twice.
+/// and, when it maps any file, written under `output`. The stash is cleared and
+/// the live counters zeroed, so no hit is ever reported twice.
 pub fn harvest(session: &Session, output: &Path, label: &str) -> (String, usize) {
     let raw = session.eval(HARVEST).expect("read window.__coverage__");
     let raw = raw.as_str().expect("coverage map is a JSON string");
@@ -329,25 +315,21 @@ fn mark(session: &Session) {
 }
 
 /// `--mode`, else COVERAGE_MODE, else `dev`; anything but `dev`/`prod` panics.
-pub fn mode() -> String {
-    let mode = flag("mode", "COVERAGE_MODE").unwrap_or_else(|| "dev".to_string());
-    assert!(
-        matches!(mode.as_str(), "dev" | "prod"),
-        "mode must be dev or prod, got {mode:?}"
-    );
-    mode
+pub fn mode() -> &'static str {
+    match flag("mode", "COVERAGE_MODE").as_deref() {
+        None | Some("dev") => "dev",
+        Some("prod") => "prod",
+        Some(other) => panic!("mode must be dev or prod, got {other:?}"),
+    }
 }
 
 /// The `'nonce-…'` value out of a policy's script-src. Base64ish by
 /// construction, so everything up to the closing quote is the nonce.
 pub fn nonce_of(csp: &str, path: &str) -> String {
-    let (_, rest) = csp
-        .split_once("'nonce-")
-        .unwrap_or_else(|| panic!("{path}: no nonce in CSP: {csp:?}"));
-    let (nonce, _) = rest
-        .split_once('\'')
-        .unwrap_or_else(|| panic!("{path}: unterminated nonce in CSP: {csp:?}"));
-    nonce.to_string()
+    csp.split_once("'nonce-")
+        .and_then(|(_, rest)| rest.split_once('\''))
+        .map(|(nonce, _)| nonce.to_string())
+        .unwrap_or_else(|| panic!("{path}: no terminated nonce in CSP: {csp:?}"))
 }
 
 /// Evaluates `script` every `interval_ms` until `done` accepts its value, or
@@ -403,7 +385,7 @@ fn print_rsc_log(session: &Session, context: &str) {
         .map(Vec::as_slice)
         .unwrap_or_default();
     println!(
-        "[harness] rsc log ({context}): {} navigation fetch(es), navigation type {}, tapped {}",
+        "[harness] rsc log ({context}): {} rsc fetch(es), navigation type {}, tapped {}",
         entries.len(),
         report["navigation"].as_str().unwrap_or("unknown"),
         report["tapped"].as_bool().unwrap_or(false),
@@ -470,16 +452,11 @@ pub fn server_coverage(session: &Session, output: &Path) -> (String, usize) {
 /// remote base is a deployment that may be seconds old: its first RSC fetch can
 /// be served cold, or by a region that has not caught up with the new build,
 /// and the router answers a payload it does not recognize with a full page load
-/// — three attempts inside one second were not enough to outlast it (run
-/// 34307954043, 40s after the deploy; a re-run minutes later against the same
-/// URL passed with zero retries). Both targets sleep `attempt` seconds between
-/// attempts to let an edge settle; remote gets 5 attempts (1+2+3+4s of
-/// backoff). A local `next start` has no edge and no propagation, only the
-/// Turbopack race the original bound was sized for, so it stays at 3 (1+2s) —
-/// a real client-side-navigation regression must not wait out remote's
-/// ten-second backoff to be called a failure. Neither bound changes what counts
-/// as success: an arrival by full page load is never success, and the coverage
-/// from the previous page is gone either way.
+/// (run 34307954043, 40s after the deploy; a re-run minutes later passed with
+/// zero retries). A local server has no edge, only `next dev`'s Turbopack race,
+/// and a real regression must not wait out remote's backoff to be called a
+/// failure. Neither bound changes what counts as success: an arrival by full
+/// page load never is.
 ///
 /// `HARNESS_DEBUG_RSC=1` prints the tap's log on success too, which is how one
 /// confirms the tap sees healthy navigations and not only broken ones.

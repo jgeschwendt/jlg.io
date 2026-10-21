@@ -5,12 +5,13 @@
 # + docs and src (containers) — because the remaining top-level dirs carry no local
 # knowledge a root claim doesn't already route to:
 #   .github  → CI; the TWO RUNTIMES and UNMATCHED-PATTERN hazards already cover it
-#   crates   → Rust/Bevy background source; the WASM-OUTPUT hazard covers its pipeline
+#   crates   → Rust: the Bevy background (the WASM-OUTPUT hazard covers its
+#              pipeline) and harness, the e2e driver, documented in its module docs
 #   public   → static + gitignored generated output (public/background, built in deploy.yaml)
 #   scripts  → build tooling; the WASM-OUTPUT claim anchors into background-wasm.ts
-#   e2e      → the Rust e2e suite (crates/harness drives it); its two modes and
-#              the CSP bypass they arm are documented in e2e/main.rs's module
-#              doc, at the point of use
+#   e2e      → the Rust e2e suite (crates/harness drives it); its two targets are
+#              documented in e2e/main.rs's module doc, the CSP bypass they arm in
+#              crates/harness/src/cdp.rs's, at the point of use
 #   patches  → bun `patchedDependencies` diffs (next@16.4.0: vercel/next.js#82117);
 #              version-keyed, so a next bump orphans the entry — re-key or drop it
 # Excluding a dir here drops only its exhaustiveness requirement; the anchor scan
