@@ -6,7 +6,7 @@
 # exit-path segfault once forced node into the instrumented build (runs
 # 31955271334, 31956326050); the 1.4.0 pin cleared it — hold the pin at >=1.4.0.
 # ※ config-runtime
-bun = "1.4.0"
+bun = "1.4.3"
 # hk runs the pre-commit fmt/lint checks and the pre-push gate (hk.pkl).
 hk = "2.5.0"
 # jdx's compilation cache for cargo. `mr_boxington` on the rust pin below puts
