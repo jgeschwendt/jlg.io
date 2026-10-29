@@ -1,5 +1,5 @@
-import { existsSync } from 'node:fs';
 import { defineConfig } from '@jlg/oxfmt';
+import { existsSync } from 'node:fs';
 
 // oxfmt silently skips tailwind class sorting when this path is wrong; fail instead
 const stylesheet = './src/app/global.css';

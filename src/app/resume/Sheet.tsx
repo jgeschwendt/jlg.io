@@ -1,6 +1,5 @@
 import { Atkinson_Hyperlegible_Next as atkinsonHyperlegibleNext } from 'next/font/google';
 import type { JSX } from 'react';
-
 import { contacts, education, experience, region } from './resume';
 
 const atkinson = atkinsonHyperlegibleNext({

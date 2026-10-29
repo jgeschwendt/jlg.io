@@ -56,7 +56,7 @@
           "resolved": "oxfmt.config.ts:17",
           "text": "FORMAT POLICY — printWidth is deliberately absent (oxfmt default 100; the repo predates the base's former 80); singleQuote comes from the @jlg/oxfmt base via defineConfig",
           "verified": {
-            "digest": "800201c0bcb8635271df72de53b7681de30a9c95fd732c40fe915eaf49c619ed",
+            "digest": "1104015005028176ac395156254cddce435286f2d4b07b9bb5a95abdee86260c",
             "sha": "17ab7f1b3bd6d2be6c7db5d1230f09da562bf901"
           }
         },
