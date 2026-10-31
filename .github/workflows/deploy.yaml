@@ -79,7 +79,7 @@ jobs:
       # Writes public/background/{background.js,background_bg.wasm}, which
       # `next build` (inside `vercel build`) copies into the output. This is the
       # only workflow that needs it — the e2e harness never asserts the
-      # background, and Background.tsx tolerates the module's absence.
+      # background, and background.tsx tolerates the module's absence.
       - if: steps.wasm-output.outputs.cache-hit != 'true'
         run: bun run background:build
 

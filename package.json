@@ -37,7 +37,7 @@
   },
   "devDependencies": {
     "@jlg/oxfmt": "0.1.2",
-    "@jlg/oxlint": "0.1.1",
+    "@jlg/oxlint": "0.1.5",
     "@jlg/tsconfig": "0.1.2",
     "@tailwindcss/postcss": "4.3.3",
     "@types/istanbul-lib-coverage": "2.0.6",
@@ -56,13 +56,13 @@
     "swc-plugin-coverage-instrument": "0.0.33",
     "tailwindcss": "4.3.3",
     "typescript": "7.0.2",
-    "vercel": "65.8.0"
+    "vercel": "65.9.0"
   },
   "engines": {
     "node": "24.x"
   },
   "patchedDependencies": {
-    "next@16.4.0": "patches/next@16.4.0.patch"
+    "next@16.4.3": "patches/next@16.4.3.patch"
   },
   "trustedDependencies": [
     "@tailwindcss/oxide",

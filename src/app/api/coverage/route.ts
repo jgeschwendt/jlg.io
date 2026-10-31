@@ -2,7 +2,9 @@ import { ReasonPhrases, StatusCodes } from 'http-status-codes';
 import type { CoverageMapData } from 'istanbul-lib-coverage';
 import { connection } from 'next/server';
 
-/** Server counters live on the server's global, so the harness asks it — dev or start alike. */
+/**
+Server counters live on the server's global, so the harness asks it — dev or start alike.
+*/
 export async function GET(): Promise<Response> {
   // per request, never prerendered at build time
   await connection();

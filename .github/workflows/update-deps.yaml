@@ -65,11 +65,9 @@ jobs:
           # holds: deliberate pin-backs that `bun update --latest` would
           # re-bump — restored after every update. Drop an entry when upstream
           # catches up (the dated reason says what to check); add one whenever
-          # a red run ends in a pin-back on the branch.
-          # @jlg/oxlint: 0.1.1 until the next release lands; 0.1.2–0.1.4 run every
-          # unicorn JS rule oxlint lacks with no reconciled config here. The next
-          # release needs oxlint ^1.89 and bun 1.4.3, both now pinned (2026-10-20)
-          holds="@jlg/oxlint@0.1.1"
+          # a red run ends in a pin-back on the branch. Empty since 2026-10-30
+          # (@jlg/oxlint 0.1.5 reconciled here).
+          holds=""
 
           for hold in $holds; do
             pkg="${hold%@*}"
