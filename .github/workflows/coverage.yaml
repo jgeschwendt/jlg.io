@@ -24,11 +24,6 @@ permissions:
 
 jobs:
   coverage:
-    # Restore only: on the same push ci.yaml's harness job compiles the
-    # superset and owns every save (mbx, Next, Chrome). mr-boxington-action
-    # saves on any green main push, and its per-commit key would let this
-    # job's narrower store race harness's to the write.
-    cache-mode: read
     permissions:
       contents: read
       id-token: write
@@ -48,8 +43,11 @@ jobs:
       # on every push.
       - run: bun install --frozen-lockfile
 
+      # Own lineage: the generated key carries no job name, so on the same main push this job's
+      # narrower store (no clippy) would race ci.yaml's harness for the single per-commit entry.
       - uses: jdx/mr-boxington-action@v1
         with:
+          cache-generation: coverage
           github-cache-mode: objects
 
       - name: Cache Next build (coverage)
@@ -62,7 +60,7 @@ jobs:
       - uses: ./.github/actions/agent-browser
 
       # Fast standalone signal; `next build` also type-checks since 16.3 + TS7 stable.
-      - run: bunx --bun tsc --noEmit
+      - run: bun check
 
       # Self-failing: `scripts/coverage-report.ts` exits non-zero below the
       # thresholds, and appends the coverage table to the job summary.

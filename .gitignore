@@ -33,6 +33,5 @@ public/background/
 # tools
 .DS_Store
 .vscode/*
-!.vscode/extensions.json
 # visor (dev proxy) data dir
 .visor/

@@ -63,9 +63,9 @@ jobs:
       # The script probes `wasm-bindgen --version` and falls back to
       # `cargo install wasm-bindgen-cli` — a multi-minute compile — whenever the
       # binary is missing or off the Cargo.lock version. Dropping the matching
-      # prebuilt binary into ~/.local/bin (already on GITHUB_PATH from the node
-      # shim above) makes that fallback dead in CI; reading the version out of
-      # the lock keeps the same lockstep rule the script enforces.
+      # prebuilt binary into ~/.local/bin (on the runner's default PATH) makes that
+      # fallback dead in CI; reading the version out of the lock keeps the same
+      # lockstep rule the script enforces.
       - name: Install wasm-bindgen CLI
         if: steps.wasm-output.outputs.cache-hit != 'true'
         run: |

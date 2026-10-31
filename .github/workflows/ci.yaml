@@ -24,9 +24,9 @@ jobs:
       - uses: jdx/mise-action@v2
 
       - run: bun install --frozen-lockfile
-      - run: bun run fmt --check
-      - run: bun run lint
-      - run: bunx --bun tsc --noEmit
+      - run: bun fmt --check
+      - run: bun lint
+      - run: bun check
 
       # stele: assert the agent-doc graph is fresh (anchors resolve, claims not
       # staled by drift) and the committed AGENTS.md / index files match the lock.
@@ -59,13 +59,12 @@ jobs:
       # the repo's 10GB cache quota until the cargo cache entries were evicted.
       - run: bun install --frozen-lockfile
 
-      # mbx (mise.toml's `cargo` wrapper) caches each rustc invocation on its
-      # inputs and compiler. `objects` mode carries that store, not a target
-      # tree, so one entry serves both workspaces' target dirs; it omits the
-      # registry, which cargo re-downloads. Saved after a green push to main,
-      # keyed per commit; PRs and `preview` restore the latest main entry and
-      # never save, and coverage.yaml is read-only — this job compiles the
-      # superset (clippy and the e2e build), so it alone writes.
+      # mbx (mise.toml's `cargo` wrapper) caches each rustc invocation on its inputs and compiler.
+      # `objects` mode carries that store, not a target tree, so one entry serves both workspaces'
+      # target dirs; it omits the registry, which cargo re-downloads. Saved after a green push to
+      # main, keyed per commit; PRs and `preview` restore the latest main entry and never save (the
+      # action saves on default-branch pushes only); coverage.yaml keeps its own generation, so
+      # this job alone writes this lineage.
       - uses: jdx/mr-boxington-action@v1
         with:
           github-cache-mode: objects
@@ -132,8 +131,6 @@ jobs:
     needs: deploy
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
-    # Restore only — `harness` owns every save (see there).
-    cache-mode: read
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
