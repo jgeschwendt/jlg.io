@@ -30,7 +30,7 @@ macro_rules! zero_live {
 /// it `window.__coverage__`; on `pagehide` this files the map in
 /// `sessionStorage`, which survives a same-origin load, and zeroes the live
 /// counters so a back-forward-cache restore does not count them twice.
-/// (observed 2026-10-08 · a race-degraded Close click lost `Main.tsx`'s
+/// (observed 2026-10-08 · a race-degraded Close click lost `main.tsx`'s
 /// return-visit branch; the run before it, race-free, had covered it)
 pub(crate) const COVERAGE_STASH: &str = concat!(
     "addEventListener('pagehide', () => { \

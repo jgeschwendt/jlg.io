@@ -8,12 +8,16 @@ import path from 'node:path';
 
 const CWD = process.cwd();
 const NYC_OUTPUT = path.join(CWD, '.nyc_output');
-const REPORT_DIR = path.join(CWD, 'coverage');
 
-const entries = await readdir(NYC_OUTPUT).catch(() => {
+if (!existsSync(NYC_OUTPUT)) {
   throw new Error(`No coverage input: ${NYC_OUTPUT} does not exist.`);
-});
-const files = entries.filter((entry) => entry.endsWith('.json')).toSorted();
+}
+
+const REPORT_DIR = path.join(CWD, 'coverage');
+const entries = await readdir(NYC_OUTPUT);
+const files = entries
+  .filter((entry) => entry.endsWith('.json'))
+  .toSorted((left, right) => Number(left > right) - Number(left < right));
 
 if (files.length === 0) {
   throw new Error(`No coverage input: ${NYC_OUTPUT} contains no *.json files.`);
@@ -36,7 +40,7 @@ for (const file of files) {
   const data = JSON.parse(raw) as libCoverage.CoverageMapData;
 
   for (const [key, entry] of Object.entries(data)) {
-    if (isRealSource(entry.path ?? key)) {
+    if (isRealSource(entry.path)) {
       map.merge({ [key]: entry });
     } else {
       dropped.add(key);
@@ -55,11 +59,14 @@ for (const file of files) {
 const SKIP = '// coverage skip';
 const REASON = /^\s+--\s+\S/u;
 
-const keepWhere = <T>(record: Record<string, T>, keep: (value: T) => boolean): Record<string, T> =>
-  Object.fromEntries(Object.entries(record).filter(([, value]) => keep(value)));
+const keepWhere = <T>(
+  record: Record<string, T>,
+  shouldKeep: (value: T) => boolean,
+): Record<string, T> =>
+  Object.fromEntries(Object.entries(record).filter(([, value]) => shouldKeep(value)));
 
 const keepIds = <T>(record: Record<string, T>, ids: Record<string, unknown>): Record<string, T> =>
-  Object.fromEntries(Object.entries(record).filter(([id]) => id in ids));
+  Object.fromEntries(Object.entries(record).filter(([id]) => Object.hasOwn(ids, id)));
 
 const skipped: string[] = [];
 
@@ -68,7 +75,7 @@ for (const file of map.files()) {
   const { data } = map.fileCoverageFor(file);
   const markers = source.split('\n').flatMap((line, index) => {
     const text = line.trim();
-    return text.startsWith(SKIP) ? [{ line: index + 1, reason: text.slice(SKIP.length) }] : [];
+    return text.startsWith(SKIP) ? { line: index + 1, reason: text.slice(SKIP.length) } : [];
   });
 
   for (const marker of markers) {
@@ -88,14 +95,14 @@ for (const file of map.files()) {
     }
 
     const last = Math.max(...ends);
-    const outside = (range: libCoverage.Range): boolean =>
+    const isOutside = (range: libCoverage.Range): boolean =>
       range.start.line < first || range.end.line > last;
 
-    data.statementMap = keepWhere(data.statementMap, outside);
+    data.statementMap = keepWhere(data.statementMap, isOutside);
     data.s = keepIds(data.s, data.statementMap);
-    data.fnMap = keepWhere(data.fnMap, (mapping) => outside(mapping.loc));
+    data.fnMap = keepWhere(data.fnMap, (mapping) => isOutside(mapping.loc));
     data.f = keepIds(data.f, data.fnMap);
-    data.branchMap = keepWhere(data.branchMap, (mapping) => outside(mapping.loc));
+    data.branchMap = keepWhere(data.branchMap, (mapping) => isOutside(mapping.loc));
     data.b = keepIds(data.b, data.branchMap);
     skipped.push(where);
   }
@@ -131,10 +138,7 @@ if (skipped.length > 0) {
 }
 console.log(`HTML report: ${path.join(REPORT_DIR, 'index.html')}`);
 
-// Enforced minimums, local and CI alike. A report is not evidence on its own:
-// instrumentation that quietly stops reaching half the app still renders a
-// perfectly well-formed report, just of less. Only a gate turns the number into
-// a claim.
+// Enforced minimums, local and CI alike. A report is not evidence on its own: instrumentation that quietly stops reaching half the app still renders a perfectly well-formed report, just of less. Only a gate turns the number into a claim.
 //
 // 100 is the mark, and the gate holds it: every metric measures 100 under
 // `bun run coverage` (the e2e suite's deployment-shaped pass reaches the CSP
@@ -147,7 +151,7 @@ const THRESHOLDS = { branches: 100, functions: 100, lines: 100, statements: 100 
 const totals = map.getCoverageSummary();
 const metrics = ['branches', 'functions', 'lines', 'statements'] as const;
 const gates = metrics
-  .filter((metric): metric is keyof typeof THRESHOLDS => metric in THRESHOLDS)
+  .filter((metric): metric is keyof typeof THRESHOLDS => Object.hasOwn(THRESHOLDS, metric))
   .map((metric) => ({
     met: totals[metric].pct >= THRESHOLDS[metric],
     metric,

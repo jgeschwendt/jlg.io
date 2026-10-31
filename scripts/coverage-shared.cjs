@@ -26,7 +26,7 @@ if (
     {},
     {
       set(records, path, record) {
-        if (!(path in records) || records[path].hash !== record.hash) {
+        if (!Object.hasOwn(records, path) || records[path].hash !== record.hash) {
           records[path] = record;
         }
         return true;

@@ -16,7 +16,7 @@ export function Background(): JSX.Element {
 
     if (
       wrapper !== null &&
-      !globalThis.matchMedia('(prefers-reduced-motion: reduce)').matches &&
+      !matchMedia('(prefers-reduced-motion: reduce)').matches &&
       document.createElement('canvas').getContext('webgl2') !== null
     ) {
       if (state.canvas === undefined) {
@@ -32,19 +32,24 @@ export function Background(): JSX.Element {
         // Runtime import so the wasm-bindgen glue in public/ stays out of the bundle; the
         // non-literal specifier keeps TS module resolution out of it.
         const specifier = '/background/background.js';
-        import(
-          // Bundler directives: Turbopack and webpack must leave this import to the browser.
-          /* turbopackIgnore: true */
-          /* webpackIgnore: true */
-          specifier
-        )
-          // The glue's shape is fixed by wasm-bindgen --target web: a default init export.
-          .then(async (module: { default: () => Promise<unknown> }): Promise<unknown> =>
-            module.default(),
-          )
-          .catch((): void => {
+        void (async (): Promise<void> => {
+          try {
+            // The glue's shape is fixed by wasm-bindgen --target web: a default init export.
+            const glue = await (import(
+              // Bundler directives: Turbopack and webpack must leave this import to the browser.
+              /*
+              turbopackIgnore: true
+              */
+              /*
+              webpackIgnore: true
+              */
+              specifier
+            ) as Promise<{ default: () => Promise<unknown> }>);
+            await glue.default();
+          } catch {
             state.loaded = false;
-          });
+          }
+        })();
       }
     }
 

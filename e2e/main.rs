@@ -158,7 +158,7 @@ fn home(session: &Session, base: &str) {
         );
     }
 
-    // `statement` (statement.ts) marks two words, and Main.tsx links them —
+    // `statement` (statement.ts) marks two words, and main.tsx links them —
     // the years figure and "AI".
     let inline = strings(session, "main p a");
     assert_eq!(inline.len(), 2, "expected two inline statement links");

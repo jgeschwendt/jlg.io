@@ -1,3 +1,5 @@
+'use strict';
+
 // Preloaded through `bunfig.toml` into every bun process from this directory,
 // armed only when the harness server sets HARNESS_SERVER_DEBUG=1 (Server::start
 // in crates/harness). Surfaces failures the server would otherwise swallow: an
