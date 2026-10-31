@@ -4,20 +4,20 @@
 kind: system
 purpose: Personal web profile — Next 16 App Router on Bun, deployed to Vercel, with a Rust/Bevy wasm animated background and a strict per-request CSP. No backend; the site IS the product.
 commands:
+  background:build: bun run background:build
   build: bun run build
+  check: bun check
   dev: bun run dev
   e2e:remote: bun run e2e:remote <deployment-url>
-  lint: bun run lint
-  fmt:check: bun run fmt --check
-  tsc: bunx --bun tsc --noEmit
-  background:build: bun run background:build
+  fmt:check: bun fmt --check
+  lint: bun lint
 invariants:
   - claim: FORMAT POLICY — printWidth is deliberately absent (oxfmt default 100; the repo predates the base's former 80); singleQuote comes from the @jlg/oxfmt base via defineConfig
     anchor: ※ format-policy
 hazards:
-  - claim: TWO RUNTIMES — mise pins both bun and node, locally and in CI; repo-owned invocations must carry --bun/bunx --bun or they run on node, while third-party node-shebang bins (agent-browser, vercel and its builders) run on node; oxlint/oxfmt and @jlg/oxlint's JS plugins run on bun because package.json and hk.pkl launch them with --bun
+  - claim: 'ONE RUNTIME — mise pins bun alone (node dropped 2026-10-31): repo-owned invocations still carry --bun/bunx --bun so next, oxlint and @jlg/oxlint''s JS plugins never pick up a stray node; node-shebang bins (agent-browser, cspell) run under bun itself when no node is on PATH, vercel 65.9 is a native binary, and the node a CI runner image carries is nothing here may depend on'
     anchor: ※ config-runtime
-  - claim: UNMATCHED-PATTERN FOOTGUN — oxlint (exit 1, 'No files found to lint') and oxfmt 0.62+ (exit 2, 'Expected at least one target file') both fail the commit when every staged file is ignored; --no-error-on-unmatched-pattern is load-bearing on both pre-commit steps in hk.pkl
+  - claim: UNMATCHED-PATTERN FOOTGUN — oxlint (exit 1, 'No files found to lint') and bun fmt (exit 2, 'Expected at least one target file') both fail the commit when every staged file is ignored; --no-error-on-unmatched-pattern is load-bearing on both pre-commit steps in hk.pkl
     anchor: ※ hk-unmatched
   - claim: 'WASM OUTPUT — public/background is wasm-bindgen output, gitignored: deploy.yaml regenerates it with `bun run background:build` before `vercel build`, or restores it from a cache keyed on the crate sources and build script, and local dev runs the same command once for the background to render — never hand-edited or committed, ignored by both lint and fmt'
     anchor: ※ wasm-output
@@ -51,7 +51,7 @@ No engine → everything above is complete; nested AGENTS.md files carry the det
 
 <!-- BEGIN:nextjs-agent-rules -->
 
-# This is NOT the Next.js you know
+## This is NOT the Next.js you know
 
 This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
 

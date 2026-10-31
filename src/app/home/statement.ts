@@ -11,8 +11,8 @@ const statement = <T>(mark: (word: string) => T): (string | T)[] => {
     'I’m a seasoned software engineer with ',
     mark(years),
     ' years of professional experience located in West Michigan. I specialize in ',
-    mark('AI'),
-    ' augmented software.',
+    mark('AI harnesses'),
+    '.',
   ];
 };
 

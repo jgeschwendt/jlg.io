@@ -147,7 +147,7 @@ fn home(session: &Session, base: &str) {
 
     let statement = text(session, "main p");
     for phrase in [
-        "AI augmented software",
+        "AI harnesses",
         "West Michigan",
         "seasoned software engineer",
         "years of professional experience",
@@ -159,10 +159,13 @@ fn home(session: &Session, base: &str) {
     }
 
     // `statement` (statement.ts) marks two words, and main.tsx links them —
-    // the years figure and "AI".
+    // the years figure and "AI harnesses".
     let inline = strings(session, "main p a");
     assert_eq!(inline.len(), 2, "expected two inline statement links");
-    assert_eq!(inline[1], "AI", "second inline link is not AI: {inline:?}");
+    assert_eq!(
+        inline[1], "AI harnesses",
+        "second inline link is not AI harnesses: {inline:?}"
+    );
 
     // The monogram is the <svg> directly under `main`'s wrapper div; the icon
     // links' svgs sit deeper, inside the <ul>.
