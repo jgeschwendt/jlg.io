@@ -45,7 +45,7 @@
           "text": "TWO RUNTIMES — mise pins both bun and node, locally and in CI; repo-owned invocations must carry --bun/bunx --bun or they run on node, while third-party node-shebang bins (agent-browser, vercel and its builders) run on node; oxlint/oxfmt and @jlg/oxlint's JS plugins run on bun because package.json and hk.pkl launch them with --bun",
           "verified": {
             "digest": null,
-            "sha": "f9268dbf15be939359cb8b66e980feab78863d9e"
+            "sha": "184381c74fc0122f185da963ff0fe3a593fd0b62"
           }
         },
         {
@@ -57,7 +57,7 @@
           "text": "FORMAT POLICY — printWidth is deliberately absent (oxfmt default 100; the repo predates the base's former 80); singleQuote comes from the @jlg/oxfmt base via defineConfig",
           "verified": {
             "digest": "7de9a48dc98775f794e132fdce92cd49f581c3499bee4f56ff1f8790762f64af",
-            "sha": "f9268dbf15be939359cb8b66e980feab78863d9e"
+            "sha": "184381c74fc0122f185da963ff0fe3a593fd0b62"
           }
         },
         {
@@ -69,7 +69,7 @@
           "text": "UNMATCHED-PATTERN FOOTGUN — oxlint (exit 1, 'No files found to lint') and oxfmt 0.62+ (exit 2, 'Expected at least one target file') both fail the commit when every staged file is ignored; --no-error-on-unmatched-pattern is load-bearing on both pre-commit steps in hk.pkl",
           "verified": {
             "digest": null,
-            "sha": "f9268dbf15be939359cb8b66e980feab78863d9e"
+            "sha": "184381c74fc0122f185da963ff0fe3a593fd0b62"
           }
         },
         {
@@ -81,7 +81,7 @@
           "text": "WASM OUTPUT — public/background is wasm-bindgen output, gitignored: deploy.yaml regenerates it with `bun run background:build` before `vercel build`, or restores it from a cache keyed on the crate sources and build script, and local dev runs the same command once for the background to render — never hand-edited or committed, ignored by both lint and fmt",
           "verified": {
             "digest": "f5a239e2ae9f1e43569e8052af97b08d28ca6b71f7588875a6ef23ef07714b28",
-            "sha": "f9268dbf15be939359cb8b66e980feab78863d9e"
+            "sha": "184381c74fc0122f185da963ff0fe3a593fd0b62"
           }
         }
       ],
@@ -139,7 +139,7 @@
           "text": "CSP DYNAMIC — every response carries a fresh per-request CSP nonce minted in the proxy; a build-time static shell cannot hold it, so cacheComponents stays OFF in next.config.js and these routes stay fully dynamic (no cache flag at all — nothing uses the `use cache` directive)",
           "verified": {
             "digest": "ee7192aa252e0b0d99289fb81687bba5ace4b83e3c7d9dd97bedfdcb9177db30",
-            "sha": "f9268dbf15be939359cb8b66e980feab78863d9e"
+            "sha": "184381c74fc0122f185da963ff0fe3a593fd0b62"
           }
         },
         {
@@ -151,7 +151,7 @@
           "text": "PROXY SHORT-CIRCUIT — a proxy handler aborts the chain by THROWING a NextResponse (caught in createProxy and returned as-is); a normally-returned response is merged into the shared response, not short-circuited",
           "verified": {
             "digest": "4715fb15c1c7de356e5bfc42cfd4a568bfbae169523eb57d1418477af7f01d78",
-            "sha": "f9268dbf15be939359cb8b66e980feab78863d9e"
+            "sha": "184381c74fc0122f185da963ff0fe3a593fd0b62"
           }
         }
       ],
