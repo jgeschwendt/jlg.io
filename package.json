@@ -38,7 +38,7 @@
     "@jlg/oxfmt": "0.1.2",
     "@jlg/oxlint": "0.1.5",
     "@jlg/tsconfig": "0.1.2",
-    "@tailwindcss/postcss": "4.3.3",
+    "@tailwindcss/postcss": "4.3.4",
     "@types/istanbul-lib-coverage": "2.0.6",
     "@types/istanbul-lib-report": "3.0.3",
     "@types/istanbul-reports": "3.0.4",
@@ -48,13 +48,13 @@
     "istanbul-lib-coverage": "3.2.2",
     "istanbul-lib-report": "3.0.1",
     "istanbul-reports": "3.2.0",
-    "oxlint": "1.90.0",
+    "oxlint": "1.91.0",
     "oxlint-tsgolint": "7.0.2005",
     "postcss": "8.5.32",
     "swc-plugin-coverage-instrument": "0.0.33",
-    "tailwindcss": "4.3.3",
+    "tailwindcss": "4.3.4",
     "typescript": "7.0.2",
-    "vercel": "65.9.0"
+    "vercel": "65.10.0"
   },
   "engines": {
     "node": "24.x"
