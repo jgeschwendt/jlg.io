@@ -40,3 +40,16 @@
     animation: none !important;
   }
 }
+
+@media screen {
+  /* Chrome composites flat near-black areas as solid-color quads and content as textured tiles; on an HDR display the two conversion paths land ~2 levels apart and seam. One blurred backdrop forces the whole background through a single texture. The 1 % tint keeps Chrome from culling the overlay as empty. */
+  body::before {
+    backdrop-filter: blur(2px);
+    background: rgb(0 0 0 / 0.01);
+    content: '';
+    inset: 0;
+    pointer-events: none;
+    position: fixed;
+    z-index: -1;
+  }
+}
