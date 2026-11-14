@@ -50,11 +50,11 @@
     "istanbul-reports": "3.2.0",
     "oxlint": "1.93.0",
     "oxlint-tsgolint": "7.0.2007",
-    "postcss": "8.5.32",
+    "postcss": "8.5.33",
     "swc-plugin-coverage-instrument": "0.0.33",
     "tailwindcss": "4.3.5",
     "typescript": "7.0.2",
-    "vercel": "65.15.0"
+    "vercel": "65.16.0"
   },
   "engines": {
     "node": "24.x"
