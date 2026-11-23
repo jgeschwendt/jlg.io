@@ -145,7 +145,7 @@ pub fn attribute(session: &Session, selector: &str, name: &str) -> String {
         .expect("read attribute")
         .as_str()
         .unwrap_or_else(|| panic!("no {selector} with a {name} attribute"))
-        .to_string()
+        .to_owned()
 }
 
 /// One history pop, then the same sentinel check as a click: a back that
@@ -173,7 +173,7 @@ pub fn back_until(session: &Session, path: &str) {
 /// default and means the suite owns its own `Server`. One trailing `/` comes
 /// off so `{base}/path` composes the same way either answer arrives.
 pub fn base_url() -> Option<String> {
-    flag("base", "HARNESS_BASE").map(|url| url.strip_suffix('/').unwrap_or(&url).to_string())
+    flag("base", "HARNESS_BASE").map(|url| url.strip_suffix('/').unwrap_or(&url).to_owned())
 }
 
 /// Clicks `selector` until the location settles on `to`. `HTMLElement.click`
@@ -194,7 +194,7 @@ pub fn dump(session: &Session, context: &str) {
             "JSON.stringify({ href: location.href, readyState: document.readyState, \
              title: document.title, html: document.documentElement.outerHTML.slice(0, 600) })",
         )
-        .map(|value| value.as_str().unwrap_or_default().to_string())
+        .map(|value| value.as_str().unwrap_or_default().to_owned())
         .unwrap_or_else(|error| format!("dump eval failed: {error}"));
     println!("[harness] dump ({context}): {state}");
 }
@@ -228,7 +228,7 @@ fn flag(name: &str, var: &str) -> Option<String> {
         if arg == bare {
             value = args.next().or(value);
         } else if let Some(inline) = arg.strip_prefix(&prefix) {
-            value = Some(inline.to_string());
+            value = Some(inline.to_owned());
         }
     }
     value
@@ -332,7 +332,7 @@ pub fn mode() -> &'static str {
 pub fn nonce_of(csp: &str, path: &str) -> String {
     csp.split_once("'nonce-")
         .and_then(|(_, rest)| rest.split_once('\''))
-        .map(|(nonce, _)| nonce.to_string())
+        .map(|(nonce, _)| nonce.to_owned())
         .unwrap_or_else(|| panic!("{path}: no terminated nonce in CSP: {csp:?}"))
 }
 
@@ -517,7 +517,7 @@ pub fn strings(session: &Session, selector: &str) -> Vec<String> {
         .as_array()
         .expect("script returned an array")
         .iter()
-        .map(|value| value.as_str().unwrap_or_default().trim().to_string())
+        .map(|value| value.as_str().unwrap_or_default().trim().to_owned())
         .collect()
 }
 
@@ -560,5 +560,5 @@ fn write_map(output: &Path, name: &str, raw: &str) -> (String, usize) {
         let path = output.join(format!("coverage-{name}.json"));
         fs::write(&path, raw).unwrap_or_else(|error| panic!("write {}: {error}", path.display()));
     }
-    (name.to_string(), files)
+    (name.to_owned(), files)
 }

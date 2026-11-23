@@ -70,7 +70,7 @@ impl Session {
     /// `connect` is.
     pub fn ensure(name: &str) -> Result<Self, Error> {
         let session = Session {
-            name: name.to_string(),
+            name: name.to_owned(),
             socket: socket_path(name),
         };
         if UnixStream::connect(&session.socket).is_err() {
@@ -186,7 +186,7 @@ impl Session {
 /// bun. `AGENT_BROWSER_BIN` is the escape hatch for running the binary from
 /// somewhere else.
 fn binary() -> String {
-    env::var("AGENT_BROWSER_BIN").unwrap_or_else(|_| "agent-browser".to_string())
+    env::var("AGENT_BROWSER_BIN").unwrap_or_else(|_| "agent-browser".to_owned())
 }
 
 /// Every reply nests its payload under `data.<key>` alongside a `lifecycle`

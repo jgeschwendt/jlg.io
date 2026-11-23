@@ -141,7 +141,7 @@ pub fn get_head(port: u16, path: &str, headers: &[(&str, &str)]) -> Option<(u16,
         }
     }
     let head = String::from_utf8_lossy(&head);
-    let head = head.split("\r\n\r\n").next()?.to_string();
+    let head = head.split("\r\n\r\n").next()?.to_owned();
     let status = head.split_whitespace().nth(1)?.parse().ok()?;
     Some((status, head))
 }

@@ -73,10 +73,10 @@ impl Bypass {
             .ok_or("Target.getTargets returned no targetInfos")?
             .iter()
             .filter(|info| info["type"] == "page")
-            .filter_map(|info| info["targetId"].as_str().map(str::to_string))
+            .filter_map(|info| info["targetId"].as_str().map(str::to_owned))
             .collect();
         if target_ids.is_empty() {
-            return Err("no page target attached to the browser".to_string());
+            return Err("no page target attached to the browser".to_owned());
         }
 
         for target_id in &target_ids {
