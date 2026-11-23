@@ -53,7 +53,6 @@ pub(crate) const COVERAGE_STASH: &str = concat!(
     " });"
 );
 
-/// Sums the stash and the live map into one JSON map, then empties both.
 const HARVEST: &str = concat!(
     "(() => { \
      const maps = JSON.parse(sessionStorage.getItem('__harness_coverage') ?? '[]'); \
@@ -233,9 +232,9 @@ pub fn dump(session: &Session, context: &str) {
 /// literals.
 #[must_use]
 pub fn fetch_probe(session: &Session, path: &str, headers: &[(&str, &str)]) -> FetchProbe {
-    let json: Value = headers.iter().copied().collect();
+    let headers: Value = headers.iter().copied().collect();
     let script = format!(
-        "fetch('{path}', {{ cache: 'no-store', headers: {json} }}).then(async (r) => ({{ \
+        "fetch('{path}', {{ cache: 'no-store', headers: {headers} }}).then(async (r) => ({{ \
            body: await r.text(), \
            cacheControl: r.headers.get('cache-control') ?? '', \
            contentType: r.headers.get('content-type') ?? '', \
@@ -337,15 +336,9 @@ pub fn goto(session: &Session, url: &str) {
 /// and the live counters zeroed, so no hit is ever reported twice.
 #[must_use]
 pub fn harvest(session: &Session, output: &Path, label: &str) -> (String, usize) {
-    write_map(
-        output,
-        &format!("client-harness-{label}"),
-        session
-            .eval(HARVEST)
-            .expect("read window.__coverage__")
-            .as_str()
-            .expect("coverage map is a JSON string"),
-    )
+    let raw = session.eval(HARVEST).expect("read window.__coverage__");
+    let raw = raw.as_str().expect("coverage map is a JSON string");
+    write_map(output, &format!("client-harness-{label}"), raw)
 }
 
 /// Sets the `settle`/`back_until` sentinel and arms the RSC tap in one round
