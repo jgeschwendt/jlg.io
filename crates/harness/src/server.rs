@@ -21,7 +21,6 @@ use std::time::{Duration, Instant};
 /// Host is not an allowed dev origin with a 403, which starves the page of its
 /// chunks.
 pub const HOST: &str = "localhost";
-/// How long a cold `next` gets to answer `/` with a 200.
 const READY_TIMEOUT: Duration = Duration::from_secs(300);
 /// How long a SIGTERM'd server gets to run its exit hooks — the bunfig-preloaded
 /// coverage flush among them — before it is killed outright.
@@ -30,7 +29,6 @@ const STOP_GRACE: Duration = Duration::from_secs(10);
 /// A `next` server process group, signalled down when dropped.
 #[derive(Debug)]
 pub struct Server {
-    /// `bun --bun next`, leader of its own process group.
     child: Child,
 }
 
@@ -45,10 +43,6 @@ impl Server {
         // coverage run 31955271334), which pinned this spawn to node via the
         // bin's shebang; the 1.4.0 pin cleared it and the server runs on bun
         // again.
-        #[expect(
-            clippy::non_ascii_literal,
-            reason = "the em dash every harness message prints; the rest sit in format macros, which the lint skips"
-        )]
         let child = Command::new("bun")
             .args(["--bun", "next", command, "--port", &port.to_string()])
             .current_dir(repo_root())
@@ -140,18 +134,16 @@ pub fn get_head(port: u16, path: &str, headers: &[(&str, &str)]) -> Option<(u16,
         )
         .ok()?;
 
-    let mut bytes = Vec::new();
+    let mut head = Vec::new();
     let mut chunk = [0u8; 4096];
-    while !bytes.windows(4).any(|w| w == b"\r\n\r\n") {
+    while !head.windows(4).any(|w| w == b"\r\n\r\n") {
         match stream.read(&mut chunk).ok()? {
             0 => break,
-            read => bytes.extend(chunk.iter().take(read)),
+            read => head.extend(chunk.iter().take(read)),
         }
     }
-    let head = String::from_utf8_lossy(&bytes)
-        .split("\r\n\r\n")
-        .next()?
-        .to_owned();
+    let head = String::from_utf8_lossy(&head);
+    let head = head.split("\r\n\r\n").next()?.to_owned();
     let status = head.split_whitespace().nth(1)?.parse().ok()?;
     Some((status, head))
 }

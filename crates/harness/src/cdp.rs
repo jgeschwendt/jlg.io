@@ -32,15 +32,12 @@ use std::time::Duration;
 use tungstenite::stream::MaybeTlsStream;
 use tungstenite::{Message, WebSocket};
 
-/// How long a CDP read may block before the command fails.
 const TIMEOUT: Duration = Duration::from_secs(20);
 
 /// The CDP connection that holds the bypass; dropping it lifts the bypass.
 #[derive(Debug)]
 pub struct Bypass {
-    /// The next command id; a reply is matched to its command by it.
     next_id: u64,
-    /// The browser-level CDP WebSocket: the bypass lasts as long as it does.
     socket: WebSocket<MaybeTlsStream<TcpStream>>,
 }
 
@@ -130,8 +127,8 @@ impl Bypass {
         self.next_id += 1;
 
         let mut request = json!({ "id": id, "method": method, "params": params });
-        if let Some(session_id) = session {
-            request["sessionId"] = json!(session_id);
+        if let Some(session) = session {
+            request["sessionId"] = json!(session);
         }
 
         self.socket
