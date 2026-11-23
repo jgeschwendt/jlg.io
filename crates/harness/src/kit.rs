@@ -194,8 +194,10 @@ pub fn dump(session: &Session, context: &str) {
             "JSON.stringify({ href: location.href, readyState: document.readyState, \
              title: document.title, html: document.documentElement.outerHTML.slice(0, 600) })",
         )
-        .map(|value| value.as_str().unwrap_or_default().to_owned())
-        .unwrap_or_else(|error| format!("dump eval failed: {error}"));
+        .map_or_else(
+            |error| format!("dump eval failed: {error}"),
+            |value| value.as_str().unwrap_or_default().to_owned(),
+        );
     println!("[harness] dump ({context}): {state}");
 }
 
@@ -332,8 +334,10 @@ pub fn mode() -> &'static str {
 pub fn nonce_of(csp: &str, path: &str) -> String {
     csp.split_once("'nonce-")
         .and_then(|(_, rest)| rest.split_once('\''))
-        .map(|(nonce, _)| nonce.to_owned())
-        .unwrap_or_else(|| panic!("{path}: no terminated nonce in CSP: {csp:?}"))
+        .map_or_else(
+            || panic!("{path}: no terminated nonce in CSP: {csp:?}"),
+            |(nonce, _)| nonce.to_owned(),
+        )
 }
 
 /// Evaluates `script` every `interval_ms` until `done` accepts its value, or
@@ -384,10 +388,7 @@ fn print_rsc_log(session: &Session, context: &str) {
         Ok(report) => report,
         Err(error) => return println!("[harness] rsc log ({context}): unavailable: {error}"),
     };
-    let entries = report["entries"]
-        .as_array()
-        .map(Vec::as_slice)
-        .unwrap_or_default();
+    let entries = report["entries"].as_array().map_or_default(Vec::as_slice);
     println!(
         "[harness] rsc log ({context}): {} rsc fetch(es), navigation type {}, tapped {}",
         entries.len(),
