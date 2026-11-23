@@ -320,7 +320,7 @@ fn mark(session: &Session) {
         .expect("mark the document");
 }
 
-/// `--mode`, else COVERAGE_MODE, else `dev`; anything but `dev`/`prod` panics.
+/// `--mode`, else `COVERAGE_MODE`, else `dev`; anything but `dev`/`prod` panics.
 pub fn mode() -> &'static str {
     match flag("mode", "COVERAGE_MODE").as_deref() {
         None | Some("dev") => "dev",
@@ -533,7 +533,7 @@ pub fn text(session: &Session, selector: &str) -> String {
 /// Blocks until `selector`'s element is itself hydrated. An anchor clicked
 /// before hydration follows its own `href` — a full page load that lands on the
 /// right URL while silently discarding every counter since the last harvest,
-/// which is exactly what the settle() sentinel exists to catch. Waiting here
+/// which is exactly what the `settle()` sentinel exists to catch. Waiting here
 /// turns that sentinel from a race into a pure assertion.
 ///
 /// The marker is the `__reactFiber$…` key React stamps on a DOM node when it
