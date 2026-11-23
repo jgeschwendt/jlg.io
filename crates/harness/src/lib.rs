@@ -35,9 +35,9 @@ pub enum Error {
 impl fmt::Display for Error {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Error::Daemon(message) => write!(formatter, "daemon: {message}"),
-            Error::Io(error) => write!(formatter, "io: {error}"),
-            Error::Protocol(message) => write!(formatter, "protocol: {message}"),
+            Self::Daemon(message) => write!(formatter, "daemon: {message}"),
+            Self::Io(error) => write!(formatter, "io: {error}"),
+            Self::Protocol(message) => write!(formatter, "protocol: {message}"),
         }
     }
 }
@@ -46,7 +46,7 @@ impl error::Error for Error {}
 
 impl From<io::Error> for Error {
     fn from(error: io::Error) -> Self {
-        Error::Io(error)
+        Self::Io(error)
     }
 }
 
@@ -69,7 +69,7 @@ impl Session {
     /// "the file exists" is not evidence of a live session — only a successful
     /// `connect` is.
     pub fn ensure(name: &str) -> Result<Self, Error> {
-        let session = Session {
+        let session = Self {
             name: name.to_owned(),
             socket: socket_path(name),
         };

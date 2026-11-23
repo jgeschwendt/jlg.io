@@ -58,7 +58,7 @@ impl Server {
             .envs(envs.iter().copied())
             .spawn()
             .expect("spawn next — run this from a repo with node_modules installed");
-        let server = Server { child };
+        let server = Self { child };
 
         let deadline = Instant::now() + READY_TIMEOUT;
         while Instant::now() < deadline {

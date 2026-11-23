@@ -47,7 +47,7 @@ impl Bypass {
     pub fn arm(cdp_url: &str) -> Result<Self, String> {
         let (socket, _) =
             tungstenite::connect(cdp_url).map_err(|error| format!("connect: {error}"))?;
-        let mut bypass = Bypass { next_id: 1, socket };
+        let mut bypass = Self { next_id: 1, socket };
 
         // A read timeout rather than a blocking read: a CDP command that never
         // answers would otherwise hang the run with the dev server and a
