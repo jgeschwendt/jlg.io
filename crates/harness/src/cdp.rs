@@ -25,6 +25,7 @@
 //! app; a page loaded under enforcement stays broken even if the bypass lands
 //! a moment later.
 
+use crate::kit::COVERAGE_STASH;
 use serde_json::{Value, json};
 use std::net::TcpStream;
 use std::time::Duration;
@@ -92,7 +93,7 @@ impl Bypass {
                 ("Page.setBypassCSP", json!({ "enabled": true })),
                 (
                     "Page.addScriptToEvaluateOnNewDocument",
-                    json!({ "source": crate::kit::COVERAGE_STASH }),
+                    json!({ "source": COVERAGE_STASH }),
                 ),
             ] {
                 bypass.command(method, params, Some(session))?;

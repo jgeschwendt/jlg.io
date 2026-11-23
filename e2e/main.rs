@@ -27,6 +27,7 @@ use harness::kit::{
 };
 use harness::server::{HOST, Server, get_head, header, repo_root};
 use harness::{Session, cdp::Bypass};
+use std::fs;
 use std::time::Instant;
 
 const NAME: &str = "Joshua L Geschwendt";
@@ -49,7 +50,7 @@ fn main() {
     // Both paths: `goto` files a failed navigation's autopsy here, and there is
     // nowhere else for it to land. Only the local path fills it with coverage.
     let output = repo_root().join(".nyc_output");
-    std::fs::create_dir_all(&output).expect("create .nyc_output");
+    fs::create_dir_all(&output).expect("create .nyc_output");
 
     let server = mode.map(|mode| {
         println!("[harness] {mode} server on {base}");

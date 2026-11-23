@@ -10,9 +10,11 @@
 //! readable statement of what that app must do.
 
 use crate::Session;
+use crate::server::{HOST, repo_root};
 use serde_json::Value;
 use std::path::Path;
 use std::time::{Duration, Instant};
+use std::{env, fs, thread};
 
 // Zeroes every counter in `live` — one source for the stash and the harvest,
 // which must agree on it or a hit is reported twice.
@@ -217,11 +219,11 @@ pub fn fetch_probe(session: &Session, path: &str, headers: &[(&str, &str)]) -> F
 }
 
 /// The last `--{name} <value>` or `--{name}=<value>` on the command line, else
-/// the `env` variable.
-fn flag(name: &str, env: &str) -> Option<String> {
+/// the `var` environment variable.
+fn flag(name: &str, var: &str) -> Option<String> {
     let (bare, prefix) = (format!("--{name}"), format!("--{name}="));
-    let mut args = std::env::args().skip(1);
-    let mut value = std::env::var(env).ok();
+    let mut args = env::args().skip(1);
+    let mut value = env::var(var).ok();
     while let Some(arg) = args.next() {
         if arg == bare {
             value = args.next().or(value);
@@ -286,13 +288,13 @@ pub fn goto(session: &Session, url: &str) {
             probe.body.len()
         );
         // Created here too: resume-pdf never makes the directory itself.
-        let dir = crate::server::repo_root().join(".nyc_output");
-        let _ = std::fs::create_dir_all(&dir);
-        let _ = std::fs::write(
+        let dir = repo_root().join(".nyc_output");
+        let _ = fs::create_dir_all(&dir);
+        let _ = fs::write(
             dir.join(format!("debug-shell-attempt{attempt}.html")),
             &probe.body,
         );
-        std::thread::sleep(Duration::from_millis(500));
+        thread::sleep(Duration::from_millis(500));
     }
 
     panic!("{url} served the __next_error__ shell across {ATTEMPTS} attempts");
@@ -353,7 +355,7 @@ fn poll(
         if Instant::now() >= deadline {
             return Err(value);
         }
-        std::thread::sleep(Duration::from_millis(interval_ms));
+        thread::sleep(Duration::from_millis(interval_ms));
     }
 }
 
@@ -463,7 +465,7 @@ pub fn server_coverage(session: &Session, output: &Path) -> (String, usize) {
 /// `HARNESS_DEBUG_RSC=1` prints the tap's log on success too, which is how one
 /// confirms the tap sees healthy navigations and not only broken ones.
 fn settle(session: &Session, base: &str, action: &str, from: &str, to: &str, what: &str) {
-    let local = base.contains(crate::server::HOST);
+    let local = base.contains(HOST);
     let attempts: u32 = if local { 3 } else { 5 };
     let script =
         format!("(() => {{ {action}return [location.pathname, window.__harness === true]; }})()");
@@ -476,7 +478,7 @@ fn settle(session: &Session, base: &str, action: &str, from: &str, to: &str, wha
         .unwrap_or_else(|at| panic!("{what} never reached {to} (still at {})", at[0]));
 
         if state[1] == true {
-            if std::env::var_os("HARNESS_DEBUG_RSC").is_some_and(|v| !v.is_empty()) {
+            if env::var_os("HARNESS_DEBUG_RSC").is_some_and(|v| !v.is_empty()) {
                 print_rsc_log(session, &format!("{what} reached {to} client-side"));
             }
             return;
@@ -491,7 +493,7 @@ fn settle(session: &Session, base: &str, action: &str, from: &str, to: &str, wha
         if attempt == attempts {
             break;
         }
-        std::thread::sleep(Duration::from_secs(u64::from(attempt)));
+        thread::sleep(Duration::from_secs(u64::from(attempt)));
         goto(session, &format!("{base}{from}"));
         wait_hydrated(session, "a");
     }
@@ -556,7 +558,7 @@ fn write_map(output: &Path, name: &str, raw: &str) -> (String, usize) {
     let files = map.as_object().map_or(0, serde_json::Map::len);
     if files > 0 {
         let path = output.join(format!("coverage-{name}.json"));
-        std::fs::write(&path, raw).unwrap_or_else(|e| panic!("write {}: {e}", path.display()));
+        fs::write(&path, raw).unwrap_or_else(|e| panic!("write {}: {e}", path.display()));
     }
     (name.to_string(), files)
 }

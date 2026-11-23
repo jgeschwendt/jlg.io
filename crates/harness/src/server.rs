@@ -7,6 +7,7 @@ use std::net::TcpStream;
 use std::os::unix::process::CommandExt;
 use std::path::{Path, PathBuf};
 use std::process::{Child, Command, Stdio};
+use std::thread;
 use std::time::{Duration, Instant};
 
 // `localhost`, not `127.0.0.1`: Next 16's dev server rejects requests whose
@@ -64,7 +65,7 @@ impl Server {
             if matches!(get_head(port, "/", &[]), Some((200, _))) {
                 return server;
             }
-            std::thread::sleep(Duration::from_millis(500));
+            thread::sleep(Duration::from_millis(500));
         }
         panic!("next never answered on {HOST}:{port} within {READY_TIMEOUT:?}");
     }
@@ -92,7 +93,7 @@ impl Drop for Server {
         }
         let deadline = Instant::now() + STOP_GRACE;
         while Instant::now() < deadline && matches!(self.child.try_wait(), Ok(None)) {
-            std::thread::sleep(Duration::from_millis(50));
+            thread::sleep(Duration::from_millis(50));
         }
         if matches!(self.child.try_wait(), Ok(None)) {
             eprintln!(
