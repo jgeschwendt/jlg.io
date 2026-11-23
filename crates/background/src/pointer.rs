@@ -24,7 +24,7 @@ impl Plugin for PointerPlugin {
 
 #[cfg(not(target_arch = "wasm32"))]
 mod platform {
-    use bevy::{prelude::*, window::CursorMoved};
+    use bevy::prelude::*;
 
     use super::Pointer;
 
