@@ -2,6 +2,13 @@
 //! takes it down with it: every check in the binaries panics, and a panic
 //! unwinds through `main`'s locals.
 
+#![expect(
+    clippy::expect_used,
+    clippy::missing_panics_doc,
+    clippy::panic,
+    reason = "failures here panic like every check: unwinding is what drops, and so stops, the Server"
+)]
+
 use std::io::{Read as _, Write as _};
 use std::net::TcpStream;
 use std::os::unix::process::CommandExt as _;
@@ -38,6 +45,10 @@ impl Server {
         // coverage run 31955271334), which pinned this spawn to node via the
         // bin's shebang; the 1.4.0 pin cleared it and the server runs on bun
         // again.
+        #[expect(
+            clippy::non_ascii_literal,
+            reason = "the em dash every harness message prints; the rest sit in format macros, which the lint skips"
+        )]
         let child = Command::new("bun")
             .args(["--bun", "next", command, "--port", &port.to_string()])
             .current_dir(repo_root())
@@ -115,6 +126,7 @@ pub fn get_head(port: u16, path: &str, headers: &[(&str, &str)]) -> Option<(u16,
     stream
         .set_read_timeout(Some(Duration::from_secs(30)))
         .ok()?;
+    #[expect(clippy::format_collect, reason = "a few items joined once per request")]
     let extra: String = headers
         .iter()
         .map(|&(name, value)| format!("{name}: {value}\r\n"))

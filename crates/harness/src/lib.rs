@@ -30,6 +30,10 @@ static SEQ: AtomicU64 = AtomicU64::new(0);
 
 /// Why a `Session` call failed.
 #[derive(Debug)]
+#[expect(
+    clippy::error_impl_error,
+    reason = "the crate's error type, named the std way (`io::Error`); the name is public API"
+)]
 #[non_exhaustive]
 pub enum Error {
     /// `agent-browser` could not be spawned, or exited unsuccessfully.
@@ -41,6 +45,10 @@ pub enum Error {
 }
 
 impl fmt::Display for Error {
+    #[expect(
+        clippy::pattern_type_mismatch,
+        reason = "binding a field through `&self` takes default binding or `ref`, which clippy::ref_patterns forbids"
+    )]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Daemon(message) => write!(f, "daemon: {message}"),
@@ -50,6 +58,10 @@ impl fmt::Display for Error {
     }
 }
 
+#[expect(
+    clippy::missing_trait_methods,
+    reason = "the provided methods are the intended ones: `source` stays `None`, `description` and `cause` are deprecated"
+)]
 impl error::Error for Error {}
 
 impl From<io::Error> for Error {
@@ -233,6 +245,10 @@ fn string(data: &Value, key: &str) -> Result<String, Error> {
 /// Faults worth another attempt on the same daemon. The `line 1 column 0` case
 /// is an empty read: the daemon accepted the connection and closed it without
 /// answering, which it does while it is still coming up.
+#[expect(
+    clippy::single_call_fn,
+    reason = "named for its doc: the retry loop's guard reads as one word"
+)]
 fn transient(error: &Error) -> bool {
     matches!(error, Error::Io(io) if matches!(
         io.kind(),
@@ -245,6 +261,10 @@ fn transient(error: &Error) -> bool {
 
 /// Nobody is listening: either the socket file is gone, or it is a stale one
 /// left by a daemon that was killed rather than closed.
+#[expect(
+    clippy::single_call_fn,
+    reason = "named for its doc: the retry loop's guard reads as one word"
+)]
 fn unreachable(error: &Error) -> bool {
     matches!(
         error,
