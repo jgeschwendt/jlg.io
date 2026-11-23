@@ -16,6 +16,7 @@ use crate::pointer::{Pointer, PointerPlugin};
 
 const SIM_HEIGHT: u32 = 270;
 const SIM_LAYER: usize = 1;
+const SIM_RESOLUTION: Vec2 = Vec2::new(SIM_WIDTH as f32, SIM_HEIGHT as f32);
 const SIM_WIDTH: u32 = 480;
 
 #[derive(Asset, AsBindGroup, Clone, TypePath)]
@@ -106,10 +107,6 @@ fn main() {
         .run();
 }
 
-fn sim_resolution() -> Vec2 {
-    Vec2::new(SIM_WIDTH as f32, SIM_HEIGHT as f32)
-}
-
 // Rgba16Float carries signed velocity and pressure; WebGL2 renders to it through
 // EXT_color_buffer_float and filters half-float linearly in core.
 fn sim_target(images: &mut Assets<Image>) -> Handle<Image> {
@@ -135,7 +132,7 @@ fn setup(
     });
     let quad = sims.add(SimMaterial {
         params: SimParams {
-            resolution: sim_resolution(),
+            resolution: SIM_RESOLUTION,
             ..default()
         },
         state: targets[0].clone(),
@@ -168,7 +165,7 @@ fn setup(
         Mesh2d(meshes.add(Rectangle::default())),
         MeshMaterial2d(quad.clone()),
         RenderLayers::layer(SIM_LAYER),
-        Transform::from_scale(sim_resolution().extend(1.0)),
+        Transform::from_scale(SIM_RESOLUTION.extend(1.0)),
     ));
 
     commands.insert_resource(SimState {
@@ -197,7 +194,7 @@ fn advance_sim(
     // Client CSS pixels are y-down and so is the sim's texel space, so this is a
     // plain rescale. A pointer that just woke up has no meaningful previous position.
     let viewport = Vec2::new(window.width(), window.height()).max(Vec2::ONE);
-    let current = pointer.position * sim_resolution() / viewport;
+    let current = pointer.position * SIM_RESOLUTION / viewport;
     let prior = state.pointer.unwrap_or(current);
     state.pointer = pointer.active.then_some(current);
 
