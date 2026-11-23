@@ -10,9 +10,9 @@ use std::process::{Child, Command, Stdio};
 use std::thread;
 use std::time::{Duration, Instant};
 
-// `localhost`, not `127.0.0.1`: Next 16's dev server rejects requests whose
-// Host is not an allowed dev origin with a 403, which starves the page of its
-// chunks.
+/// `localhost`, not `127.0.0.1`: Next 16's dev server rejects requests whose
+/// Host is not an allowed dev origin with a 403, which starves the page of its
+/// chunks.
 pub const HOST: &str = "localhost";
 const READY_TIMEOUT: Duration = Duration::from_secs(300);
 // How long a SIGTERM'd server gets to run its exit hooks — the bunfig-preloaded
@@ -22,6 +22,7 @@ const STOP_GRACE: Duration = Duration::from_secs(10);
 /// The crate lives at `crates/harness`, so the repo root is two levels up. This
 /// is resolved at compile time rather than from the working directory because
 /// `cargo run --manifest-path` leaves the caller's cwd untouched.
+#[must_use]
 pub fn repo_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
         .ancestors()
@@ -30,6 +31,8 @@ pub fn repo_root() -> PathBuf {
         .to_path_buf()
 }
 
+/// A `next` server process group, signalled down when dropped.
+#[derive(Debug)]
 pub struct Server {
     child: Child,
 }
@@ -38,6 +41,7 @@ impl Server {
     /// Spawns `next <command>` on `port` from the repo root and blocks until `/`
     /// answers 200. Turbopack compiles routes lazily, so a cold dev server can
     /// take minutes before the first response. Poll rather than sleep on a guess.
+    #[must_use]
     pub fn start(command: &str, envs: &[(&str, &str)], port: u16) -> Self {
         // `bun --bun next`, the repo convention. bun 1.3.14 segfaulted at
         // process exit with instrumented modules loaded on Linux (SIGILL,
@@ -114,6 +118,7 @@ impl Drop for Server {
 /// `bun --bun next` server while node's closes promptly.
 /// (observed 2026-08-18 · resume-pdf's `next start` answered instantly but
 /// the readiness wait timed out at 300s reading to EOF)
+#[must_use]
 pub fn get_head(port: u16, path: &str, headers: &[(&str, &str)]) -> Option<(u16, String)> {
     let mut stream = TcpStream::connect((HOST, port)).ok()?;
     stream
@@ -147,6 +152,7 @@ pub fn get_head(port: u16, path: &str, headers: &[(&str, &str)]) -> Option<(u16,
 }
 
 /// A header's value out of a `get_head` block, matched case-insensitively.
+#[must_use]
 pub fn header<'head>(head: &'head str, name: &str) -> Option<&'head str> {
     head.lines().skip(1).find_map(|line| {
         let (key, value) = line.split_once(':')?;
