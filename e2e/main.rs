@@ -359,7 +359,7 @@ fn not_found(session: &Session, base: &str) {
 }
 
 /// `createProxy`'s failure paths, through `src/server/proxy/coverage-fault.ts`.
-/// The local server is a COVERAGE=1 build, which carries the fault handler: a
+/// The local server is a `COVERAGE=1` build, which carries the fault handler: a
 /// thrown NextResponse comes back untouched, anything else thrown becomes a
 /// 500. A deployment is built without the flag, so there the header must be
 /// inert — the proof the handler never ships.
