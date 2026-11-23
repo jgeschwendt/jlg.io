@@ -100,7 +100,9 @@ cognitive_complexity = "warn"
 create_dir = "warn"
 dbg_macro = "warn"
 decimal_literal_representation = "warn"
-default_numeric_fallback = "warn"
+# Inference is the one form: a bare literal takes its type from use, and a suffix is
+# written only where the compiler needs one (owner, 2026-11-23).
+default_numeric_fallback = "allow"
 default_union_representation = "warn"
 deref_by_slicing = "warn"
 disallowed_script_idents = "warn"
@@ -148,7 +150,9 @@ mem_forget = "warn"
 min_ident_chars = "warn"
 missing_assert_message = "warn"
 missing_asserts_for_indexing = "warn"
-missing_docs_in_private_items = "warn"
+# A private item's doc restates its name; `missing_docs` holds the public surface
+# (owner, 2026-11-23).
+missing_docs_in_private_items = "allow"
 # We don't yet document every `Result`'s Err variant in prose.
 missing_errors_doc = "allow"
 # The callers are suite binaries blocked on a browser socket: cross-crate inlining
@@ -167,7 +171,9 @@ multiple_unsafe_ops_per_block = "warn"
 mutex_atomic = "warn"
 mutex_integer = "warn"
 needless_raw_strings = "warn"
-non_ascii_literal = "warn"
+# Output is typographic on purpose: the character is written, never its `\u{…}` escape
+# (owner, 2026-11-23).
+non_ascii_literal = "allow"
 non_zero_suggestions = "warn"
 panic = "warn"
 panic_in_result_fn = "warn"
@@ -203,7 +209,9 @@ semicolon_inside_block = "warn"
 # against 4 `{ x };` in 3 (measured 2026-10-28 · `lints report`).
 semicolon_outside_block = "allow"
 separated_literal_suffix = "warn"
-shadow_reuse = "warn"
+# Refining a value under its own name is idiomatic; shadow_unrelated and shadow_same stay
+# on (owner, 2026-11-23).
+shadow_reuse = "allow"
 shadow_same = "warn"
 shadow_unrelated = "warn"
 single_call_fn = "warn"
