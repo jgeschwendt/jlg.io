@@ -66,7 +66,9 @@ unused_import_braces = "warn"
 unused_lifetimes = "warn"
 unused_macro_rules = "warn"
 unused_qualifications = "warn"
-unused_results = "warn"
+# Calls made for effect drop a reply that `?` or `expect` has already checked: a CDP
+# `result`, an eval value, `read_line`'s byte count.
+unused_results = "allow"
 variant_size_differences = "warn"
 
 [lints.clippy]
@@ -82,7 +84,9 @@ alloc_instead_of_core = "allow"
 allow_attributes = "warn"
 allow_attributes_without_reason = "warn"
 arbitrary_source_item_ordering = "warn"
-arithmetic_side_effects = "warn"
+# Six sites, none able to overflow: a fixed timeout added to `Instant::now()`, retry
+# counts below 5, CDP ids counted from 1.
+arithmetic_side_effects = "allow"
 as_conversions = "warn"
 as_pointer_underscore = "warn"
 as_underscore = "warn"
@@ -123,7 +127,9 @@ impl_trait_in_params = "warn"
 # Pair with clippy::needless_return: the grove returns implicitly, 12 588 sites in 30
 # crates against 0 needless `return`s (measured 2026-10-28 · `lints report`).
 implicit_return = "allow"
-indexing_slicing = "warn"
+# `serde_json::Value` indexing is how CDP and eval replies are read: a missing key or
+# position yields `Null`, never a panic, and both writes index a `json!` object.
+indexing_slicing = "allow"
 infinite_loop = "warn"
 inline_asm_x86_att_syntax = "warn"
 inline_asm_x86_intel_syntax = "warn"
@@ -145,7 +151,9 @@ missing_asserts_for_indexing = "warn"
 missing_docs_in_private_items = "warn"
 # We don't yet document every `Result`'s Err variant in prose.
 missing_errors_doc = "allow"
-missing_inline_in_public_items = "warn"
+# The callers are suite binaries blocked on a browser socket: cross-crate inlining
+# saves nothing measurable.
+missing_inline_in_public_items = "allow"
 missing_trait_methods = "warn"
 mixed_read_write_in_expression = "warn"
 # Pair with self_named_module_files: the grove lays modules out as `mod.rs`, 18 files in
@@ -230,6 +238,8 @@ unused_result_ok = "warn"
 unused_trait_names = "warn"
 unwrap_in_result = "warn"
 unwrap_used = "warn"
-use_debug = "warn"
+# `{:?}` is the diagnostics' format on purpose: it quotes and escapes untrusted strings
+# and prints a `Duration` with its unit.
+use_debug = "allow"
 verbose_file_reads = "warn"
 wildcard_enum_match_arm = "warn"

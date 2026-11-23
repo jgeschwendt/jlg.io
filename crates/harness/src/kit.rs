@@ -11,6 +11,14 @@
 //! suite's `main.rs` staying plain, repo-specific Rust is the design — the
 //! readable statement of what that app must do.
 
+#![expect(
+    clippy::expect_used,
+    clippy::missing_panics_doc,
+    clippy::panic,
+    clippy::unwrap_in_result,
+    reason = "the kit panics on failure by design: unwinding is what stops the owned Server"
+)]
+
 use crate::Session;
 use crate::server::{HOST, repo_root};
 use serde_json::Value;
@@ -397,6 +405,7 @@ fn poll(
 /// `to`, in order within one evaluation — so when the last key's navigation
 /// lands, every key before it reached the same listener.
 pub fn press_keys_until(session: &Session, base: &str, keys: &[&str], from: &str, to: &str) {
+    #[expect(clippy::format_collect, reason = "a few items joined once per request")]
     let presses: String = keys
         .iter()
         .map(|key| {

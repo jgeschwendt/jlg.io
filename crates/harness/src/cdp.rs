@@ -57,6 +57,10 @@ impl Bypass {
         // A read timeout rather than a blocking read: a CDP command that never
         // answers would otherwise hang the run with the dev server and a
         // browser both still up.
+        #[expect(
+            clippy::pattern_type_mismatch,
+            reason = "binding through `get_mut()`'s `&mut` takes default binding or `ref mut`, which clippy::ref_patterns forbids"
+        )]
         if let MaybeTlsStream::Plain(stream) = bypass.socket.get_mut() {
             stream
                 .set_read_timeout(Some(TIMEOUT))
