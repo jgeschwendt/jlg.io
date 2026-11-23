@@ -147,7 +147,7 @@ pub fn get_head(port: u16, path: &str, headers: &[(&str, &str)]) -> Option<(u16,
 }
 
 /// A header's value out of a `get_head` block, matched case-insensitively.
-pub fn header<'a>(head: &'a str, name: &str) -> Option<&'a str> {
+pub fn header<'head>(head: &'head str, name: &str) -> Option<&'head str> {
     head.lines().skip(1).find_map(|line| {
         let (key, value) = line.split_once(':')?;
         key.trim().eq_ignore_ascii_case(name).then(|| value.trim())
