@@ -25,10 +25,14 @@ const RETRY_STEP: Duration = Duration::from_millis(200);
 
 static SEQ: AtomicU64 = AtomicU64::new(0);
 
+/// Why a `Session` call failed.
 #[derive(Debug)]
 pub enum Error {
+    /// `agent-browser` could not be spawned, or exited unsuccessfully.
     Daemon(String),
+    /// A socket fault talking to the daemon.
     Io(io::Error),
+    /// The daemon reported a failure, or answered with JSON the client cannot read.
     Protocol(String),
 }
 
@@ -58,6 +62,8 @@ struct Reply {
     success: bool,
 }
 
+/// One named `agent-browser` session, reached over the daemon's Unix socket.
+#[derive(Debug)]
 pub struct Session {
     name: String,
     socket: PathBuf,
@@ -120,6 +126,7 @@ impl Session {
         self.send("pdf", json!({ "path": path })).map(|_| ())
     }
 
+    /// The current page's `document.title`.
     pub fn title(&self) -> Result<String, Error> {
         string(&self.send("title", json!({}))?, "title")
     }
@@ -181,10 +188,9 @@ impl Session {
     }
 }
 
-/// `agent-browser` is a bun global install (`bun add -g`), on PATH via
-/// `~/.bun/bin` — and its node-shebang bin runs on the mise-pinned node, not
-/// bun. `AGENT_BROWSER_BIN` is the escape hatch for running the binary from
-/// somewhere else.
+/// `agent-browser` is whatever PATH resolves; CI's `bun add -g` puts it in
+/// `~/.bun/bin`. `AGENT_BROWSER_BIN` is the escape hatch for running the binary
+/// from somewhere else.
 fn binary() -> String {
     env::var("AGENT_BROWSER_BIN").unwrap_or_else(|_| "agent-browser".to_owned())
 }

@@ -126,17 +126,24 @@ const RSC_TAP: &str = "(() => { \
      }; \
      return true; })()";
 
-#[derive(serde::Deserialize)]
+/// What `fetch_probe` read off one response; a missing header reads as empty.
+#[derive(Debug, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct FetchProbe {
+    /// The whole body, as text.
     pub body: String,
+    /// `Cache-Control`.
     pub cache_control: String,
+    /// `Content-Type`.
     pub content_type: String,
+    /// `Content-Security-Policy`.
     pub csp: String,
+    /// The HTTP status.
     pub status: u16,
 }
 
 /// Reads an element's attribute, panicking when the element is missing.
+#[must_use]
 pub fn attribute(session: &Session, selector: &str, name: &str) -> String {
     session
         .eval(&format!(
@@ -172,6 +179,7 @@ pub fn back_until(session: &Session, path: &str) {
 /// `--base=<url>` on the command line, else `HARNESS_BASE`. `None` is the
 /// default and means the suite owns its own `Server`. One trailing `/` comes
 /// off so `{base}/path` composes the same way either answer arrives.
+#[must_use]
 pub fn base_url() -> Option<String> {
     flag("base", "HARNESS_BASE").map(|url| url.strip_suffix('/').unwrap_or(&url).to_owned())
 }
@@ -206,6 +214,7 @@ pub fn dump(session: &Session, context: &str) {
 /// come back in a single round trip — and a same-origin `Response` hides
 /// nothing but `Set-Cookie`. `headers` are for routes whose behavior a request
 /// header selects, embedded as JSON string literals.
+#[must_use]
 pub fn fetch_probe(session: &Session, path: &str, headers: &[(&str, &str)]) -> FetchProbe {
     let headers: Value = headers.iter().copied().collect();
     let script = format!(
@@ -306,6 +315,7 @@ pub fn goto(session: &Session, url: &str) {
 /// `COVERAGE_STASH` filed from documents a load replaced — summed into one map
 /// and, when it maps any file, written under `output`. The stash is cleared and
 /// the live counters zeroed, so no hit is ever reported twice.
+#[must_use]
 pub fn harvest(session: &Session, output: &Path, label: &str) -> (String, usize) {
     let raw = session.eval(HARVEST).expect("read window.__coverage__");
     let raw = raw.as_str().expect("coverage map is a JSON string");
@@ -321,6 +331,7 @@ fn mark(session: &Session) {
 }
 
 /// `--mode`, else `COVERAGE_MODE`, else `dev`; anything but `dev`/`prod` panics.
+#[must_use]
 pub fn mode() -> &'static str {
     match flag("mode", "COVERAGE_MODE").as_deref() {
         None | Some("dev") => "dev",
@@ -331,6 +342,7 @@ pub fn mode() -> &'static str {
 
 /// The `'nonce-…'` value out of a policy's script-src. Base64ish by
 /// construction, so everything up to the closing quote is the nonce.
+#[must_use]
 pub fn nonce_of(csp: &str, path: &str) -> String {
     csp.split_once("'nonce-")
         .and_then(|(_, rest)| rest.split_once('\''))
@@ -422,6 +434,7 @@ fn print_rsc_log(session: &Session, context: &str) {
 /// same-origin document: `evaluate` awaits promises, so the fetch resolves
 /// before the reply comes back and the run needs no HTTP client of its own.
 /// Asserts the `/api/coverage` contract on the way: 200, never cached.
+#[must_use]
 pub fn server_coverage(session: &Session, output: &Path) -> (String, usize) {
     let probe = fetch_probe(session, "/api/coverage", &[]);
     assert_eq!(probe.status, 200, "/api/coverage status");
@@ -509,6 +522,7 @@ fn settle(session: &Session, base: &str, action: &str, from: &str, to: &str, wha
 /// `innerText`: a page animating in from `opacity: 0` makes `innerText` — which
 /// is layout-aware — return nothing for content the entrance has not revealed
 /// yet.
+#[must_use]
 pub fn strings(session: &Session, selector: &str) -> Vec<String> {
     session
         .eval(&format!(
@@ -523,6 +537,7 @@ pub fn strings(session: &Session, selector: &str) -> Vec<String> {
 }
 
 /// The first of `strings`, panicking when nothing matches.
+#[must_use]
 pub fn text(session: &Session, selector: &str) -> String {
     strings(session, selector)
         .into_iter()

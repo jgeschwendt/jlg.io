@@ -34,6 +34,8 @@ use tungstenite::{Message, WebSocket};
 
 const TIMEOUT: Duration = Duration::from_secs(20);
 
+/// The CDP connection that holds the bypass; dropping it lifts the bypass.
+#[derive(Debug)]
 pub struct Bypass {
     next_id: u64,
     socket: WebSocket<MaybeTlsStream<TcpStream>>,
