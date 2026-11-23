@@ -14,14 +14,16 @@ use std::time::{Duration, Instant};
 /// Host is not an allowed dev origin with a 403, which starves the page of its
 /// chunks.
 pub const HOST: &str = "localhost";
+/// How long a cold `next` gets to answer `/` with a 200.
 const READY_TIMEOUT: Duration = Duration::from_secs(300);
-// How long a SIGTERM'd server gets to run its exit hooks — the bunfig-preloaded
-// coverage flush among them — before it is killed outright.
+/// How long a SIGTERM'd server gets to run its exit hooks — the bunfig-preloaded
+/// coverage flush among them — before it is killed outright.
 const STOP_GRACE: Duration = Duration::from_secs(10);
 
-/// The crate lives at `crates/harness`, so the repo root is two levels up. This
-/// is resolved at compile time rather than from the working directory because
-/// `cargo run --manifest-path` leaves the caller's cwd untouched.
+/// The crate lives at `crates/harness`, so the repo root is two levels up.
+///
+/// This is resolved at compile time rather than from the working directory
+/// because `cargo run --manifest-path` leaves the caller's cwd untouched.
 #[must_use]
 pub fn repo_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -34,6 +36,7 @@ pub fn repo_root() -> PathBuf {
 /// A `next` server process group, signalled down when dropped.
 #[derive(Debug)]
 pub struct Server {
+    /// `bun --bun next`, leader of its own process group.
     child: Child,
 }
 
@@ -109,15 +112,16 @@ impl Drop for Server {
     }
 }
 
-/// One request, read only as far as the end of the response head — status
-/// plus the raw header block, lowercased names and all as sent — with no HTTP
-/// client in the dependency set: everything else the binaries need from the
-/// network they get through the browser. Never read-to-EOF: bun's runtime
+/// One request, read only as far as the end of the response head.
+///
+/// Status plus the raw header block, lowercased names and all as sent — with no
+/// HTTP client in the dependency set: everything else the binaries need from
+/// the network they get through the browser. Never read-to-EOF: bun's runtime
 /// serves the whole response and then holds the socket open despite
 /// `Connection: close`, so waiting for EOF times out against every
 /// `bun --bun next` server while node's closes promptly.
 /// (observed 2026-08-18 · resume-pdf's `next start` answered instantly but
-/// the readiness wait timed out at 300s reading to EOF)
+/// the readiness wait timed out at 300s reading to EOF).
 #[must_use]
 pub fn get_head(port: u16, path: &str, headers: &[(&str, &str)]) -> Option<(u16, String)> {
     let mut stream = TcpStream::connect((HOST, port)).ok()?;

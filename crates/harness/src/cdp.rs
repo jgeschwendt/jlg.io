@@ -14,7 +14,7 @@
 //! armed unconditionally anyway: the dev grant is incidental to a policy the
 //! app owns for its own reasons, and a coverage run that silently depends on it
 //! would break on the day it is tightened. (verified 2026-08-18 · the dev
-//! server's response header carries `'unsafe-eval'`, `next start`'s does not)
+//! server's response header carries `'unsafe-eval'`, `next start`'s does not).
 //!
 //! The same attach registers `kit::COVERAGE_STASH` on each target, which files
 //! a document's client counters before a full page load discards them.
@@ -32,12 +32,15 @@ use std::time::Duration;
 use tungstenite::stream::MaybeTlsStream;
 use tungstenite::{Message, WebSocket};
 
+/// How long a CDP read may block before the command fails.
 const TIMEOUT: Duration = Duration::from_secs(20);
 
 /// The CDP connection that holds the bypass; dropping it lifts the bypass.
 #[derive(Debug)]
 pub struct Bypass {
+    /// The next command id; a reply is matched to its command by it.
     next_id: u64,
+    /// The browser-level CDP WebSocket: the bypass lasts as long as it does.
     socket: WebSocket<MaybeTlsStream<TcpStream>>,
 }
 
