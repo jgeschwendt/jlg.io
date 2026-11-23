@@ -67,7 +67,7 @@ impl Bypass {
         // is perfectly healthy, because nothing executes.
         // (observed 2026-08-18 · the ci prod-gate hunt: runs failed or passed
         // by coin flip until the shell autopsy showed healthy fetch bodies)
-        let targets = bypass.command("Target.getTargets", json!({}), None)?;
+        let targets = bypass.command("Target.getTargets", &json!({}), None)?;
         let target_ids: Vec<String> = targets["targetInfos"]
             .as_array()
             .ok_or("Target.getTargets returned no targetInfos")?
@@ -82,7 +82,7 @@ impl Bypass {
         for target_id in &target_ids {
             let attached = bypass.command(
                 "Target.attachToTarget",
-                json!({ "flatten": true, "targetId": target_id }),
+                &json!({ "flatten": true, "targetId": target_id }),
                 None,
             )?;
             let session = attached["sessionId"]
@@ -97,7 +97,7 @@ impl Bypass {
                     json!({ "source": COVERAGE_STASH }),
                 ),
             ] {
-                bypass.command(method, params, Some(session))?;
+                bypass.command(method, &params, Some(session))?;
             }
         }
         println!(
@@ -114,7 +114,7 @@ impl Bypass {
     fn command(
         &mut self,
         method: &str,
-        params: Value,
+        params: &Value,
         session: Option<&str>,
     ) -> Result<Value, String> {
         let id = self.next_id;
