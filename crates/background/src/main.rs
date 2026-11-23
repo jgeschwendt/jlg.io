@@ -4,13 +4,10 @@ mod pointer;
 
 use bevy::{
     asset::embedded_asset,
-    camera::{CompositingSpace, RenderTarget, visibility::RenderLayers},
+    camera::{RenderTarget, visibility::RenderLayers},
     image::ImageSampler,
     prelude::*,
-    render::{
-        render_resource::{AsBindGroup, ShaderType, TextureFormat},
-        view::Msaa,
-    },
+    render::render_resource::{AsBindGroup, ShaderType, TextureFormat},
     shader::ShaderRef,
     sprite_render::{Material2d, Material2dPlugin},
 };
