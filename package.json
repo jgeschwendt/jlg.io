@@ -48,7 +48,7 @@
     "istanbul-lib-coverage": "3.2.2",
     "istanbul-lib-report": "3.0.1",
     "istanbul-reports": "3.2.0",
-    "oxlint": "1.94.0",
+    "oxlint": "1.95.0",
     "oxlint-tsgolint": "7.0.2008",
     "postcss": "8.5.33",
     "swc-plugin-coverage-instrument": "0.0.33",
