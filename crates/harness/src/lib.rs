@@ -30,6 +30,7 @@ static SEQ: AtomicU64 = AtomicU64::new(0);
 
 /// Why a `Session` call failed.
 #[derive(Debug)]
+#[non_exhaustive]
 pub enum Error {
     /// `agent-browser` could not be spawned, or exited unsuccessfully.
     Daemon(String),
@@ -79,25 +80,29 @@ pub struct Session {
 }
 
 impl Session {
-    /// Connects to an existing daemon for `name`, spawning one if the socket
-    /// does not answer. A killed daemon leaves its `.sock` file behind, so
-    /// "the file exists" is not evidence of a live session — only a successful
-    /// `connect` is.
-    pub fn ensure(name: &str) -> Result<Self, Error> {
-        let session = Self {
-            name: name.to_owned(),
-            socket: socket_path(name),
-        };
-        if UnixStream::connect(&session.socket).is_err() {
-            session.bootstrap()?;
-        }
-        Ok(session)
-    }
-
     /// One step back through the session history. A client-side route pop, not
     /// a reload, when the router owns the entry — callers assert which.
     pub fn back(&self) -> Result<(), Error> {
         self.send("back", json!({})).map(|_| ())
+    }
+
+    /// `open about:blank` is the cheapest command that forces the daemon and
+    /// its browser into existence; it blocks until both are up, which is what
+    /// makes the very next socket connect safe.
+    fn bootstrap(&self) -> Result<(), Error> {
+        // `agent-browser` is whatever PATH resolves; CI's `bun add -g` puts it in
+        // `~/.bun/bin`. `AGENT_BROWSER_BIN` is the escape hatch for running the
+        // binary from somewhere else.
+        let status = Command::new(
+            env::var("AGENT_BROWSER_BIN").unwrap_or_else(|_| "agent-browser".to_owned()),
+        )
+        .args(["--session", &self.name, "open", "about:blank"])
+        .status()
+        .map_err(|error| Error::Daemon(format!("spawn agent-browser: {error}")))?;
+        if !status.success() {
+            return Err(Error::Daemon(format!("agent-browser open exited {status}")));
+        }
+        Ok(())
     }
 
     /// The browser-level CDP endpoint, which is what `Target.*` and a flat
@@ -110,6 +115,28 @@ impl Session {
     /// files vanish with it, so nothing else may be sharing the session name.
     pub fn close(&self) -> Result<(), Error> {
         self.send("close", json!({})).map(|_| ())
+    }
+
+    /// Connects to an existing daemon for `name`, spawning one if the socket
+    /// does not answer. A killed daemon leaves its `.sock` file behind, so
+    /// "the file exists" is not evidence of a live session — only a successful
+    /// `connect` is.
+    pub fn ensure(name: &str) -> Result<Self, Error> {
+        let dir = env::var_os("AGENT_BROWSER_SOCKET_DIR")
+            .map(PathBuf::from)
+            .or_else(|| {
+                env::var_os("XDG_RUNTIME_DIR").map(|dir| PathBuf::from(dir).join("agent-browser"))
+            })
+            .or_else(|| env::var_os("HOME").map(|home| PathBuf::from(home).join(".agent-browser")))
+            .unwrap_or_else(|| PathBuf::from(".agent-browser"));
+        let session = Self {
+            name: name.to_owned(),
+            socket: dir.join(format!("{name}.sock")),
+        };
+        if UnixStream::connect(&session.socket).is_err() {
+            session.bootstrap()?;
+        }
+        Ok(session)
     }
 
     /// Values come back structurally (`returnByValue`) and promises are awaited
@@ -133,25 +160,6 @@ impl Session {
     /// on unless told otherwise.
     pub fn pdf(&self, path: &str) -> Result<(), Error> {
         self.send("pdf", json!({ "path": path })).map(|_| ())
-    }
-
-    /// The current page's `document.title`.
-    pub fn title(&self) -> Result<String, Error> {
-        string(&self.send("title", json!({}))?, "title")
-    }
-
-    /// `open about:blank` is the cheapest command that forces the daemon and
-    /// its browser into existence; it blocks until both are up, which is what
-    /// makes the very next socket connect safe.
-    fn bootstrap(&self) -> Result<(), Error> {
-        let status = Command::new(binary())
-            .args(["--session", &self.name, "open", "about:blank"])
-            .status()
-            .map_err(|error| Error::Daemon(format!("spawn agent-browser: {error}")))?;
-        if !status.success() {
-            return Err(Error::Daemon(format!("agent-browser open exited {status}")));
-        }
-        Ok(())
     }
 
     /// One connection per request. The daemon speaks newline-delimited JSON and
@@ -195,13 +203,11 @@ impl Session {
             }
         }
     }
-}
 
-/// `agent-browser` is whatever PATH resolves; CI's `bun add -g` puts it in
-/// `~/.bun/bin`. `AGENT_BROWSER_BIN` is the escape hatch for running the binary
-/// from somewhere else.
-fn binary() -> String {
-    env::var("AGENT_BROWSER_BIN").unwrap_or_else(|_| "agent-browser".to_owned())
+    /// The current page's `document.title`.
+    pub fn title(&self) -> Result<String, Error> {
+        string(&self.send("title", json!({}))?, "title")
+    }
 }
 
 /// Every reply nests its payload under `data.<key>` alongside a `lifecycle`
@@ -212,24 +218,15 @@ fn field(data: &Value, key: &str) -> Result<Value, Error> {
         .ok_or_else(|| Error::Protocol(format!("missing data.{key} in {data}")))
 }
 
-fn socket_path(name: &str) -> PathBuf {
-    let dir = env::var_os("AGENT_BROWSER_SOCKET_DIR")
-        .map(PathBuf::from)
-        .or_else(|| {
-            env::var_os("XDG_RUNTIME_DIR").map(|dir| PathBuf::from(dir).join("agent-browser"))
-        })
-        .or_else(|| env::var_os("HOME").map(|home| PathBuf::from(home).join(".agent-browser")))
-        .unwrap_or_else(|| PathBuf::from(".agent-browser"));
-    dir.join(format!("{name}.sock"))
-}
-
 /// `field`, which must hold a string.
 fn string(data: &Value, key: &str) -> Result<String, Error> {
-    match field(data, key)? {
-        Value::String(text) => Ok(text),
-        other => Err(Error::Protocol(format!(
-            "data.{key} is not a string: {other}"
-        ))),
+    let value = field(data, key)?;
+    if let Value::String(text) = value {
+        Ok(text)
+    } else {
+        Err(Error::Protocol(format!(
+            "data.{key} is not a string: {value}"
+        )))
     }
 }
 
@@ -237,17 +234,13 @@ fn string(data: &Value, key: &str) -> Result<String, Error> {
 /// is an empty read: the daemon accepted the connection and closed it without
 /// answering, which it does while it is still coming up.
 fn transient(error: &Error) -> bool {
-    match error {
-        Error::Daemon(_) => false,
-        Error::Io(io) => matches!(
-            io.kind(),
-            ErrorKind::BrokenPipe
-                | ErrorKind::ConnectionReset
-                | ErrorKind::UnexpectedEof
-                | ErrorKind::WouldBlock
-        ),
-        Error::Protocol(message) => message.contains("line 1 column 0"),
-    }
+    matches!(error, Error::Io(io) if matches!(
+        io.kind(),
+        ErrorKind::BrokenPipe
+            | ErrorKind::ConnectionReset
+            | ErrorKind::UnexpectedEof
+            | ErrorKind::WouldBlock
+    )) || matches!(error, Error::Protocol(message) if message.contains("line 1 column 0"))
 }
 
 /// Nobody is listening: either the socket file is gone, or it is a stale one
