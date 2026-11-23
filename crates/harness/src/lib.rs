@@ -12,7 +12,7 @@ pub mod server;
 
 use serde::Deserialize;
 use serde_json::{Value, json};
-use std::io::{self, BufRead, BufReader, ErrorKind, Write};
+use std::io::{self, BufRead as _, BufReader, ErrorKind, Write as _};
 use std::os::unix::net::UnixStream;
 use std::path::PathBuf;
 use std::process::{self, Command};

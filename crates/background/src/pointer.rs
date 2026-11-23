@@ -45,7 +45,7 @@ mod platform {
     use core::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 
     use bevy::prelude::*;
-    use wasm_bindgen::{JsCast, closure::Closure};
+    use wasm_bindgen::{JsCast as _, closure::Closure};
     use web_sys::{AddEventListenerOptions, MouseEvent};
 
     use super::Pointer;

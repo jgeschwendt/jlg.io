@@ -2,9 +2,9 @@
 //! takes it down with it: every check in the binaries panics, and a panic
 //! unwinds through `main`'s locals.
 
-use std::io::{Read, Write};
+use std::io::{Read as _, Write as _};
 use std::net::TcpStream;
-use std::os::unix::process::CommandExt;
+use std::os::unix::process::CommandExt as _;
 use std::path::{Path, PathBuf};
 use std::process::{Child, Command, Stdio};
 use std::thread;
