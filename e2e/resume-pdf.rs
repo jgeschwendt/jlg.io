@@ -2,6 +2,7 @@
 //! `Session::pdf`'s defaults.
 
 use harness::Session;
+use harness::kit::goto;
 use harness::server::{HOST, Server, repo_root};
 
 // Not coverage's 3200: these binaries may run back to back, and a stray server
@@ -13,7 +14,7 @@ fn main() {
     let server = Server::start("start", &[], PORT);
 
     let session = Session::ensure(SESSION).expect("agent-browser session");
-    harness::kit::goto(&session, &format!("http://{HOST}:{PORT}/resume"));
+    goto(&session, &format!("http://{HOST}:{PORT}/resume"));
 
     // The PDF embeds whatever glyphs are loaded at print time; an unresolved
     // webfont silently falls back in the output.

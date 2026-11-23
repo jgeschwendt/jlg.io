@@ -12,12 +12,13 @@ pub mod server;
 
 use serde::Deserialize;
 use serde_json::{Value, json};
-use std::io::{BufRead, BufReader, Write};
+use std::io::{self, BufRead, BufReader, ErrorKind, Write};
 use std::os::unix::net::UnixStream;
 use std::path::PathBuf;
-use std::process::Command;
+use std::process::{self, Command};
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::Duration;
+use std::{env, error, fmt, thread};
 
 const MAX_ATTEMPTS: u32 = 5;
 const RETRY_STEP: Duration = Duration::from_millis(200);
@@ -27,12 +28,12 @@ static SEQ: AtomicU64 = AtomicU64::new(0);
 #[derive(Debug)]
 pub enum Error {
     Daemon(String),
-    Io(std::io::Error),
+    Io(io::Error),
     Protocol(String),
 }
 
-impl std::fmt::Display for Error {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Error::Daemon(m) => write!(f, "daemon: {m}"),
             Error::Io(e) => write!(f, "io: {e}"),
@@ -41,10 +42,10 @@ impl std::fmt::Display for Error {
     }
 }
 
-impl std::error::Error for Error {}
+impl error::Error for Error {}
 
-impl From<std::io::Error> for Error {
-    fn from(e: std::io::Error) -> Self {
+impl From<io::Error> for Error {
+    fn from(e: io::Error) -> Self {
         Error::Io(e)
     }
 }
@@ -154,12 +155,7 @@ impl Session {
     /// a moment ago can be unreachable on the next call).
     fn send(&self, action: &str, mut request: Value) -> Result<Value, Error> {
         request["action"] = action.into();
-        request["id"] = format!(
-            "{}-{}",
-            std::process::id(),
-            SEQ.fetch_add(1, Ordering::Relaxed)
-        )
-        .into();
+        request["id"] = format!("{}-{}", process::id(), SEQ.fetch_add(1, Ordering::Relaxed)).into();
 
         let mut respawned = false;
         let mut attempt = 1;
@@ -176,7 +172,7 @@ impl Session {
                     self.bootstrap()?;
                 }
                 Err(e) if transient(&e) && attempt < MAX_ATTEMPTS => {
-                    std::thread::sleep(RETRY_STEP * attempt);
+                    thread::sleep(RETRY_STEP * attempt);
                     attempt += 1;
                 }
                 Err(e) => return Err(e),
@@ -190,7 +186,7 @@ impl Session {
 /// bun. `AGENT_BROWSER_BIN` is the escape hatch for running the binary from
 /// somewhere else.
 fn binary() -> String {
-    std::env::var("AGENT_BROWSER_BIN").unwrap_or_else(|_| "agent-browser".to_string())
+    env::var("AGENT_BROWSER_BIN").unwrap_or_else(|_| "agent-browser".to_string())
 }
 
 /// Every reply nests its payload under `data.<key>` alongside a `lifecycle`
@@ -202,12 +198,10 @@ fn field(data: &Value, key: &str) -> Result<Value, Error> {
 }
 
 fn socket_path(name: &str) -> PathBuf {
-    let dir = std::env::var_os("AGENT_BROWSER_SOCKET_DIR")
+    let dir = env::var_os("AGENT_BROWSER_SOCKET_DIR")
         .map(PathBuf::from)
-        .or_else(|| {
-            std::env::var_os("XDG_RUNTIME_DIR").map(|d| PathBuf::from(d).join("agent-browser"))
-        })
-        .or_else(|| std::env::var_os("HOME").map(|h| PathBuf::from(h).join(".agent-browser")))
+        .or_else(|| env::var_os("XDG_RUNTIME_DIR").map(|d| PathBuf::from(d).join("agent-browser")))
+        .or_else(|| env::var_os("HOME").map(|h| PathBuf::from(h).join(".agent-browser")))
         .unwrap_or_else(|| PathBuf::from(".agent-browser"));
     dir.join(format!("{name}.sock"))
 }
@@ -229,10 +223,10 @@ fn transient(e: &Error) -> bool {
         Error::Daemon(_) => false,
         Error::Io(io) => matches!(
             io.kind(),
-            std::io::ErrorKind::BrokenPipe
-                | std::io::ErrorKind::ConnectionReset
-                | std::io::ErrorKind::UnexpectedEof
-                | std::io::ErrorKind::WouldBlock
+            ErrorKind::BrokenPipe
+                | ErrorKind::ConnectionReset
+                | ErrorKind::UnexpectedEof
+                | ErrorKind::WouldBlock
         ),
         Error::Protocol(m) => m.contains("line 1 column 0"),
     }
@@ -246,7 +240,7 @@ fn unreachable(e: &Error) -> bool {
         Error::Io(io)
             if matches!(
                 io.kind(),
-                std::io::ErrorKind::ConnectionRefused | std::io::ErrorKind::NotFound
+                ErrorKind::ConnectionRefused | ErrorKind::NotFound
             )
     )
 }
