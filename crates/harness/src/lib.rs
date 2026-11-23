@@ -20,9 +20,12 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::Duration;
 use std::{env, error, fmt, thread};
 
+/// Tries per request against transient socket faults.
 const MAX_ATTEMPTS: u32 = 5;
+/// The linear backoff step: attempt n sleeps n times this.
 const RETRY_STEP: Duration = Duration::from_millis(200);
 
+/// Request ids, unique across processes behind the pid prefix.
 static SEQ: AtomicU64 = AtomicU64::new(0);
 
 /// Why a `Session` call failed.
@@ -54,18 +57,24 @@ impl From<io::Error> for Error {
     }
 }
 
+/// One newline-delimited JSON answer from the daemon.
 #[derive(Deserialize)]
 struct Reply {
+    /// The payload, `Null` when the daemon sends none.
     #[serde(default)]
     data: Value,
+    /// Why the action failed, when the daemon says.
     error: Option<String>,
+    /// Whether the action succeeded; `data` is meaningful only when it did.
     success: bool,
 }
 
 /// One named `agent-browser` session, reached over the daemon's Unix socket.
 #[derive(Debug)]
 pub struct Session {
+    /// The `--session` the daemon runs under.
     name: String,
+    /// The daemon's Unix socket for `name`.
     socket: PathBuf,
 }
 
@@ -214,6 +223,7 @@ fn socket_path(name: &str) -> PathBuf {
     dir.join(format!("{name}.sock"))
 }
 
+/// `field`, which must hold a string.
 fn string(data: &Value, key: &str) -> Result<String, Error> {
     match field(data, key)? {
         Value::String(text) => Ok(text),

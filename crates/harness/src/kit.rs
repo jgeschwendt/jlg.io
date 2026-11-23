@@ -1,9 +1,11 @@
-//! Building blocks for a coverage-collecting e2e suite: interaction primitives
-//! that prove they stayed client-side, response-layer probes over in-page
-//! fetch, and the Istanbul harvest/write path `scripts/coverage-report.ts`
-//! consumes. Everything here panics on failure — these compose into suite
-//! binaries whose unwinding is what takes the owned `Server` down (see
-//! `server.rs`), not into a library API that reports errors upward.
+//! Building blocks for a coverage-collecting e2e suite.
+//!
+//! Interaction primitives that prove they stayed client-side, response-layer
+//! probes over in-page fetch, and the Istanbul harvest/write path
+//! `scripts/coverage-report.ts` consumes. Everything here panics on failure —
+//! these compose into suite binaries whose unwinding is what takes the owned
+//! `Server` down (see `server.rs`), not into a library API that reports errors
+//! upward.
 //!
 //! What deliberately does NOT live here: the route assertions themselves. A
 //! suite's `main.rs` staying plain, repo-specific Rust is the design — the
@@ -16,8 +18,8 @@ use std::path::Path;
 use std::time::{Duration, Instant};
 use std::{env, fs, thread};
 
-// Zeroes every counter in `live` — one source for the stash and the harvest,
-// which must agree on it or a hit is reported twice.
+/// Zeroes every counter in `live` — one source for the stash and the harvest,
+/// which must agree on it or a hit is reported twice.
 macro_rules! zero_live {
     () => {
         "for (const file of Object.values(live)) { \
@@ -33,7 +35,7 @@ macro_rules! zero_live {
 /// `sessionStorage`, which survives a same-origin load, and zeroes the live
 /// counters so a back-forward-cache restore does not count them twice.
 /// (observed 2026-10-08 · a race-degraded Close click lost `main.tsx`'s
-/// return-visit branch; the run before it, race-free, had covered it)
+/// return-visit branch; the run before it, race-free, had covered it).
 pub(crate) const COVERAGE_STASH: &str = concat!(
     "addEventListener('pagehide', () => { \
      const live = window.__coverage__; if (!live) return; \
@@ -43,6 +45,7 @@ pub(crate) const COVERAGE_STASH: &str = concat!(
     " });"
 );
 
+/// Sums the stash and the live map into one JSON map, then empties both.
 const HARVEST: &str = concat!(
     "(() => { \
      const maps = JSON.parse(sessionStorage.getItem('__harness_coverage') ?? '[]'); \
@@ -61,13 +64,13 @@ const HARVEST: &str = concat!(
     " return JSON.stringify(merged); })()"
 );
 
-// Every `poll`'s deadline.
+/// Every `poll`'s deadline.
 const POLL_TIMEOUT: Duration = Duration::from_secs(30);
 
-// Reads the tap's buffer out of `sessionStorage`, empties it, and reports how
-// the CURRENT document was entered — after a full-load fallback that is the new
-// document, whose navigation type ("navigate" for a link the router let through
-// to the browser, "reload" for a genuine reload) separates the two stories.
+/// Reads the tap's buffer out of `sessionStorage`, empties it, and reports how
+/// the CURRENT document was entered — after a full-load fallback that is the new
+/// document, whose navigation type ("navigate" for a link the router let through
+/// to the browser, "reload" for a genuine reload) separates the two stories.
 const RSC_DRAIN: &str = "(() => { const KEY = '__harness_rsc'; let log = []; \
      try { log = JSON.parse(sessionStorage.getItem(KEY) || '[]'); } catch (e) {} \
      try { sessionStorage.removeItem(KEY); } catch (e) {} \
@@ -75,20 +78,20 @@ const RSC_DRAIN: &str = "(() => { const KEY = '__harness_rsc'; let log = []; \
      return { entries: log, navigation: nav ? nav.type : null, \
        tapped: Boolean(window.__harness_rsc_tapped) }; })()";
 
-// Wraps `window.fetch` for the rest of the document's life so every App Router
-// RSC fetch, prefetches included, leaves evidence that OUTLIVES the page. A
-// `<Link>` click degrades to a full page load when the RSC fetch for the target
-// does not come back as an RSC payload — a non-`text/x-component` content type, an error
-// page, a cross-origin redirect, a build/deployment-id mismatch — and the
-// reload that follows wipes the page before anything can be asked about it.
-// The record goes to `sessionStorage`, not a `window` property — the one place
-// a record written before a full page load can still be read after it, so
-// `print_rsc_log` reads it out of the NEW document; and it is
-// per-origin-per-tab, so a run never reads another's entries. Same-origin
-// responses hide no headers, so the Vercel routing trail (`x-vercel-id`,
-// `x-vercel-cache`, `x-matched-path`, any `x-nextjs-*`) comes back alongside
-// the status. Idempotent per document via `window.__harness_rsc_tapped`;
-// diagnostics only, and a rejected fetch is re-thrown untouched.
+/// Wraps `window.fetch` for the rest of the document's life so every App Router
+/// RSC fetch, prefetches included, leaves evidence that OUTLIVES the page. A
+/// `<Link>` click degrades to a full page load when the RSC fetch for the target
+/// does not come back as an RSC payload — a non-`text/x-component` content type, an error
+/// page, a cross-origin redirect, a build/deployment-id mismatch — and the
+/// reload that follows wipes the page before anything can be asked about it.
+/// The record goes to `sessionStorage`, not a `window` property — the one place
+/// a record written before a full page load can still be read after it, so
+/// `print_rsc_log` reads it out of the NEW document; and it is
+/// per-origin-per-tab, so a run never reads another's entries. Same-origin
+/// responses hide no headers, so the Vercel routing trail (`x-vercel-id`,
+/// `x-vercel-cache`, `x-matched-path`, any `x-nextjs-*`) comes back alongside
+/// the status. Idempotent per document via `window.__harness_rsc_tapped`;
+/// diagnostics only, and a rejected fetch is re-thrown untouched.
 const RSC_TAP: &str = "(() => { \
      if (window.__harness_rsc_tapped) return false; \
      window.__harness_rsc_tapped = true; \
@@ -175,19 +178,22 @@ pub fn back_until(session: &Session, path: &str) {
     }
 }
 
-/// The origin a run drives instead of one it started itself: `--base <url>` or
-/// `--base=<url>` on the command line, else `HARNESS_BASE`. `None` is the
-/// default and means the suite owns its own `Server`. One trailing `/` comes
-/// off so `{base}/path` composes the same way either answer arrives.
+/// The origin a run drives instead of one it started itself.
+///
+/// `--base <url>` or `--base=<url>` on the command line, else `HARNESS_BASE`.
+/// `None` is the default and means the suite owns its own `Server`. One
+/// trailing `/` comes off so `{base}/path` composes the same way either answer
+/// arrives.
 #[must_use]
 pub fn base_url() -> Option<String> {
     flag("base", "HARNESS_BASE").map(|url| url.strip_suffix('/').unwrap_or(&url).to_owned())
 }
 
-/// Clicks `selector` until the location settles on `to`. `HTMLElement.click`
-/// dispatches an untrusted event, which React's synthetic handlers accept and
-/// next/link's `preventDefault` still fires on — so this is a genuine
-/// client-side navigation, not a disguised `location.assign`.
+/// Clicks `selector` until the location settles on `to`.
+///
+/// `HTMLElement.click` dispatches an untrusted event, which React's synthetic
+/// handlers accept and next/link's `preventDefault` still fires on — so this is
+/// a genuine client-side navigation, not a disguised `location.assign`.
 pub fn click_until(session: &Session, base: &str, selector: &str, from: &str, to: &str) {
     let action = format!("document.querySelector('{selector}')?.click(); ");
     settle(session, base, &action, from, to, selector);
@@ -209,11 +215,13 @@ pub fn dump(session: &Session, context: &str) {
     println!("[harness] dump ({context}): {state}");
 }
 
-/// One same-origin fetch, reported whole. `evaluate` awaits the promise and
-/// returns by value, so the status, the headers a suite asserts, and the body
-/// come back in a single round trip — and a same-origin `Response` hides
-/// nothing but `Set-Cookie`. `headers` are for routes whose behavior a request
-/// header selects, embedded as JSON string literals.
+/// One same-origin fetch, reported whole.
+///
+/// `evaluate` awaits the promise and returns by value, so the status, the
+/// headers a suite asserts, and the body come back in a single round trip — and
+/// a same-origin `Response` hides nothing but `Set-Cookie`. `headers` are for
+/// routes whose behavior a request header selects, embedded as JSON string
+/// literals.
 #[must_use]
 pub fn fetch_probe(session: &Session, path: &str, headers: &[(&str, &str)]) -> FetchProbe {
     let headers: Value = headers.iter().copied().collect();
@@ -245,16 +253,18 @@ fn flag(name: &str, var: &str) -> Option<String> {
     value
 }
 
-/// A hard navigation that trusts nothing: not the daemon's load wait (against
-/// an instant server the load event can fire before the daemon's listener is
-/// armed, returning mid-document-swap), and not the rendered document either —
-/// settle on `url` with a complete document, then retry with the evidence
-/// printed if Next's `<html id="__next_error__">` shell answered; a persistent
-/// failure still exhausts the attempts. The one shell outbreak investigated so
-/// far was a harness bug (the CSP bypass armed on the wrong page target — see
-/// `cdp.rs`), so a recurrence showing up here deserves suspicion of the
-/// tooling before the app. (reconciled 2026-08-18 · PR #570: healthy fetch
-/// bodies alongside shell navigations ruled the server out)
+/// A hard navigation that trusts nothing.
+///
+/// Not the daemon's load wait (against an instant server the load event can
+/// fire before the daemon's listener is armed, returning mid-document-swap),
+/// and not the rendered document either — settle on `url` with a complete
+/// document, then retry with the evidence printed if Next's
+/// `<html id="__next_error__">` shell answered; a persistent failure still
+/// exhausts the attempts. The one shell outbreak investigated so far was a harness bug
+/// (the CSP bypass armed on the wrong page target — see `cdp.rs`), so a
+/// recurrence showing up here deserves suspicion of the tooling before the app.
+/// (reconciled 2026-08-18 · PR #570: healthy fetch bodies alongside shell
+/// navigations ruled the server out).
 pub fn goto(session: &Session, url: &str) {
     const ATTEMPTS: u32 = 5;
 
@@ -311,10 +321,11 @@ pub fn goto(session: &Session, url: &str) {
     panic!("{url} served the __next_error__ shell across {ATTEMPTS} attempts");
 }
 
-/// Every client counter since the last harvest — the live map plus whatever
-/// `COVERAGE_STASH` filed from documents a load replaced — summed into one map
-/// and, when it maps any file, written under `output`. The stash is cleared and
-/// the live counters zeroed, so no hit is ever reported twice.
+/// Every client counter since the last harvest, summed into one map.
+///
+/// The live map plus whatever `COVERAGE_STASH` filed from documents a load
+/// replaced, written under `output` when it maps any file. The stash is cleared
+/// and the live counters zeroed, so no hit is ever reported twice.
 #[must_use]
 pub fn harvest(session: &Session, output: &Path, label: &str) -> (String, usize) {
     let raw = session.eval(HARVEST).expect("read window.__coverage__");
@@ -431,9 +442,11 @@ fn print_rsc_log(session: &Session, context: &str) {
 }
 
 /// The server's cumulative map, read while the browser is still on a
-/// same-origin document: `evaluate` awaits promises, so the fetch resolves
-/// before the reply comes back and the run needs no HTTP client of its own.
-/// Asserts the `/api/coverage` contract on the way: 200, never cached.
+/// same-origin document.
+///
+/// `evaluate` awaits promises, so the fetch resolves before the reply comes
+/// back and the run needs no HTTP client of its own. Asserts the
+/// `/api/coverage` contract on the way: 200, never cached.
 #[must_use]
 pub fn server_coverage(session: &Session, output: &Path) -> (String, usize) {
     let probe = fetch_probe(session, "/api/coverage", &[]);
@@ -464,7 +477,7 @@ pub fn server_coverage(session: &Session, output: &Path) -> (String, usize) {
 /// environmental, not an app regression, and only ever seen on a cold CI
 /// runner where nothing is precompiled. Each retry returns to `from`, waits
 /// for hydration, and reruns the interaction; a genuine regression fails every
-/// attempt. (observed 2026-08-18 · runs 32166774728, 32167373217)
+/// attempt. (observed 2026-08-18 · runs 32166774728, 32167373217).
 ///
 /// What the retry is up against differs by target, so the bound does too. A
 /// remote base is a deployment that may be seconds old: its first RSC fetch can
@@ -518,10 +531,11 @@ fn settle(session: &Session, base: &str, action: &str, from: &str, to: &str, wha
     );
 }
 
-/// Every `selector` match's `textContent`, trimmed. `textContent`, not
-/// `innerText`: a page animating in from `opacity: 0` makes `innerText` — which
-/// is layout-aware — return nothing for content the entrance has not revealed
-/// yet.
+/// Every `selector` match's `textContent`, trimmed.
+///
+/// `textContent`, not `innerText`: a page animating in from `opacity: 0` makes
+/// `innerText` — which is layout-aware — return nothing for content the
+/// entrance has not revealed yet.
 #[must_use]
 pub fn strings(session: &Session, selector: &str) -> Vec<String> {
     session
@@ -545,18 +559,19 @@ pub fn text(session: &Session, selector: &str) -> String {
         .unwrap_or_else(|| panic!("no element matching {selector}"))
 }
 
-/// Blocks until `selector`'s element is itself hydrated. An anchor clicked
-/// before hydration follows its own `href` — a full page load that lands on the
-/// right URL while silently discarding every counter since the last harvest,
-/// which is exactly what the `settle()` sentinel exists to catch. Waiting here
-/// turns that sentinel from a race into a pure assertion.
+/// Blocks until `selector`'s element is itself hydrated.
+///
+/// An anchor clicked before hydration follows its own `href` — a full page load
+/// that lands on the right URL while silently discarding every counter since
+/// the last harvest, which is exactly what the `settle()` sentinel exists to
+/// catch. Waiting here turns that sentinel from a race into a pure assertion.
 ///
 /// The marker is the `__reactFiber$…` key React stamps on a DOM node when it
 /// hydrates that node — not `window.next.router`, which the runtime installs
 /// BEFORE the tree hydrates: on a slow cold-compile machine the gap between the
 /// two is wide enough for a click to fall through to native navigation.
 /// (observed 2026-08-18 · run 32166774728: the router marker passed, the click
-/// full-loaded anyway on the CI runner; never seen locally)
+/// full-loaded anyway on the CI runner; never seen locally).
 pub fn wait_hydrated(session: &Session, selector: &str) {
     let script = format!(
         "(() => {{ const el = document.querySelector('{selector}'); return Boolean(el && \
