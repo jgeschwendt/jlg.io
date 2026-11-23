@@ -2,10 +2,9 @@ name: update-deps
 
 # Daily dependency refresh: `bun update --latest` off main, shipped as an
 # auto-merge PR. The required checks are the merge gate — this workflow never
-# builds or tests. Red runs are repaired on the update-deps branch by the
-# local `github-failures` routine, which watches every repo's checks. First of
-# a family — copy per repo, or lift into a reusable workflow at the second
-# adopter.
+# builds or tests. A red PR fails this run every day until it is repaired on
+# the update-deps branch: nothing repairs it unasked. First of a family, copied
+# per repo.
 #
 # The bump is deterministic shell; claude-code-action ships it (commit, push,
 # PR, auto-merge) on the Claude GitHub App's credentials. That identity is the
@@ -31,24 +30,32 @@ concurrency:
 
 permissions:
   actions: read
+  checks: read
   contents: write
   id-token: write
   pull-requests: write
+  statuses: read
 
 jobs:
   ship:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      # One open update-deps PR at a time — yesterday's red PR is being
-      # repaired, not superseded.
+      # One open update-deps PR at a time, never superseded: a pending one is
+      # left to merge, a red one fails this run every day until it is repaired
+      # on its branch.
       - id: guard
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          if [ -n "$(gh pr list -R "$GITHUB_REPOSITORY" --head update-deps --state open --json number --jq '.[].number')" ]; then
-            echo "open update-deps PR still pending — not stacking a second"
+          pr=$(gh pr list -R "$GITHUB_REPOSITORY" --head update-deps --state open --json number --jq '.[].number')
+          if [ -n "$pr" ]; then
+            echo "open update-deps PR #$pr still pending — not stacking a second"
             echo "skip=true" >> "$GITHUB_OUTPUT"
+            if gh pr checks "$pr" -R "$GITHUB_REPOSITORY" --json bucket --jq '.[].bucket' | grep -qx fail; then
+              echo "::error::update-deps PR #$pr is red: repair it on the update-deps branch"
+              exit 1
+            fi
           fi
 
       - if: steps.guard.outputs.skip != 'true'
@@ -103,6 +110,6 @@ jobs:
             4. `gh pr create --head update-deps --title "task(//): deps — daily bun update --latest"`
                with a short body: the notable version bumps read from the
                package.json diff, plus the line "Auto-merges on green; a red
-               run is repaired on this branch by the `github-failures`
-               routine."
+               PR fails the daily update-deps run until it is repaired on
+               this branch."
             5. `gh pr merge update-deps --auto --rebase`
