@@ -301,7 +301,7 @@ fn resume(session: &Session, base: &str) {
     let headings = strings(session, "h2");
     for section in ["Contact", "Education", "Experience"] {
         assert!(
-            headings.iter().any(|h| h == section),
+            headings.iter().any(|heading| heading == section),
             "no <h2> {section:?} on /resume: {headings:?}"
         );
     }
@@ -312,7 +312,7 @@ fn resume(session: &Session, base: &str) {
     assert!(
         entries
             .first()
-            .is_some_and(|h| h.starts_with("Springthrough")),
+            .is_some_and(|heading| heading.starts_with("Springthrough")),
         "Springthrough is not the first <h3> on /resume: {entries:?}"
     );
 

@@ -33,11 +33,11 @@ pub enum Error {
 }
 
 impl fmt::Display for Error {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Error::Daemon(m) => write!(f, "daemon: {m}"),
-            Error::Io(e) => write!(f, "io: {e}"),
-            Error::Protocol(m) => write!(f, "protocol: {m}"),
+            Error::Daemon(message) => write!(formatter, "daemon: {message}"),
+            Error::Io(error) => write!(formatter, "io: {error}"),
+            Error::Protocol(message) => write!(formatter, "protocol: {message}"),
         }
     }
 }
@@ -45,8 +45,8 @@ impl fmt::Display for Error {
 impl error::Error for Error {}
 
 impl From<io::Error> for Error {
-    fn from(e: io::Error) -> Self {
-        Error::Io(e)
+    fn from(error: io::Error) -> Self {
+        Error::Io(error)
     }
 }
 
@@ -131,7 +131,7 @@ impl Session {
         let status = Command::new(binary())
             .args(["--session", &self.name, "open", "about:blank"])
             .status()
-            .map_err(|e| Error::Daemon(format!("spawn agent-browser: {e}")))?;
+            .map_err(|error| Error::Daemon(format!("spawn agent-browser: {error}")))?;
         if !status.success() {
             return Err(Error::Daemon(format!("agent-browser open exited {status}")));
         }
@@ -147,7 +147,7 @@ impl Session {
 
         let mut line = String::new();
         BufReader::new(&stream).read_line(&mut line)?;
-        serde_json::from_str(&line).map_err(|e| Error::Protocol(format!("{e}: {line:?}")))
+        serde_json::from_str(&line).map_err(|error| Error::Protocol(format!("{error}: {line:?}")))
     }
 
     /// Retries transient socket faults, then re-bootstraps once if the daemon
@@ -167,15 +167,15 @@ impl Session {
                         reply.error.unwrap_or_else(|| format!("{action} failed")),
                     ));
                 }
-                Err(e) if unreachable(&e) && !respawned => {
+                Err(error) if unreachable(&error) && !respawned => {
                     respawned = true;
                     self.bootstrap()?;
                 }
-                Err(e) if transient(&e) && attempt < MAX_ATTEMPTS => {
+                Err(error) if transient(&error) && attempt < MAX_ATTEMPTS => {
                     thread::sleep(RETRY_STEP * attempt);
                     attempt += 1;
                 }
-                Err(e) => return Err(e),
+                Err(error) => return Err(error),
             }
         }
     }
@@ -200,15 +200,17 @@ fn field(data: &Value, key: &str) -> Result<Value, Error> {
 fn socket_path(name: &str) -> PathBuf {
     let dir = env::var_os("AGENT_BROWSER_SOCKET_DIR")
         .map(PathBuf::from)
-        .or_else(|| env::var_os("XDG_RUNTIME_DIR").map(|d| PathBuf::from(d).join("agent-browser")))
-        .or_else(|| env::var_os("HOME").map(|h| PathBuf::from(h).join(".agent-browser")))
+        .or_else(|| {
+            env::var_os("XDG_RUNTIME_DIR").map(|dir| PathBuf::from(dir).join("agent-browser"))
+        })
+        .or_else(|| env::var_os("HOME").map(|home| PathBuf::from(home).join(".agent-browser")))
         .unwrap_or_else(|| PathBuf::from(".agent-browser"));
     dir.join(format!("{name}.sock"))
 }
 
 fn string(data: &Value, key: &str) -> Result<String, Error> {
     match field(data, key)? {
-        Value::String(s) => Ok(s),
+        Value::String(text) => Ok(text),
         other => Err(Error::Protocol(format!(
             "data.{key} is not a string: {other}"
         ))),
@@ -218,8 +220,8 @@ fn string(data: &Value, key: &str) -> Result<String, Error> {
 /// Faults worth another attempt on the same daemon. The `line 1 column 0` case
 /// is an empty read: the daemon accepted the connection and closed it without
 /// answering, which it does while it is still coming up.
-fn transient(e: &Error) -> bool {
-    match e {
+fn transient(error: &Error) -> bool {
+    match error {
         Error::Daemon(_) => false,
         Error::Io(io) => matches!(
             io.kind(),
@@ -228,15 +230,15 @@ fn transient(e: &Error) -> bool {
                 | ErrorKind::UnexpectedEof
                 | ErrorKind::WouldBlock
         ),
-        Error::Protocol(m) => m.contains("line 1 column 0"),
+        Error::Protocol(message) => message.contains("line 1 column 0"),
     }
 }
 
 /// Nobody is listening: either the socket file is gone, or it is a stale one
 /// left by a daemon that was killed rather than closed.
-fn unreachable(e: &Error) -> bool {
+fn unreachable(error: &Error) -> bool {
     matches!(
-        e,
+        error,
         Error::Io(io)
             if matches!(
                 io.kind(),
