@@ -33,11 +33,11 @@ pub enum Error {
 }
 
 impl fmt::Display for Error {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Daemon(message) => write!(formatter, "daemon: {message}"),
-            Self::Io(error) => write!(formatter, "io: {error}"),
-            Self::Protocol(message) => write!(formatter, "protocol: {message}"),
+            Self::Daemon(message) => write!(f, "daemon: {message}"),
+            Self::Io(error) => write!(f, "io: {error}"),
+            Self::Protocol(message) => write!(f, "protocol: {message}"),
         }
     }
 }
