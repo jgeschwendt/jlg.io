@@ -45,7 +45,8 @@ impl Bypass {
     /// onto this one connection, so a single socket carries both the target
     /// lookup and the per-page commands.
     pub fn arm(cdp_url: &str) -> Result<Self, String> {
-        let (socket, _) = tungstenite::connect(cdp_url).map_err(|e| format!("connect: {e}"))?;
+        let (socket, _) =
+            tungstenite::connect(cdp_url).map_err(|error| format!("connect: {error}"))?;
         let mut bypass = Bypass { next_id: 1, socket };
 
         // A read timeout rather than a blocking read: a CDP command that never
@@ -54,7 +55,7 @@ impl Bypass {
         if let MaybeTlsStream::Plain(stream) = bypass.socket.get_mut() {
             stream
                 .set_read_timeout(Some(TIMEOUT))
-                .map_err(|e| format!("set read timeout: {e}"))?;
+                .map_err(|error| format!("set read timeout: {error}"))?;
         }
 
         // EVERY page target, not the first: which target the daemon actually
@@ -126,18 +127,18 @@ impl Bypass {
 
         self.socket
             .send(Message::text(request.to_string()))
-            .map_err(|e| format!("{method}: send: {e}"))?;
+            .map_err(|error| format!("{method}: send: {error}"))?;
 
         loop {
             let message = self
                 .socket
                 .read()
-                .map_err(|e| format!("{method}: read: {e}"))?;
+                .map_err(|error| format!("{method}: read: {error}"))?;
             let Message::Text(text) = message else {
                 continue;
             };
-            let reply: Value =
-                serde_json::from_str(&text).map_err(|e| format!("{method}: decode: {e}"))?;
+            let reply: Value = serde_json::from_str(&text)
+                .map_err(|error| format!("{method}: decode: {error}"))?;
 
             if reply["id"] != id {
                 continue;

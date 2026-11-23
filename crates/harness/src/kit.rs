@@ -194,8 +194,8 @@ pub fn dump(session: &Session, context: &str) {
             "JSON.stringify({ href: location.href, readyState: document.readyState, \
              title: document.title, html: document.documentElement.outerHTML.slice(0, 600) })",
         )
-        .map(|v| v.as_str().unwrap_or_default().to_string())
-        .unwrap_or_else(|e| format!("dump eval failed: {e}"));
+        .map(|value| value.as_str().unwrap_or_default().to_string())
+        .unwrap_or_else(|error| format!("dump eval failed: {error}"));
     println!("[harness] dump ({context}): {state}");
 }
 
@@ -215,7 +215,7 @@ pub fn fetch_probe(session: &Session, path: &str, headers: &[(&str, &str)]) -> F
            status: r.status }}))"
     );
     serde_json::from_value(session.eval(&script).expect("fetch probe"))
-        .unwrap_or_else(|e| panic!("{path} probe: {e}"))
+        .unwrap_or_else(|error| panic!("{path} probe: {error}"))
 }
 
 /// The last `--{name} <value>` or `--{name}=<value>` on the command line, else
@@ -382,7 +382,7 @@ pub fn press_keys_until(session: &Session, base: &str, keys: &[&str], from: &str
 fn print_rsc_log(session: &Session, context: &str) {
     let report = match session.eval(RSC_DRAIN) {
         Ok(report) => report,
-        Err(e) => return println!("[harness] rsc log ({context}): unavailable: {e}"),
+        Err(error) => return println!("[harness] rsc log ({context}): unavailable: {error}"),
     };
     let entries = report["entries"]
         .as_array()
@@ -478,7 +478,7 @@ fn settle(session: &Session, base: &str, action: &str, from: &str, to: &str, wha
         .unwrap_or_else(|at| panic!("{what} never reached {to} (still at {})", at[0]));
 
         if state[1] == true {
-            if env::var_os("HARNESS_DEBUG_RSC").is_some_and(|v| !v.is_empty()) {
+            if env::var_os("HARNESS_DEBUG_RSC").is_some_and(|value| !value.is_empty()) {
                 print_rsc_log(session, &format!("{what} reached {to} client-side"));
             }
             return;
@@ -546,7 +546,7 @@ pub fn wait_hydrated(session: &Session, selector: &str) {
         "(() => {{ const el = document.querySelector('{selector}'); return Boolean(el && \
          Object.keys(el).some((k) => k.startsWith('__reactFiber'))); }})()"
     );
-    poll(session, &script, "probe hydration", 250, |v| v == true)
+    poll(session, &script, "probe hydration", 250, |ok| ok == true)
         .unwrap_or_else(|_| panic!("{selector} never hydrated — no React fiber attached"));
 }
 
@@ -554,11 +554,11 @@ pub fn wait_hydrated(session: &Session, selector: &str) {
 /// client map — a route that ships no Client Components has none — so whether
 /// empty is a failure is the caller's call (`server_coverage` makes it one).
 fn write_map(output: &Path, name: &str, raw: &str) -> (String, usize) {
-    let map: Value = serde_json::from_str(raw).unwrap_or_else(|e| panic!("{name}: {e}"));
+    let map: Value = serde_json::from_str(raw).unwrap_or_else(|error| panic!("{name}: {error}"));
     let files = map.as_object().map_or(0, serde_json::Map::len);
     if files > 0 {
         let path = output.join(format!("coverage-{name}.json"));
-        fs::write(&path, raw).unwrap_or_else(|e| panic!("write {}: {e}", path.display()));
+        fs::write(&path, raw).unwrap_or_else(|error| panic!("write {}: {error}", path.display()));
     }
     (name.to_string(), files)
 }
