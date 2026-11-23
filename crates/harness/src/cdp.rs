@@ -126,8 +126,8 @@ impl Bypass {
         self.next_id += 1;
 
         let mut request = json!({ "id": id, "method": method, "params": params });
-        if let Some(session) = session {
-            request["sessionId"] = json!(session);
+        if let Some(session_id) = session {
+            request["sessionId"] = json!(session_id);
         }
 
         self.socket
@@ -160,7 +160,7 @@ impl Drop for Bypass {
     fn drop(&mut self) {
         // Best effort: the browser is about to be told to close anyway, and a
         // failure here would mask whatever actually ended the run.
-        let _ = self.socket.close(None);
-        let _ = self.socket.flush();
+        drop(self.socket.close(None));
+        drop(self.socket.flush());
     }
 }

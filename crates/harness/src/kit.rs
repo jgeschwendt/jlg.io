@@ -131,6 +131,7 @@ const RSC_TAP: &str = "(() => { \
 
 /// What `fetch_probe` read off one response; a missing header reads as empty.
 #[derive(Debug, serde::Deserialize)]
+#[non_exhaustive]
 #[serde(rename_all = "camelCase")]
 pub struct FetchProbe {
     /// The whole body, as text.
@@ -224,9 +225,9 @@ pub fn dump(session: &Session, context: &str) {
 /// literals.
 #[must_use]
 pub fn fetch_probe(session: &Session, path: &str, headers: &[(&str, &str)]) -> FetchProbe {
-    let headers: Value = headers.iter().copied().collect();
+    let json: Value = headers.iter().copied().collect();
     let script = format!(
-        "fetch('{path}', {{ cache: 'no-store', headers: {headers} }}).then(async (r) => ({{ \
+        "fetch('{path}', {{ cache: 'no-store', headers: {json} }}).then(async (r) => ({{ \
            body: await r.text(), \
            cacheControl: r.headers.get('cache-control') ?? '', \
            contentType: r.headers.get('content-type') ?? '', \
@@ -244,11 +245,11 @@ fn flag(name: &str, var: &str) -> Option<String> {
     let mut args = env::args().skip(1);
     let mut value = env::var(var).ok();
     while let Some(arg) = args.next() {
-        if arg == bare {
-            value = args.next().or(value);
-        } else if let Some(inline) = arg.strip_prefix(&prefix) {
-            value = Some(inline.to_owned());
-        }
+        value = if arg == bare {
+            args.next().or(value)
+        } else {
+            arg.strip_prefix(&prefix).map(str::to_owned).or(value)
+        };
     }
     value
 }
@@ -310,11 +311,11 @@ pub fn goto(session: &Session, url: &str) {
         );
         // Created here too: resume-pdf never makes the directory itself.
         let dir = repo_root().join(".nyc_output");
-        let _ = fs::create_dir_all(&dir);
-        let _ = fs::write(
+        drop(fs::create_dir_all(&dir));
+        drop(fs::write(
             dir.join(format!("debug-shell-attempt{attempt}.html")),
             &probe.body,
-        );
+        ));
         thread::sleep(Duration::from_millis(500));
     }
 
@@ -328,9 +329,15 @@ pub fn goto(session: &Session, url: &str) {
 /// and the live counters zeroed, so no hit is ever reported twice.
 #[must_use]
 pub fn harvest(session: &Session, output: &Path, label: &str) -> (String, usize) {
-    let raw = session.eval(HARVEST).expect("read window.__coverage__");
-    let raw = raw.as_str().expect("coverage map is a JSON string");
-    write_map(output, &format!("client-harness-{label}"), raw)
+    write_map(
+        output,
+        &format!("client-harness-{label}"),
+        session
+            .eval(HARVEST)
+            .expect("read window.__coverage__")
+            .as_str()
+            .expect("coverage map is a JSON string"),
+    )
 }
 
 /// Sets the `settle`/`back_until` sentinel and arms the RSC tap in one round
@@ -424,9 +431,11 @@ fn print_rsc_log(session: &Session, context: &str) {
             println!("[harness]   rsc {path} rejected: {error}");
             continue;
         }
-        let nextjs = match &entry["nextjs"] {
-            nextjs @ Value::Object(map) if !map.is_empty() => format!(" x-nextjs {nextjs}"),
-            _ => String::new(),
+        let headers = &entry["nextjs"];
+        let nextjs = if headers.as_object().is_some_and(|map| !map.is_empty()) {
+            format!(" x-nextjs {headers}")
+        } else {
+            String::new()
         };
         println!(
             "[harness]   rsc {path} status {} type {} content-type {:?} \

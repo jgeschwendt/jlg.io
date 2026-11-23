@@ -20,19 +20,6 @@ const READY_TIMEOUT: Duration = Duration::from_secs(300);
 /// coverage flush among them — before it is killed outright.
 const STOP_GRACE: Duration = Duration::from_secs(10);
 
-/// The crate lives at `crates/harness`, so the repo root is two levels up.
-///
-/// This is resolved at compile time rather than from the working directory
-/// because `cargo run --manifest-path` leaves the caller's cwd untouched.
-#[must_use]
-pub fn repo_root() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
-        .ancestors()
-        .nth(2)
-        .expect("crates/harness is two levels below the repo root")
-        .to_path_buf()
-}
-
 /// A `next` server process group, signalled down when dropped.
 #[derive(Debug)]
 pub struct Server {
@@ -107,8 +94,8 @@ impl Drop for Server {
                 "[harness] server {group} outlived its {STOP_GRACE:?} SIGTERM grace — killing it; exit hooks (the coverage flush) did not run"
             );
         }
-        let _ = self.child.kill();
-        let _ = self.child.wait();
+        drop(self.child.kill());
+        drop(self.child.wait());
     }
 }
 
@@ -130,7 +117,7 @@ pub fn get_head(port: u16, path: &str, headers: &[(&str, &str)]) -> Option<(u16,
         .ok()?;
     let extra: String = headers
         .iter()
-        .map(|(name, value)| format!("{name}: {value}\r\n"))
+        .map(|&(name, value)| format!("{name}: {value}\r\n"))
         .collect();
     stream
         .write_all(
@@ -141,16 +128,18 @@ pub fn get_head(port: u16, path: &str, headers: &[(&str, &str)]) -> Option<(u16,
         )
         .ok()?;
 
-    let mut head = Vec::new();
+    let mut bytes = Vec::new();
     let mut chunk = [0u8; 4096];
-    while !head.windows(4).any(|w| w == b"\r\n\r\n") {
+    while !bytes.windows(4).any(|w| w == b"\r\n\r\n") {
         match stream.read(&mut chunk).ok()? {
             0 => break,
-            read => head.extend_from_slice(&chunk[..read]),
+            read => bytes.extend(chunk.iter().take(read)),
         }
     }
-    let head = String::from_utf8_lossy(&head);
-    let head = head.split("\r\n\r\n").next()?.to_owned();
+    let head = String::from_utf8_lossy(&bytes)
+        .split("\r\n\r\n")
+        .next()?
+        .to_owned();
     let status = head.split_whitespace().nth(1)?.parse().ok()?;
     Some((status, head))
 }
@@ -162,4 +151,17 @@ pub fn header<'head>(head: &'head str, name: &str) -> Option<&'head str> {
         let (key, value) = line.split_once(':')?;
         key.trim().eq_ignore_ascii_case(name).then(|| value.trim())
     })
+}
+
+/// The crate lives at `crates/harness`, so the repo root is two levels up.
+///
+/// This is resolved at compile time rather than from the working directory
+/// because `cargo run --manifest-path` leaves the caller's cwd untouched.
+#[must_use]
+pub fn repo_root() -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR"))
+        .ancestors()
+        .nth(2)
+        .expect("crates/harness is two levels below the repo root")
+        .to_path_buf()
 }
