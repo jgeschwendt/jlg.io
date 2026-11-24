@@ -31,12 +31,13 @@ hooks {
       }
     }
   }
-  // rules/stele.md's pre-push gate: CI's lint job, run locally before the push.
+  // rules/stele.md's pre-push gate: the whole gate (mise.toml's check, CI's
+  // check and harness jobs), run locally before the push.
   // The unset keeps git's hook-exported GIT_DIR & co. out of child processes.
   ["pre-push"] {
     steps {
       ["gate"] {
-        check = "unset $(git rev-parse --local-env-vars); bun fmt --check && bun lint && bun check && stele check && stele emit --check"
+        check = "unset $(git rev-parse --local-env-vars); mise run check"
       }
     }
   }

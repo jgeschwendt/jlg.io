@@ -6,11 +6,12 @@ purpose: Personal web profile — Next 16 App Router on Bun, deployed to Vercel,
 commands:
   background:build: bun run background:build
   build: bun run build
-  check: bun check
+  check: mise run check
   dev: bun run dev
   e2e:remote: bun run e2e:remote <deployment-url>
   fmt:check: bun fmt --check
   lint: bun lint
+  typecheck: bun check
 invariants:
   - claim: FORMAT POLICY — printWidth is deliberately absent (oxfmt default 100; the repo predates the base's former 80); singleQuote comes from the @jlg/oxfmt base via defineConfig
     anchor: ※ format-policy
