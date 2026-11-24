@@ -108,9 +108,9 @@
             postcss loader binds a loopback port (EPERM, even under
             <code class="code">shift-test</code>).
             <code class="code">NEXT_FONT_GOOGLE_MOCKED_RESPONSES</code> gets past the offline Google
-            Fonts fetch but not the bind. The coverage gate is CI's; locally only
-            <code class="code">cargo fmt</code>/<code class="code">clippy</code> on
-            <code class="code">crates/harness</code> and <code class="code">e2e</code> run.
+            Fonts fetch but not the bind. There <code class="code">mise run check</code> goes red at
+            <code class="code">check:coverage</code>; a shift runs the other
+            <code class="code">check:*</code> tasks and leaves coverage to CI.
           </li>
         </ul>
       </section>
