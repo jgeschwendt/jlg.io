@@ -46,11 +46,12 @@ export default defineConfig({
         // istanbul's FileCoverageData names its hit counters s, f and b
         'id-length': ['off', { checkGeneric: false, exceptions: ['b', 'f', 's'] }],
         'import/no-nodejs-modules': 'off',
+        // RUSTUP_TOOLCHAIN is rustup's env var, not a name this repo picks. (2026-11-28)
+        'names/case': ['error', { allow: ['RUSTUP_TOOLCHAIN'] }],
         'no-await-in-loop': 'off',
         'no-console': 'off',
         'no-magic-numbers': 'off',
         'typescript/no-unsafe-type-assertion': 'off',
-        'typescript-js/naming-convention': 'off',
       },
     },
     {
@@ -60,7 +61,6 @@ export default defineConfig({
         'import/no-nodejs-modules': 'off',
         'import/unambiguous': 'off',
         'no-console': 'off',
-        'no-underscore-dangle': 'off',
         'typescript/no-require-imports': 'off',
         'typescript/no-unsafe-argument': 'off',
         'typescript/no-unsafe-assignment': 'off',
@@ -74,9 +74,8 @@ export default defineConfig({
       // `__coverage__` is the instrumenter's global, not a name this repo picks, and oxfmt strips the quotes that would exempt it. (2026-10-30)
       files: ['src/app/api/coverage/route.ts'],
       rules: {
-        'no-underscore-dangle': 'off',
+        'names/case': ['error', { allow: ['__coverage__'] }],
         'typescript/no-unsafe-type-assertion': 'off',
-        'typescript-js/naming-convention': 'off',
         'unicorn/no-null': 'off',
       },
     },
